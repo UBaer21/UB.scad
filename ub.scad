@@ -60,7 +60,6 @@ Changelog (archive at the very bottom)
 068|21 CHG Ring Add Id CHG Torus Add endRot ADD func Inch FIX Kehle end
 069|21 CHG Kehle Add Fillet
 070|21 CHG Kehle Add  dia/Fillet CHG Ring Add grad CHG help CHG Bevel Add messpunkt CHG Anordnen Add rot
-
 078|21 CHG Schnitt center bool CHG Color Add color names CHG Pfeil Add d
 079|21 CHG Gewinde Add gb
 081|21 FIX RStern n
