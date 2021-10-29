@@ -133,6 +133,7 @@ Changelog (archive at the very bottom)
 309|21 CHG Gewinde Add other FIX Zylinder fix ub CHG SBogen ADD parentList
 310|21 FIX Anschluss
 311|21 FIX Grid ub FIX v3() CHG Bezier CHG parentList CHG SBogen 
+312|21 FIX Strebe
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -188,7 +189,7 @@ helpMColor="#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.311;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.312;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -4226,10 +4227,12 @@ module WStrebe(grad=45,grad2,h=20,d=2,d2=0,rad=3,rad2=0,sc=0,angle=360,spiel=spi
 
 
 
-
 module Strebe(h=20,d=5,d2,rad=4,rad2,sc=0,grad=0,skew=0,single=false,angle=360,spiel=spiel,fn=fn,fn2=fn/4,center=false,name=$info,2D=false,help=$helpM){
     
-    rad2=is_undef(rad2)?rad:rad2;
+    rad2=is_undef(rad2)?is_list(rad)?rad[1]:
+                            rad:
+                   rad2;
+    rad=is_list(rad)?rad[0]:rad;
     d2=is_undef(d2)?d:d2;
     skew=skew?skew:tan(grad);
     grad=atan(skew);
@@ -4237,14 +4240,14 @@ module Strebe(h=20,d=5,d2,rad=4,rad2,sc=0,grad=0,skew=0,single=false,angle=360,s
     winkel=atan((single?(h-rad):(h-rad-rad2))/(d2/2-d/2));
     grad1=winkel>0?180-winkel:abs(winkel);//90;//VerbindugsWinkel unten
     grad2=180-grad1;//VerbindugsWinkel oben    
-    
+    assert(h>(rad+rad2),"Strebe too short for rad"); 
 
    if(!2D&&parent_module($parent_modules-1)!="Rundrum")  M(skew,0)Tz(center?-h/2:0)scale([sc,1,1]){
       rotate(-angle/2)rotate_extrude(angle=angle,convexity=5,$fn=fn)Strebe(skew=0,h=h,d=d,d2=d2,rad=rad,rad2=rad2,sc=1,grad=0,single=single,spiel=spiel,fn2=fn2,name=0,2D=2,help=false);
       
 
     }
-    if(name)echo(str("Strebe ",name," Neigungs ∡=",atan(skew),"° center∡",single||rad!=rad2?"<font color='red'>~":"=",winkel,"°</font> Scale=",sc," dSkew=",d,"/",d*sc*cos(grad),"-",d2,"/",d2*sc*cos(grad),"mm Parent(",$parent_modules,")=",parent_module($parent_modules-1))); 
+    if(name)echo(str("Strebe ",name," Neigungs ∡=",atan(skew),"° center∡",single||rad!=rad2?"~":"=",winkel,"° Scale=",sc," dSkew=",d,"/",d*sc*cos(grad),"-",d2,"/",d2*sc*cos(grad),"mm Parent=",parentList())); 
     
        
  
@@ -4264,12 +4267,10 @@ if (2D||parent_module($parent_modules-1)=="Rundrum")M(skewyx=skew)T(0,center?-h/
     ,convexity=5)
     ; 
 }
-    if(help){
-        echo(str("<H3><font color='",helpMColor,"' <b>Help Strebe(h=",h,",d=",d,",d2=",d2,",rad=",rad,",rad2=",rad2,",sc=",sc,",grad=",grad," skew=",skew,", single=",single,",angle=",angle,",spiel=",spiel,",fn=",fn,"fn2=",fn2,",name=",name,",2D=",2D,"(2 for halb),help=$helpM)")); 
-    }
+HelpTxt("Strebe",["h",h,"d",d,"d2",d2,"rad",rad,"rad2",rad2,"sc",sc,"grad",grad,"skew",skew,"single",single,"angle",angle,"spiel",spiel,"fn",fn,"fn2",fn2,"name",name,"2D",str(2D,"/*2 for halb*/")],help); 
+    
         
 }
-
 
 
 module Bezier(
