@@ -79,7 +79,7 @@ helpMColor="#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.312;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.313;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -520,7 +520,7 @@ if(!$preview&&version()[0]<2021) echo("<H1 style=background-color:#aaffcc;color:
 /// Tools / Modificator ///
 
 // short for translate[];
-module T(x=0,y=0,z=0)
+module T(x=0,y=0,z=0,help=$helpM)
 {
     //translate([x,y,z])children();
 if(is_list(x))
@@ -540,29 +540,32 @@ else
 
 
     MO(!$children);
+    HelpTxt("T",["x",x,"y",y,"z",z],help);
 }
 
 // short for T(z=0);
-module Tz(z=0){
+module Tz(z=0,help=$helpM){
     multmatrix([
         [1,0,0,0],
         [0,1,0,0],    
         [0,0,1,z],
         [0,0,0,1],    
         ])children();    
-    MO(!$children); 
+    MO(!$children);
+    HelpTxt("Tz",["z",z],help);
 }
 
 // short for rotate(a,v=[0,0,0])
-module R(x=0,y=0,z=0)
+module R(x=0,y=0,z=0,help=$helpM)
 {
     rotate([x,y,z])children();
     MO(!$children);
+    HelpTxt("R",["x",x,"y",y,"z",z],help);
 }
 
 
 // short for multmatrix and skewing objects
-module M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=1,scalexz=1,scaleyz=1){
+module M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=1,scalexz=1,scaleyz=1,help=$helpM){
     scalex=scale*scalexy*scalexz;
     scaley=scale*scalexy*scaleyz;
     scalez=scale*scalexz*scaleyz;    
@@ -572,11 +575,12 @@ module M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=
     [skewxz,skewyz,scalez,0],
     [0,0,0,1.0],    
     ])children(); 
-    MO(!$children); 
+    MO(!$children);
+    HelpTxt("M",["skewzx",skewzx,"skewzy",skewzy,"skewxz",skewxz,"skewxy",skewxy,"skewyz",skewyz,"skewyx",skewyx,"scale",scale,"scalexy",scalexy,"scalexz",scalexz,"scaleyz",scaleyz],help);
 }
 
 // multiply children polar (e=number, x/y=radial distance)
-module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name=$info,n){
+module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name=$info,n,help=$helpM){
     
    name=is_undef(n)?name:n;
    radius=Hypotenuse(x,y);
@@ -593,9 +597,10 @@ module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name=$info,n){
          children(); 
      }
  
- if(name)echo(str(is_string(name)?"<H3>":"",name," Polar ×",e,
+    InfoTxt("Polar",["elements",str(e,
      //"transX= ",x," transY= ",y,
-    " Radius=",radius,"mm ",re?str("rotElements=",re,"°"):"",end!=360?str(" End=",end,"°"):""," Element=",winkel,"° Abstand=",2*radius*PI/360*winkel,"mm (Sekante=",2*radius*sin(winkel/2),")"));
+    "Radius",radius,"mm ",re?str("rotElements=",re,"°"):"",end!=360?str(" End=",end,"°"):""," Element=",winkel,"° Abstand=",2*radius*PI/360*winkel,"mm (Sekante=",2*radius*sin(winkel/2),")")],name);
+    HelpTxt("Polar",["e",e,"x",x,"y",y,"r",r,"re",re,"end",end,"dr",dr,"mitte",mitte,"name",name],help);
 MO(!$children);
            
      
@@ -604,7 +609,7 @@ MO(!$children);
 
 
 // multiply children linear (e=number, es=distance)
-module Linear(e=2,es=1,s=0,x=1,y=0,z=0,r=0,re=0,center=0,cx=0,cy=0,cz=0,name=$info,n)// ordnet das Element 20× im Abstand x Linear an.. es skaliert die vektoren . cx = center x
+module Linear(e=2,es=1,s=0,x=1,y=0,z=0,r=0,re=0,center=0,cx=0,cy=0,cz=0,name=$info,n,help=$helpM)// ordnet das Element 20× im Abstand x Linear an.. es skaliert die vektoren . cx = center x
 {
 name=is_undef(n)?name:n;   
 $helpM=0;    
@@ -634,12 +639,13 @@ if(s==0&&e>0)for (i=[0:e-1])
 MO(!$children);
 
 InfoTxt("Linear länge",str((s?s:e*es)*norm([x,y,z]),"mm"),name);    
+ HelpTxt("Linear",["e",e,"es",es,"s",s,"x",x,"y",y,"z",z,"r",r,"re",re,"center",center,"cx",cx,"cy",cy,"cz",cz,"name",name],help);       
         
-         
 }
 
+
 //Clone and mirror object
-module MKlon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,mx,my,mz)
+module MKlon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,mx,my,mz,help=$helpM)
 {
     mx=is_undef(mx)?sign(abs(tx)):mx;
     my=is_undef(my)?sign(abs(ty)):my;
@@ -653,6 +659,7 @@ module MKlon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,mx,my,mz)
         $idx=1; 
 	translate([-tx,-ty,-tz])rotate([-rx,-ry,-rz])mirror([mx,my,mz]) children(); }   
     MO(!$children);
+    HelpTxt("MKlon",["tx",tx,"ty",ty,"tz",tz,"rx",rx,"ry",ry,"rz",rz,"mx",mx,"my",my,"mz",mz],help);
 
 }
 
@@ -671,7 +678,7 @@ module Mklon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,mx=0,my=0,mz=1)
 }
 
 // Clone Object
-module Klon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0){
+module Klon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,help=$helpM){
     union(){
         $idx=0;
         translate([tx,ty,tz])rotate([rx,ry,rz])children();
@@ -682,7 +689,8 @@ module Klon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0){
         $info=0;  
     translate([-tx,-ty,-tz])rotate([-rx,-ry,-rz])children();  
     }   
-    MO(!$children);    
+    MO(!$children); 
+    HelpTxt("Klon",["tx",tx,"ty",ty,"tz",tz,"rx",rx,"ry",ry,"rz",rz],help);   
 }
 
 
@@ -768,8 +776,8 @@ module Grid(e=[2,2,1],es=10,s,center=true,name=$info,help=$helpM){
 }
 
 // Grid but with alternating row offset - hex or circle packing
-module HexGrid(e=[11,4],es=5){
-    Grid(e=e,es=is_list(es)?es:[es*sin(60),es])translate([0,$idx[0]%2?is_list(es)?es[1]/2:es/2:0])children();
+module HexGrid(e=[11,4],es=5,center=true){
+    Grid(e=e,es=is_list(es)?es:[es*sin(60),es],center=center)translate([0,$idx[0]%2?is_list(es)?es[1]/2:es/2:0])children();
     MO(!$children);
 }
 
@@ -925,7 +933,7 @@ module Color(hue=0,alpha=1,v=1,l=0.5,spread=1,name=0,help=$helpM){
 
 // missing object text
 module MO(condition=true,warn=false){
-Echo(str(parent_module(2)," has no children!"),color=warn?"warning":"red",condition=condition&&$parent_modules>1);    
+Echo(str(parent_module(2)," has no children!"),color=warn?"warning":"red",condition=condition&&$parent_modules>1,help=false);    
 }
 
 
