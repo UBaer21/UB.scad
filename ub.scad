@@ -22,117 +22,8 @@ vp=1;           // switch fixed Viewports
 name="object";     // used in modules for showing name or number - if 0 no info is shown
 
 Changelog (archive at the very bottom)
+313|21  Reordering modules ADD teiler FIX Help txt ADD MO fix missing obj warnings
 
-000|21 CHG Klammer l vector CHG Quad r=undef β19.78
-005|21 CHG Glied FIX LinEx FIX Schnitt β19.79
-007|21 CHG Vollwelle Add h β19.8
-011|21 CHG Vollwelle Add l CHG LinEx Add End ADD inch β19.81
-013|21 CHG Pille chg rad list FIX Kegelmantel FIX LinEx hc=0 CHG Klon Add $idx CHG LinEx end FIX Kassette name β19.82
-016|21 FIX Grid CHG Vollwelle list fn CHG Nut Add grad β19.821
-017|21 FIX CycloidZahn β19.822
-018|21 FIX Pille β19.83
-019|21 FIX SBogen/Bogen
-022|21 ADD gradB CHG Quad warning CHG Text help radius β19.84
-023|21 ADD funct vollwelle CHG Gewinde test vollwelle
-025|21 ADD fonts styles lists CHG Text β19.85
-026|21 CHG Text Add rot fix -h CHG Vollwellen grad list FIX Anschluss r1/2 β19.86
-027|21 CHG Linear  e first CHG Grid e first Add s
-028|21 CHG Vollwelle fix h replaced w. vollwelle() β19.88
-029|21 ADD GewindeV4 CHG Gewinde β19.89
-030|21 CHG GewindeV4 autocalc warning variables ADD useVersion ADD func gradS CHG Ring method FIX Prisma FIX LinEx β19.90
-031|21 CHG Pille Rad2 CHG Sichel Add step CHG DBogen Add spiel CHG Text fn FIX Kegel
-040|21 CHG Kegelmantel CHG Gewinde Add konisch β19.94
-042|21 CHG vollwelle g2 end Fix grad list,CHG GewindeV4 konisch grad2, FIX Caliper help β19.95
-043|21 FIX Bogen n CHG Gewinde Add ISO presets β19.951
-045|21 FIX Quad x=list CHG Drehpunkt Add vector help β19.952
-046|21 CHG Quad r gerunded CHG LinEx max slices Fix Luer β19.953
-051|21 FIX Pille rad2
-055|21 CHG Bogen Add l[] CHG Rundrum x[] β19.955
-056|21 CHG Gewinde
-057|21 FIX Nut console Add Pfeil CHG console colors β19.957
-058|21 FIX Linear e=1/0 β19.958  CHG Anordnen es⇔e es=Sehne
-059|21 CHG Rund Add vector ADD func radiusS
-060|21 ADD func radiusS+grad FIX Quad rundung CHG LinEx warning+h2=0 β19.960
-β21.60
-062|21 CHG Gewinde add tz in preset chg spiel CHG DRing Add center FIX Kehle bool
-063|21 FIX DBogen FIX Gewinde wand
-064|21 FIX Gewinde children old Version CHG DRing Add grad
-068|21 CHG Ring Add Id CHG Torus Add endRot ADD func Inch FIX Kehle end
-069|21 CHG Kehle Add Fillet
-070|21 CHG Kehle Add  dia/Fillet CHG Ring Add grad CHG help CHG Bevel Add messpunkt CHG Anordnen Add rot
-078|21 CHG Schnitt center bool CHG Color Add color names CHG Pfeil Add d
-079|21 CHG Gewinde Add gb
-081|21 FIX RStern n
-082|21 ADD Rosette
-083|21 ADD Scale CHG Rosette Add children Del round
-085|21 ADD GT
-087|21 FIX LinEx warning CHG WStrebe grad2 undef
-089|21 FIX LinEx grad list  CHG GT Add fn FIX SRing h
-091|21 ADD Egg ADD HelpTxt ADD InfoTxt CHG GT2 CHG Torus end fn2
-092|21 ADD BB FIX DBogen CHG Egg Add breit CHG Anordnen
-093|21 ADD $fs CHG DBogen CHG Egg ADD func fs2fn
-096|21 CHG BB Add achse center fixes FIX Polar e=0 
-098|21 FIX GewindeV3
-100|21 CHG Strebe Add fn2
-105|21 FIX Infotxt
-108|21 ADD Echo FIX HelpTxt InfoTxt for v[2021] CHG Achsenklammer CHG Ring help
-111|21 CHG Gewinde helptxt Fix SBogen -grad
-118|21 CHG Color Add spread
-119|21 FIX LinEx
-127|21 CHG Zylinder faces
-130|21 CHG Zylinder var
-138|21 ADD HexGrid
-139|21 CHG Zylinder Add center
-142|21 FIX Vollwelle 
-148|21 CHG Text add spacing
-149|21 ADD HypKehle
-151|21 CHG HexGrid es vector ADD PrintBed
-164|21 CHG Text spacing
-166|21 CHG Text not empty CHG vpt printBed/2
-176|21 CHG Pin 
-178|21 CHG Rohr
-181|21 CHG Cring
-194|21 ADD Abzweig FIX Anschluss
-215|21 ADD printPos FIX Abzweig
-216|21 ADD assert Version
-217|21 CHG Zylinder Add lambda
-218|21 CHG Pille Add r CHG Abzweig CHG T Add vector
-224|21 FIX printPos vpt
-235|21 FIX Luer 33.3
-237|21 CHG Zylinder lambda
-245|21 CHG menue layer nozzle var
-260|21 FIX LinEx list $r
-268|21 FIX Gewinde Mantel
-272|21 FIX removed ,, (test with [2021,9]) some formating regarding version
-273|21 FIX formating for v21
-276|21 FIX GewindeV4 faces error grad<360
-277|21 FIX LinEx vector, del Schnitt convexity, cCube
-280|21 FIX Polar 1 with end<360
-281|21 FIX Cring bool
-283|21 FIX Gewinde winkel
-284|21 FIX Kreis ceil(fn) CHG Bevel messpunkt FIX Trapez help
-285|21 FIX Ring rot 90
-286|21 FIX Anordnen;
-287|21 CHG Torus Add endspiel FIX Kreis r=0 b
-288|21 FIX Halb
-289|21 FIX Pille accuracy issue ADD minVal
-290|21 ADD clampToX0 FIX Pille help info FIX Torus grad end
-291|21 ADD KreisSeg
-292|21 FIX Cycloid points, Cyclgetriebe bool center + info CHG Kreis r=0 rand=0
-295|21 FIX HelpTxt,InfoTxt ↦ scad version > 2021
-296|21 CHG Vollwelle/ECHO
-297|21 CHG Gewindev4 calc dn=undef
-298|21 CHG Echo add color characters
-299|21 CHG Gewinde g rot CHG GewindeV4 add g autocalc
-301|21 CHG Tugel Add rand,help fix name,CHG help info DBogen
-305|21 CHG Bezier Add $idx for children ADD vektorWinkel ADD v3
-306|21 CHG Echo Add colors CHG Pfeil CHG Anordnen CHG Halbrund CHG Imprint 
-307|21 CHG helptext changes CHG Glied ADD GT2Pulley FIX Superellipse FIX LinEx2
-208|21 FIX help Diverse 
-309|21 CHG Gewinde Add other FIX Zylinder fix ub CHG SBogen ADD parentList
-310|21 FIX Anschluss
-311|21 FIX Grid ub FIX v3() CHG Bezier CHG parentList CHG SBogen 
-312|21 FIX Strebe
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -261,7 +152,49 @@ function KreisXY(r=5,grad=0)=[r*sin(grad),r*cos(grad)];//depreciated use RotLang
 function 5gon(b1=20,l1=15,b2=10,l2=30)=[[0,0],[b1,l1],[b2,l2],[-b2,l2],[-b1,l1]];
 
 function ZigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)=[for(i=[0:e*mod])[i%mod<mod/2+delta?i*x/(e*mod):i*x/(e*mod)+shift,i%mod<mod/2+delta?base:y],[x,0],[0,0]];
-    
+
+function TangentenP(//Tangenten schnittpunkt ab Kreis mit radius rad
+grad=150, // Winkel der Tangenten
+rad=20, // Kreis radius
+r=0// Kreislinien abstand von 0 
+)=
+    let(
+    c=sin(abs(grad)/2)*rad*2,//  Sekante 
+    w1=abs(grad)/2,          //  Schenkelwinkel
+    w3=180-abs(grad),        //  Scheitelwinkel
+    a=(c/sin(w3/2))/2,    
+    hc=grad!=180?Kathete(a,c/2):0,  // Sekante tangenten center
+    hSek=Kathete(rad,c/2), //center Sekante
+    tsRadius=r-rad+hc+hSek
+    )
+tsRadius;
+
+// two digit dec max 255
+function Hex(dec)= 
+    let(
+    dec=min(abs(dec),255),
+    sz=floor(dec/16),
+    s1=floor(dec)-(sz*16)
+    )
+    str(sz>14?"F":
+        sz>13?"E":
+        sz>12?"D":
+        sz>11?"C": 
+        sz>10?"B":
+        sz>9?"A":sz,      
+        s1>14?"F":
+        s1>13?"E":
+        s1>12?"D":
+        s1>11?"C": 
+        s1>10?"B":
+        s1>9?"A":s1   
+  
+    );
+
+function Hexstring(c)=str("#",Hex(c[0]*255),Hex(c[1]*255),Hex(c[2]*255));
+
+
+
 function RotPoints(grad,points)=[for(i=[0:len(points)-1])RotLang(rot=atan2(points[i][0],points[i][1])+grad,l=norm([points[i][0],points[i][1]]),z=points[i][2])];
 
 function negRed(num)=num<0?str("<font color=red ><b>",num,"</font>"):num; // display console text
@@ -288,9 +221,13 @@ v3= function(v)is_num(v.y)?is_num(v.z)?len(v)==3?v:  // make everything to a vec
                             concat(v,[0]):
                   concat(v,[0,0]);
 
-
+// list of parent modules [["name",id]]
 parentList= function(n=-1) [for(i=[0:$parent_modules +n])[parent_module(i),i]];
-    
+
+// kleinster teiler
+teiler = function (n,div=2) (n%div)?div>n?n:
+                                         teiler(n=n,div=div+1):
+                                  div;
 
 $fn=fn;
 $fs=fs;
@@ -373,6 +310,7 @@ echo    ("••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
 ••• vektorWinkel(p1,p2,twist=0); •••\n
 ••• v3(v); makes v a vector3 •••\n
 ••• parentList() list with all modules •••\n
+••• teiler(n,div=2) least divisior •••\n
 ");
     
 }
@@ -579,7 +517,529 @@ if(!$preview&&version()[0]<2021) echo("<H1 style=background-color:#aaffcc;color:
 
 //////////////////////////// Modules  /////////////////////////////
 
+/// Tools / Modificator ///
 
+// short for translate[];
+module T(x=0,y=0,z=0)
+{
+    //translate([x,y,z])children();
+if(is_list(x))
+    multmatrix(m=[
+    [1,0,0,x[0]],
+    [0,1,0,x[1]],    
+    [0,0,1,x[2]],
+    [0,0,0,1]    
+    ])children(); 
+else
+    multmatrix(m=[
+    [1,0,0,x],
+    [0,1,0,y],    
+    [0,0,1,z],
+    [0,0,0,1]    
+    ])children(); 
+
+
+    MO(!$children);
+}
+
+// short for T(z=0);
+module Tz(z=0){
+    multmatrix([
+        [1,0,0,0],
+        [0,1,0,0],    
+        [0,0,1,z],
+        [0,0,0,1],    
+        ])children();    
+    MO(!$children); 
+}
+
+// short for rotate(a,v=[0,0,0])
+module R(x=0,y=0,z=0)
+{
+    rotate([x,y,z])children();
+    MO(!$children);
+}
+
+
+// short for multmatrix and skewing objects
+module M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=1,scalexz=1,scaleyz=1){
+    scalex=scale*scalexy*scalexz;
+    scaley=scale*scalexy*scaleyz;
+    scalez=scale*scalexz*scaleyz;    
+    multmatrix([
+    [scalex,skewyx,skewzx,0],
+    [skewxy,scaley,skewzy,0],    
+    [skewxz,skewyz,scalez,0],
+    [0,0,0,1.0],    
+    ])children(); 
+    MO(!$children); 
+}
+
+// multiply children polar (e=number, x/y=radial distance)
+module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name=$info,n){
+    
+   name=is_undef(n)?name:n;
+   radius=Hypotenuse(x,y);
+   end=end==0?360:end;
+   winkel=abs(end)==360?360/e:end/max(1,e-1);
+   if(e>+0) rotate(r)for(i=[0:e-1]){
+        $idx=i;
+        $info=$idx?false:name;
+        $helpM=$idx?false:$helpM;
+        rotate(e==1&&end<360?winkel/2:i*winkel)translate([x,y,0])rotate([0,0, re+(i*winkel)/end*dr])children();
+    }
+     if(mitte){
+         $idx=e;
+         children(); 
+     }
+ 
+ if(name)echo(str(is_string(name)?"<H3>":"",name," Polar ×",e,
+     //"transX= ",x," transY= ",y,
+    " Radius=",radius,"mm ",re?str("rotElements=",re,"°"):"",end!=360?str(" End=",end,"°"):""," Element=",winkel,"° Abstand=",2*radius*PI/360*winkel,"mm (Sekante=",2*radius*sin(winkel/2),")"));
+MO(!$children);
+           
+     
+}
+
+
+
+// multiply children linear (e=number, es=distance)
+module Linear(e=2,es=1,s=0,x=1,y=0,z=0,r=0,re=0,center=0,cx=0,cy=0,cz=0,name=$info,n)// ordnet das Element 20× im Abstand x Linear an.. es skaliert die vektoren . cx = center x
+{
+name=is_undef(n)?name:n;   
+$helpM=0;    
+s=es==1?s:0;
+
+    cx=center?1:cx;
+    cy=center?1:cy;  
+    cz=center?1:cz;
+if(s!=0&&e>0){if(e>1)translate([cx?-x*es/2*s:0,cy?-y*es/2*s:0,cz?-z*es/2*s:0])for(i=[0:e-1])//for (i=[+0:s/(e-1):s+.00001])
+         {
+            $idx=i;
+            $info=$idx?false:name; 
+            rotate([0,0, r])translate([i*x*es*(s/(e-1)),i*y*es*(s/(e-1)),i*z*es*(s/(e-1))])rotate([0,0, re])children();
+                
+             
+         }
+      else rotate([0,0, re])children();
+      }   
+if(s==0&&e>0)for (i=[0:e-1])
+         {
+            $idx=i;
+            $info=$idx?false:name;
+            rotate([0,0, r])translate(center?[(e-1)*es*x,(e-1)*es*y,(e-1)*es*z]/-2:[0,0,0])translate([i*es*x,i*es*y,i*es*z])rotate([0,0, re])children();
+          
+         }        
+        
+MO(!$children);
+
+InfoTxt("Linear länge",str((s?s:e*es)*norm([x,y,z]),"mm"),name);    
+        
+         
+}
+
+//Clone and mirror object
+module MKlon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,mx,my,mz)
+{
+    mx=is_undef(mx)?sign(abs(tx)):mx;
+    my=is_undef(my)?sign(abs(ty)):my;
+    mz=is_undef(mz)?sign(abs(tz)):mz;
+    
+	translate([tx,ty,tz])rotate([rx,ry,rz])children();
+    $idx=0; 
+    union(){
+        $helpM=0;
+        $info=0; 
+        $idx=1; 
+	translate([-tx,-ty,-tz])rotate([-rx,-ry,-rz])mirror([mx,my,mz]) children(); }   
+    MO(!$children);
+
+}
+
+// Clone and mirror (replaced by MKlon)
+module Mklon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,mx=0,my=0,mz=1)
+{
+    mx=tx?1:mx;
+    my=ty?1:my;
+    mz=tz?1:mz;
+	translate([tx,ty,tz])rotate([rx,ry,rz])children(); 
+    union(){
+        $helpM=0;
+        $info=0;  
+	translate([-tx,-ty,-tz])rotate([-rx,-ry,-rz])mirror([mx,my,mz]) children(); }   
+   MO(!$children);
+}
+
+// Clone Object
+module Klon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0){
+    union(){
+        $idx=0;
+        translate([tx,ty,tz])rotate([rx,ry,rz])children();
+    }
+    union(){
+         $idx=1;
+        $helpM=0;
+        $info=0;  
+    translate([-tx,-ty,-tz])rotate([-rx,-ry,-rz])children();  
+    }   
+    MO(!$children);    
+}
+
+
+// Cuts away half of Object at [0,0,0]
+module Halb(i=0,x=0,y=0,z=0,2D=0)
+{
+    if(!2D){
+       if(i)difference()
+       {
+           children();
+         R(x?90:0,y?90:0)  cylinder(2000,d=2000,$fn=6);
+          
+       }
+      if(!i) intersection()
+      {
+          children();
+          R(x?90:0,y?90:0)  cylinder(2000,d=2000,$fn=6);
+      }
+  }
+  if(2D){
+      if(i)difference()
+      {
+          children();
+           T(y?-1000:0,x?-1000:0) square(2000);
+      }
+      if(!i) intersection()
+      {
+          children();
+          T(y?-1000:0,x?-1000:0) square(2000);
+      }
+  } 
+ MO(!$children); 
+}
+
+
+
+//short for rotate_extrude(angle,convexity=5) with options
+module RotEx(grad=360,fn=fn,center=false,cut=false,convexity=5,help=$helpM){
+    rotate(center?-grad/2:0) rotate_extrude(angle=grad,convexity=convexity, $fa = abs(grad/fn), $fs = 0.025,$fn=0)intersection(){
+           children();
+           if(cut)translate([cut==-1?-1000:0,-500])square(1000);
+    }
+
+    MO(!$children);   
+    if(help)echo(str("<H3><font color='",helpMColor,"' <b>Help RotEx(grad=",grad,",fn=",fn,",center=",center,",cut=",cut,", convexity=",convexity,",help=$helpM);"));   
+}
+
+// multiply children in a given matrix (e= number es =distance)
+module Grid(e=[2,2,1],es=10,s,center=true,name=$info,help=$helpM){
+    function n0(e)=is_undef(e)?1:max(e,1);
+    function n0s(e)=max(e-1,1);// e-1 must not be 0
+    
+    e=is_list(e)?is_num(e[2])?[max(e[0],1),max(e[1],1),n0(e[2])]:
+                    concat(e,[1]):
+        es[2]?[n0(e),n0(e),n0(e)]:
+        [n0(e),n0(e),1];
+    
+    es=is_undef(s)?is_list(es)?is_num(es[2])?es:
+                                concat(es,[0]):
+                    is_undef(es)?[0:0:0]:
+                        [es,es,es]:
+       is_list(s)?is_num(s[2])?[s[0]/n0s(e[0]),s[1]/n0s(e[1]),s[2]/n0s(e[2])]:
+                    [s[0]/n0s(e[0]),s[1]/n0s(e[1]),0]:
+        [s/n0s(e[0]),s/n0s(e[1]),s/n0s(e[2])];
+        
+   MO(!$children);
+   InfoTxt("Grid",[str("Gridsize(",e,")"),str(e[0]*e[1]*e[2]," elements ",(e[0]-1)*es[0],"×",(e[1]-1)*es[1],"×",(e[2]-1)*es[2],"mm",  center?str(-(e[0]-1)*es[0]/2," ↦",(e[0]-1)*es[0]/2,"",-(e[1]-1)*es[1]/2," ↦",(e[1]-1)*es[1]/2,"×",-(e[2]-1)*es[2]/2," ↦",(e[2]-1)*es[2]/2,"mm"):"")],name);  
+       
+    HelpTxt("Grid",[
+    "e",e
+    ,"es",es
+    ,"s",[(e[0]-1)*es[0],(e[1]-1)*es[1],(e[2]-1)*es[2]]
+    ,"center",center
+    ,"name",name]
+    ,help);
+
+   translate(center?[((1-e[0])*es[0])/2,((1-e[1])*es[1])/2,((1-e[2])*es[2])/2]:[0,0,0]) for(x=[0:e[0]-1],y=[0:e[1]-1],z=[0:e[2]-1]){
+       $idx=[x,y,z];
+       $info=norm($idx)?false:name;
+       $helpM=norm($idx)?false:$helpM;
+       T(x*es[0],y*es[1],z*es[2])children();
+   }
+}
+
+// Grid but with alternating row offset - hex or circle packing
+module HexGrid(e=[11,4],es=5){
+    Grid(e=e,es=is_list(es)?es:[es*sin(60),es])translate([0,$idx[0]%2?is_list(es)?es[1]/2:es/2:0])children();
+    MO(!$children);
+}
+
+
+
+
+
+
+
+
+
+
+/// Helper /// (not for creating geometry or objects)
+
+
+// Cutaway children for preview
+module Schnitt(on=$preview,r=0,x=0,y=0,z=-0.01,rx=0,ry=0,sizex=500,sizey=500,sizez=500,center=0)
+{
+    center=is_bool(center)?center?1:0:center;
+    if($children)difference()
+    {
+        children();
+      if((on&&$preview)||on==2)  translate([x,y,z])rotate([rx,ry,r])color([1,0,0,1])translate([center>0?-sizex/2:0,abs(center)==1?-sizey/2:-sizey,center>1||center<0?-sizez/2:0])cube([sizex,sizey,sizez],center=false);
+    }
+  if (on==2&&!$preview)
+      {
+         Echo("   »»»»»»»»»»»»»»––SCHNITT in render! ––««««««««««««««« ",color="warning");
+        // echo(" «««««««««««««««««««––SCHNITT––»»»»»»»»»»»»»»»»»»»»»»»»»»»» "); 
+        // echo("   »»»»»»»»»»»»»»»»»»––SCHNITT––««««««««««««««««««««««««««« ");
+         echo();
+      }
+MO(!$children);     
+}
+
+//Arranges (and color) list of children for display
+module Anordnen(es=10,e,option=1,axis=1,c=0,r,cl=.5,rot=0,loop=true,name=$info,help=$helpM){
+   
+optiE= function(e=[0,0,1])
+    let (sqC=sqrt($children))
+    e.x*e.y==$children?
+    e:
+    e.x>4?optiE([e.x-1,e.y,1])://min 4 rows else alternate  to circumvent primes
+    e.y>$children?[round(sqC),ceil($children/round(sqC)),1]:
+    optiE([ceil(sqC),e.y+1,1]);
+    
+//echo(optiE());
+    e=option==3?is_undef(e)?optiE():
+                    is_list(e)?
+                        e.z?e:
+                        concat(e,1):
+                    [ceil($children/e),e,1]:
+       is_undef(e)?$children:e;
+
+InfoTxt("Anordnung",["e",e,"children",$children],name);    
+$info=false;
+
+    
+ if(option==1){
+     r=is_undef(r)?(es/2)/sin(180/e):r;
+     Polar(e,x=r,re=rot)if(is_undef(c)&&(loop?true:$idx<$children))
+         children($idx%$children);//
+     else Color(c+1/$children*$idx,l=cl)
+         if(loop?true:$idx<$children)children($idx%$children);
+     }
+     
+ if(option==2){
+    if(axis==1) Linear(e=e,es=es,re=rot,center=true,x=1)
+        if(is_undef(c))children($idx%$children);
+            else Color(c+1/$children*$idx,l=cl)children($idx%$children);
+    
+    if(axis==2) Linear(e=e,es=es,re=rot,center=true,x=0,y=1)
+        if(is_undef(c))children($idx%$children);
+            else Color(c+1/$children*$idx,l=cl)children($idx%$children);
+    if(axis==3) Linear(e=e,es=es,re=rot,center=true,x=0,z=1)
+        if(is_undef(c))children($idx%$children);
+            else Color(c+1/$children*$idx,l=cl)children($idx%$children);    
+ }
+ if(option==3) Grid(e=e,es=es,center=true)rotate(rot)if(is_undef(c)&&(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children))children(($idx[0]+e.x*$idx[1])%$children); else Color(([$idx.x/(e.x -1),$idx.y/(e.y -1),$idx.z/e.z]+[ 0,0,cl])){
+     if(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children)children(($idx[0]+e.x*$idx[1])%$children);
+     //text(str([$idx.x/(e.x-1), $idx.y/(e.y-1), $idx.z/e.z]+[ 0,0,cl]),size=2);
+ }  
+
+ 
+HelpTxt("Anordnung",["e",e,"es",es,"option",option,"axis",axis,"c",c,"r",r,"cl",cl,"rot=",rot,"loop",loop,"name",name],help);
+}
+
+
+
+co=[
+["silver","lightgrey","darkgrey","grey","slategrey","red","orange","lime","cyan","lightblue","darkblue","purple",[.8,.8,.8,.3],[.8,.8,.8,.6],"cyan","magenta","yellow","black","white","red","green","blue",[0.77,0.75,0.72]],//std
+["White","Yellow","Magenta","Red","Cyan","Lime","Blue","Gray","Silver","Olive","Purple","Maroon","Teal","Green","Navy","Black"],//VGA
+["Gainsboro","LightGray","Silver","DarkGray","Gray","DimGray","LightSlateGray","SlateGray","DarkSlateGray","Black"],//grey
+["Pink","LightPink","HotPink","DeepPink","PaleVioletRed","MediumVioletRed"],//pink
+["LightSalmon","Salmon","DarkSalmon","LightCoral","IndianRed","Crimson","Firebrick","DarkRed","Red"],//red
+["OrangeRed","Tomato","Coral","DarkOrange","Orange"],//orange
+["Yellow","LightYellow","LemonChiffon","LightGoldenrodYellow","PapayaWhip","Moccasin","PeachPuff","PaleGoldenrod","Khaki","DarkKhaki","Gold"],//yellows
+["Cornsilk","BlanchedAlmond","Bisque","NavajoWhite","Wheat","Burlywood","Tan","RosyBrown","SandyBrown","Goldenrod","DarkGoldenrod","Peru","Chocolate","SaddleBrown","Sienna","Brown","Maroon"],//browns
+["DarkOliveGreen","Olive","OliveDrab","YellowGreen","LimeGreen","Lime","LawnGreen","Chartreuse","GreenYellow","SpringGreen","MediumSpringGreen","LightGreen","PaleGreen","DarkSeaGreen","MediumAquamarine","MediumSeaGreen","SeaGreen","ForestGreen","Green","DarkGreen"],//greens
+["Cyan","LightCyan","PaleTurquoise","Aquamarine","Turquoise","MediumTurquoise","DarkTurquoise","LightSeaGreen","CadetBlue","DarkCyan","Teal"],//cyans
+["LightSteelBlue","PowderBlue","LightBlue","SkyBlue","LightSkyBlue","DeepSkyBlue","DodgerBlue","CornflowerBlue","SteelBlue","RoyalBlue","Blue","MediumBlue","DarkBlue","Navy","MidnightBlue"],//blue
+["Lavender","Thistle","Plum","Violet","Orchid","Magenta","MediumOrchid","MediumPurple","BlueViolet","DarkViolet","DarkOrchid","DarkMagenta","Purple","Indigo","DarkSlateBlue","SlateBlue","MediumSlateBlue"],//violetts
+["White","Snow","Honeydew","MintCream","Azure","AliceBlue","GhostWhite","WhiteSmoke","Seashell","Beige","OldLace","FloralWhite","Ivory","AntiqueWhite","Linen","LavenderBlush","MistyRose"],//white
+["Red","darkorange","Orange","Yellow","Greenyellow","lime","limegreen","turquoise","cyan","deepskyblue","dodgerblue","Blue","Purple","magenta"],//rainbow
+["magenta","Purple","Blue","dodgerblue","deepskyblue","cyan","turquoise","limegreen","lime","Greenyellow","Yellow","Orange","darkorange","Red","darkorange","Orange","Yellow","Greenyellow","lime","limegreen","turquoise","cyan","deepskyblue","dodgerblue","Blue","Purple"]//rainbow2
+];
+
+// color by color lists
+module Col(no=0,alpha=1,pal=0,n=0)
+{
+   palette=["std","VGA","grey","pink","red","orange","yellow","brown","green","cyan","blue","violett","white","rainbow"]; 
+    
+
+
+    for(i=[0:1:$children-1]){
+    $idx=i;
+    color(co[pal][(no+i)%len(co[pal])],alpha)children(i);
+    if(n)echo(str("<font color=",co[pal][(no+i)%len(co[pal])]," size=5> ███  <font color=black>Color children ($idx) ",i," »»» ",no+i,"/",co[pal][(no+i)%len(co[pal])]," von ",len(co[pal])-1," — Palette ",pal,"/",palette[pal],(no+i>len(co[pal])-1)?" —<font color=red> Out of Range":"","</font>"));
+    }
+    MO(!$children);
+}
+
+
+// object color with hue (and rgb) also color change for multiple children
+module Color(hue=0,alpha=1,v=1,l=0.5,spread=1,name=0,help=$helpM){
+    
+    function val(delta=0,hue=-hue*360,v=v,l=l*-2+1)=
+        v*max(
+            min(
+                (0.5+sin((hue+delta)))*(l>0?1-l:1)
+                +(max(
+                    .5+sin((180+hue+delta))
+                ,0)*(l<=0?-l:0))
+            ,1)
+        ,0);
+       
+       start=90;// to start with red
+        
+     if($children) for(i=[0:$children-1]){//
+            $idx=is_undef($idx)?i:$idx;
+            c=is_string(hue)?hue:is_list(hue)?[(hue[0]+i*(1-hue[0]%1.001)/(spread*$children))%1.001,(hue[1]+i*(1-hue[1]%1.001)/(spread*$children))%1.001,(hue[2]+i*(1-hue[2]%1.001)/(spread*$children))%1.001]:[val(start,hue=(-hue-i/(spread*$children))*360),val(+start+120,hue=(-hue-i/(spread*$children))*360),val(start+240,hue=(-hue-i/(spread*$children))*360)];
+            color(c,alpha)children(i); 
+            
+        if(name)  echo(str("Color ",name," child ($idx) ",i," hex=",Hexstring(c)," ",Hex(alpha*255)," <font color=",Hexstring(c),"> ████ </font>RGB=",c));      
+        }
+        else MO(!$children);
+
+    HelpTxt("Color",[
+    "hue",hue,"alpha",alpha,"v",v,"l",l,"spread",spread,"name",name,
+        ],help);
+}
+
+/// Echo Helper /// console texts
+
+// missing object text
+module MO(condition=true,warn=false){
+Echo(str(parent_module(2)," has no children!"),color=warn?"warning":"red",condition=condition&&$parent_modules>1);    
+}
+
+
+// echo color differtiations
+module Echo(title,color="#FF0000",size=2,condition=true,help=$helpM){
+    
+ if(condition)
+     if(version()[0]<2021)echo(str("<H",size,"><font color=",color,">",title)); 
+     else if (color=="#FF0000"||color=="red")echo(str("\n⭕\t»»» ",title));
+     else if (color=="#FFA500"||color=="orange")echo(str("\n🟠\t»»» ",title));    
+     else if (color=="#00FF00"||color=="green")echo(str("🟢\t ",title));
+     else if (color=="#0000FF"||color=="blue") echo(str("🔵\t ",title));
+     else if (color=="#FF00FF"||color=="purple") echo(str("🟣\t ",title));    
+     else if (color=="#000000"||color=="black") echo(str("⬤\t ",title));
+     else if (color=="#FFFFFF"||color=="white") echo(str("◯\t ",title));
+     else if (color=="#FFFF00"||color=="yellow"||color=="warning") echo(str("⚠\t ",title));    
+         else echo(str("• ",title)); 
+ HelpTxt("Echo",["title",title,"color",color,"size",size,"condition",condition],help);
+}
+
+/// display variable values
+module InfoTxt(name,string,info=$info,help=$helpM){
+  //  https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/User-Defined_Functions_and_Modules#Function_Literals
+ joinArray= function(in,out="",pos=0) pos>=len(in)?out: // scad version > 2021
+        joinArray(in=in,out=str(out,in[pos]),pos=pos +1);   
+    
+ if(version()[0]<2021){   
+  infoText=[for(i=[0:2:len(string)-1])str(string[i],"=",is_num(string[i+1])?negRed(string[i+1]):string[i+1],i<len(string)-2?", ":"")];
+      
+if(info)if(is_list(string))echo( 
+ str(is_bool(info)?"":"<b>",info," ",name," ", 
+infoText[0]
+,infoText[1]?infoText[1]:""
+,infoText[2]?infoText[2]:""
+,infoText[3]?infoText[3]:""
+,infoText[4]?infoText[4]:""
+,infoText[5]?infoText[5]:""
+,infoText[6]?infoText[6]:""
+,infoText[7]?infoText[7]:""
+,infoText[8]?infoText[8]:""
+,infoText[9]?infoText[9]:""
+));
+else HelpTxt(titel="InfoTxt",string=["name",name,"string","[text,variable]","info",$info],help=1);
+}
+else {
+  infoText=[for(i=[0:2:len(string)-1])str(string[i],"=",string[i+1],i<len(string)-2?", ":"")];
+      
+if(info)if(is_list(string))echo( 
+ str(is_bool(info)?"":"🟩\t•• ",info," ",name," ",
+joinArray(infoText)));
+
+else HelpTxt(titel="InfoTxt",string=["name",name,"string","[text,variable]","info",$info],help=1);
+}
+}
+
+// display the module variables in a copyable format
+module HelpTxt(titel,string,help=$helpM){ 
+   joinArray= function(in,out="",pos=0) pos>=len(in)?out:
+        joinArray(in=in,out=str(out,in[pos]),pos=pos +1); 
+
+helpText=[for(i=[0:2:len(string)-1])str(string[i],"=",string[i+1],",\n  ")];
+ if(version()[0]<2021){ 
+if(help)if(is_list(string))echo(
+    
+str("<H3> <font color=",helpMColor,"> Help ",titel, "(",
+    helpText[0]
+,helpText[1]?helpText[1]:""
+,helpText[2]?helpText[2]:""
+,helpText[3]?helpText[3]:""
+,helpText[4]?helpText[4]:""
+,helpText[5]?helpText[5]:""
+,helpText[6]?helpText[6]:""
+,helpText[7]?helpText[7]:""
+,helpText[8]?helpText[8]:""
+,helpText[9]?helpText[9]:""
+,helpText[10]?helpText[10]:""
+,helpText[11]?helpText[11]:""
+,helpText[12]?helpText[12]:""
+,helpText[13]?helpText[13]:""
+,helpText[14]?helpText[14]:""
+,helpText[15]?helpText[15]:""
+,helpText[16]?helpText[16]:""
+,helpText[17]?helpText[17]:""
+,helpText[18]?helpText[18]:""
+,helpText[19]?helpText[19]:""
+,helpText[20]?helpText[20]:"" 
+,helpText[21]?helpText[21]:""
+,helpText[22]?helpText[22]:""
+,helpText[23]?helpText[23]:""
+,helpText[24]?helpText[24]:""
+,helpText[25]?helpText[25]:""
+,helpText[26]?helpText[26]:""
+,helpText[27]?helpText[27]:""
+,helpText[28]?helpText[28]:""
+,helpText[29]?helpText[29]:""
+
+
+//," name=",name,
+," help=$helpM);"));  
+else HelpTxt("Help",["titel",titel,"string",["string","data","help",help],"help",help],help=1);
+} else{
+if(help)if(is_list(string))echo(
+    
+str("🟪\nHelp ",titel, "(\n  ",
+joinArray(helpText)
+," help=$helpM\n);\n"));    
+else HelpTxt("Help",["titel",titel,"string",string,"help",help],help=1);
+}
+}
+
+
+
+
+/// Basic Objects ///
 
 
 module GT2Pulley(
@@ -728,26 +1188,6 @@ HelpTxt("HypKehle",["l",l,"grad",grad,"d1",d1,"d2",d2,"l2",l2,"steps",steps,"fn"
 }
 
 
-module HexGrid(e=[11,4],es=5){
-    Grid(e=e,es=is_list(es)?es:[es*sin(60),es])T(0,$idx[0]%2?is_list(es)?es[1]/2:es/2:0)children();
-}
-
-
-module Echo(title,color="#FF0000",size=2,condition=true,help=$helpM){
-    
- if(condition)
-     if(version()[0]<2021)echo(str("<H",size,"><font color=",color,">",title)); 
-     else if (color=="#FF0000"||color=="red")echo(str("\n⭕\t»»» ",title));
-     else if (color=="#FFA500"||color=="orange")echo(str("\n🟠\t»»» ",title));    
-     else if (color=="#00FF00"||color=="green")echo(str("🟢\t ",title));
-     else if (color=="#0000FF"||color=="blue") echo(str("🔵\t ",title));
-     else if (color=="#FF00FF"||color=="purple") echo(str("🟣\t ",title));    
-     else if (color=="#000000"||color=="black") echo(str("⬤\t ",title));
-     else if (color=="#FFFFFF"||color=="white") echo(str("◯\t ",title));
-     else if (color=="#FFFF00"||color=="yellow"||color=="warning") echo(str("⚠\t ",title));    
-         else echo(str("• ",title)); 
-HelpTxt("Echo",["title",title,"color",color,"size",size,"condition",condition],help);         
-}
 
 
 module BB(
@@ -855,96 +1295,6 @@ module Egg(r1=10,r2=3,breit,grad,r3=true,fs=fs,name=$info,help=$helpM){
     //if(help)echo("Help Egg(r1=10,r2=3,grad,r3=1,name=$info,help=$helpM);");
     HelpTxt("Egg",["r1",r1,"r2",r2,"breit",breit,"grad",grad,"r3",r3,"fs",fs,"name",name],help);
     InfoTxt("Egg",["hM",hM,"h",str(hM+r2,r3?str("/",hM+r2+breit/2):""),"breit(r3×2)",breit,"grad",grad,"r1",r1,"r2",r2],name);
-}
-
-
-module InfoTxt(name,string,info=$info,help=$helpM){
-  //  https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/User-Defined_Functions_and_Modules#Function_Literals
- joinArray= function(in,out="",pos=0) pos>=len(in)?out: // scad version > 2021
-        joinArray(in=in,out=str(out,in[pos]),pos=pos +1);   
-    
- if(version()[0]<2021){   
-  infoText=[for(i=[0:2:len(string)-1])str(string[i],"=",is_num(string[i+1])?negRed(string[i+1]):string[i+1],i<len(string)-2?", ":"")];
-      
-if(info)if(is_list(string))echo( 
- str(is_bool(info)?"":"<b>",info," ",name," ", 
-infoText[0]
-,infoText[1]?infoText[1]:""
-,infoText[2]?infoText[2]:""
-,infoText[3]?infoText[3]:""
-,infoText[4]?infoText[4]:""
-,infoText[5]?infoText[5]:""
-,infoText[6]?infoText[6]:""
-,infoText[7]?infoText[7]:""
-,infoText[8]?infoText[8]:""
-,infoText[9]?infoText[9]:""
-));
-else HelpTxt(titel="InfoTxt",string=["name",name,"string","[text,variable]","info",$info],help=1);
-}
-else {
-  infoText=[for(i=[0:2:len(string)-1])str(string[i],"=",string[i+1],i<len(string)-2?", ":"")];
-      
-if(info)if(is_list(string))echo( 
- str(is_bool(info)?"":"🟩\t•• ",info," ",name," ",
-joinArray(infoText)));
-
-else HelpTxt(titel="InfoTxt",string=["name",name,"string","[text,variable]","info",$info],help=1);
-}
-}
-
-
-module HelpTxt(titel,string,help=$helpM){ 
-   joinArray= function(in,out="",pos=0) pos>=len(in)?out:
-        joinArray(in=in,out=str(out,in[pos]),pos=pos +1); 
-
-helpText=[for(i=[0:2:len(string)-1])str(string[i],"=",string[i+1],",\n  ")];
- if(version()[0]<2021){ 
-if(help)if(is_list(string))echo(
-    
-str("<H3> <font color=",helpMColor,"> Help ",titel, "(",
-    helpText[0]
-,helpText[1]?helpText[1]:""
-,helpText[2]?helpText[2]:""
-,helpText[3]?helpText[3]:""
-,helpText[4]?helpText[4]:""
-,helpText[5]?helpText[5]:""
-,helpText[6]?helpText[6]:""
-,helpText[7]?helpText[7]:""
-,helpText[8]?helpText[8]:""
-,helpText[9]?helpText[9]:""
-,helpText[10]?helpText[10]:""
-,helpText[11]?helpText[11]:""
-,helpText[12]?helpText[12]:""
-,helpText[13]?helpText[13]:""
-,helpText[14]?helpText[14]:""
-,helpText[15]?helpText[15]:""
-,helpText[16]?helpText[16]:""
-,helpText[17]?helpText[17]:""
-,helpText[18]?helpText[18]:""
-,helpText[19]?helpText[19]:""
-,helpText[20]?helpText[20]:"" 
-,helpText[21]?helpText[21]:""
-,helpText[22]?helpText[22]:""
-,helpText[23]?helpText[23]:""
-,helpText[24]?helpText[24]:""
-,helpText[25]?helpText[25]:""
-,helpText[26]?helpText[26]:""
-,helpText[27]?helpText[27]:""
-,helpText[28]?helpText[28]:""
-,helpText[29]?helpText[29]:""
-
-
-//," name=",name,
-," help=$helpM);"));  
-else HelpTxt("Help",["titel",titel,"string",["string","data","help",help],"help",help],help=1);
-} else{
-if(help)if(is_list(string))echo(
-    
-str("🟪\nHelp ",titel, "(\n  ",
-joinArray(helpText)
-," help=$helpM\n);\n"));    
-else HelpTxt("Help",["titel",titel,"string",string,"help",help],help=1);
-}
 }
 
 
@@ -1109,7 +1459,7 @@ if($children)if(2D){
 }
 HelpTxt("Scale",["v",v,
 "2D",2D],help);
-Echo("‼Warning Scale — No children",color="red",size=1,condition=!$children);
+MO(!$children);
 }
 
 module Rosette(
@@ -1875,57 +2225,6 @@ HelpTxt("CycloidZahnrad",["modul",modul,"z",z," d",d," linear",linear,"center",c
 }
 
 
-module Anordnen(es=10,e,option=1,axis=1,c=0,r,cl=.5,rot=0,loop=true,name=$info,help=$helpM){
-   
-optiE= function(e=[0,0,1])
-    let (sqC=sqrt($children))
-    e.x*e.y==$children?
-    e:
-    e.x>4?optiE([e.x-1,e.y,1])://min 4 rows else alternate  to circumvent primes
-    e.y>$children?[round(sqC),ceil($children/round(sqC)),1]:
-    optiE([ceil(sqC),e.y+1,1]);
-    
-//echo(optiE());
-    e=option==3?is_undef(e)?optiE():
-                    is_list(e)?
-                        e.z?e:
-                        concat(e,1):
-                    [ceil($children/e),e,1]:
-       is_undef(e)?$children:e;
-
-InfoTxt("Anordnung",["e",e,"children",$children],name);    
-$info=false;
-
-    
- if(option==1){
-     r=is_undef(r)?(es/2)/sin(180/e):r;
-     Polar(e,x=r,re=rot)if(is_undef(c)&&(loop?true:$idx<$children))
-         children($idx%$children);//
-     else Color(c+1/$children*$idx,l=cl)
-         if(loop?true:$idx<$children)children($idx%$children);
-     }
-     
- if(option==2){
-    if(axis==1) Linear(e=e,es=es,re=rot,center=true,x=1)
-        if(is_undef(c))children($idx%$children);
-            else Color(c+1/$children*$idx,l=cl)children($idx%$children);
-    
-    if(axis==2) Linear(e=e,es=es,re=rot,center=true,x=0,y=1)
-        if(is_undef(c))children($idx%$children);
-            else Color(c+1/$children*$idx,l=cl)children($idx%$children);
-    if(axis==3) Linear(e=e,es=es,re=rot,center=true,x=0,z=1)
-        if(is_undef(c))children($idx%$children);
-            else Color(c+1/$children*$idx,l=cl)children($idx%$children);    
- }
- if(option==3) Grid(e=e,es=es,center=true)rotate(rot)if(is_undef(c)&&(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children))children(($idx[0]+e.x*$idx[1])%$children); else Color(([$idx.x/(e.x -1),$idx.y/(e.y -1),$idx.z/e.z]+[ 0,0,cl])){
-     if(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children)children(($idx[0]+e.x*$idx[1])%$children);
-     //text(str([$idx.x/(e.x-1), $idx.y/(e.y-1), $idx.z/e.z]+[ 0,0,cl]),size=2);
- }  
-
- 
-HelpTxt("Anordnung",["e",e,"es",es,"option",option,"axis",axis,"c",c,"r",r,"cl",cl,"rot=",rot,"loop",loop,"name",name],help);
-}
-
 
 module Anschluss(h=10,d1=10,d2=15,rad=5,rad2,grad=30,r1,r2,center=true,fn=fn,fn2=36,grad2=0,x0=0,wand,2D=false,name=$info,help=$helpM){
     
@@ -2354,7 +2653,7 @@ module Kextrude (r1=10,r2,grad=60,rad=1,breit=5,center=1,fn=fn,help=$helpM)rotat
     rad=is_list(rad)?rad:[rad,rad,rad,rad];
         
     if (rad[0]>breit/2)Echo(color="red","Kextrude Eckradius zu groß für Breite!");
-    if(!$children)Echo(color=red,"Kextrude No child object!");
+    MO(!$children);
     
    rotate_extrude(angle=grad)T(r1)mirror([1,0])children();
 
@@ -3134,68 +3433,9 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
 }
 
 
-function Hex(dec)=
-    let(
-    sz=floor(dec/16),
-    s1=floor(dec)-(sz*16)
-    
-    )
-    str(sz>14?"F":
-        sz>13?"E":
-        sz>12?"D":
-        sz>11?"C": 
-        sz>10?"B":
-        sz>9?"A":sz,      
-        s1>14?"F":
-        s1>13?"E":
-        s1>12?"D":
-        s1>11?"C": 
-        s1>10?"B":
-        s1>9?"A":s1   
-  
-    );
-    
-function Hexstring(c)=str("#",Hex(c[0]*255),Hex(c[1]*255),Hex(c[2]*255));
 
 
 
-module Color(hue=0,alpha=1,v=1,l=0.5,spread=1,name=0,help=$helpM){
-    
-function val(delta=0,hue=-hue*360,v=v,l=l*-2+1)=
-    v*max(
-        min(
-            (0.5+sin((hue+delta)))*(l>0?1-l:1)
-            +(max(
-                .5+sin((180+hue+delta))
-            ,0)*(l<=0?-l:0))
-        ,1)
-    ,0);
-   
-   start=90;// to start with red
-    
- if($children) for(i=[0:$children-1]){//
-        $idx=is_undef($idx)?i:$idx;
-        c=is_string(hue)?hue:is_list(hue)?[(hue[0]+i*(1-hue[0]%1.001)/(spread*$children))%1.001,(hue[1]+i*(1-hue[1]%1.001)/(spread*$children))%1.001,(hue[2]+i*(1-hue[2]%1.001)/(spread*$children))%1.001]:[val(start,hue=(-hue-i/(spread*$children))*360),val(+start+120,hue=(-hue-i/(spread*$children))*360),val(start+240,hue=(-hue-i/(spread*$children))*360)];
-        color(c,alpha)children(i); 
-        
-    if(name)  echo(str("Color ",name," child ($idx) ",i," hex=",Hexstring(c)," ",Hex(alpha*255)," <font color=",Hexstring(c),"> ████ </font>RGB=",c));      
-    }
-    else Echo("‼No Children");
-
-HelpTxt("Color",[
-"hue",hue,"alpha",alpha,"v",v,"l",l,"spread",spread,"name",name,
-    ],help);
-}
-
-
-module RotEx(grad=360,fn=fn,center=false,cut=false,convexity=5,help=$helpM){
-   rotate(center?-grad/2:0) rotate_extrude(angle=grad,convexity=convexity, $fa = abs(grad/fn), $fs = 0.025,$fn=0)intersection(){
-       children();
-       if(cut)translate([cut==-1?-1000:0,-500])square(1000);
-   }
-   
-if(help)echo(str("<H3><font color='",helpMColor,"' <b>Help RotEx(grad=",grad,",fn=",fn,",center=",center,",cut=",cut,", convexity=",convexity,",help=$helpM);"));   
-}
 
 
 
@@ -3386,25 +3626,11 @@ module SCT(a=90){
 
 
 
-function TangentenP(//Tangenten schnittpunkt ab Kreis mit radius rad
-grad=150, // Winkel der Tangenten
-rad=20, // Kreis radius
-r=0// Kreislinien abstand von 0 
-)=
-    let(
-    c=sin(abs(grad)/2)*rad*2,//  Sekante 
-    w1=abs(grad)/2,          //  Schenkelwinkel
-    w3=180-abs(grad),        //  Scheitelwinkel
-    a=(c/sin(w3/2))/2,    
-    hc=grad!=180?Kathete(a,c/2):0,  // Sekante tangenten center
-    hSek=Kathete(rad,c/2), //center Sekante
-    tsRadius=r-rad+hc+hSek
-    )
-tsRadius;
 
 
 
-module RStern(e=3,r1=30,r2=10,rad1=5,rad2=+30,l,grad=0,rand=0,os=0,randh=2,r=0,fn=fn,n=$info,help=$helpM,messpunkt=messpunkt,infillh,spiel=-.002){
+
+module RStern(e=3,r1=30,r2=10,rad1=5,rad2=+30,l,grad=0,rand=0,os=0,randh=2,r=0,fn=fn,messpunkt=messpunkt,infillh,spiel=-.002,name=$info,help=$helpM){
     $helpM=0;
     $info=0;
     r1=r?TangentenP(grad,rad1,r):r1;
@@ -3497,23 +3723,20 @@ module RStern(e=3,r1=30,r2=10,rad1=5,rad2=+30,l,grad=0,rand=0,os=0,randh=2,r=0,f
        
    if(infillh==0)offset(os,$fn=fn)RSternFill(e=e,r1=r1+TangentenP(grad,-rad1,-rad1),r2=TangentenP(g2,rad2,r2+rad2),d1=rad1*2,d2=rad2*2,fn=fn,grad1=grad,grad2=g2,help=false);   
    }   
+ 
+  MO(!$children,warn=true);
    
+  HelpTxt("RStern",["e",e,"r1",r1,"r2",r2,"rad1",rad1,"rad2",rad2,"l",l,"grad",grad,"rand",rand,"os",os,"randh",randh,"fn",fn,"messpunkt",messpunkt,"infillh",infillh,"spiel",spiel,"name",name],help);
    
-   
-
-   
-     if(!$children)echo("<H2><font color=red>RStern has NO Childobject</font>");
-        if(help)echo(str("<H3> <font color=",helpMColor,">Help RStern(e=",e,",r1=",r1,",r2=",r2,",rad1=",rad1,",rad2=",rad2," ,l=",l,",grad=",grad,", rand=",rand,", os=",os,", randh=",randh,",fn=",fn,",n=",n,", help=$helpM,messpunkt=",messpunkt,", infillh=",infillh,", spiel=",spiel,")"));
-    if(n) echo(str("<H3>",n," RStern Grad=",grad,"° Grad2=",g2,"° Spitzenwinkel=",gradR1,"°/",gradR2,"° r1 bis Rundung=",
+  InfoTxt("RStern",["Grad",str(grad,"°"),"Grad2",str(g2,"°"),"Spitzenwinkel",str(gradR1,"°/",gradR2,"°"),"r1 bis Rundung",
       //  r1-hc1-hSek1+rad1
     r1-TangentenP(grad,-rad1,0)+2*rad1
-    ,"mm r2 bis Rundung=",
+    ,"r2 bis Rundung",
     //r2+hc2+hSek2-rad2
-    TangentenP(g2,rad2,r2)
-    ,"mm"));       
+    str(TangentenP(g2,rad2,r2)
+    ,"mm")],name);       
       
 }
-
 
 module RSternFill(
   
@@ -3610,7 +3833,7 @@ module LinEx2(bh=5,h=1,slices=10,s=1,ds=+0.010,dh=+0,fs=1,fh=0.780,twist=0,hsum=
   rotate(-twist*bh)Tz(bh)linear_extrude(h+minVal,twist=twist*(h+minVal),scale=s,convexity=5,$fn=fn)children();
   if(slices==startSlices){
       linear_extrude(bh+minVal,twist=twist*bh,convexity=5,$fn=fn)children();
-      Echo(str(name," LinEx2 has no children"),color="warning",condition=!$children);
+  MO(!$children);
 
   }
  
@@ -3966,18 +4189,6 @@ if(n)echo(str(n," VQ Radius=",s,"mm - Verschoben um",Inkreis(4,s)-ofs,"mm"));
 }
 
 
-module Tz(z=0){
-multmatrix([
-    [1,0,0,0],
-    [0,1,0,0],    
-    [0,0,1,z],
-    [0,0,0,1],    
-    ])children();    
-  if(!$children){echo(" <font color='red'size=8>  »»»» Tz missing Object!««« </font> ");
-    echo(); }  
-}
-
-
 module GewindeV2(dn=10,s,w=0,g=1,winkel=+60,rot2=0,r1=0,kern,fn=1,detail=fn,spiel=spiel,n=$info,tz=0,preset=0,h=10,translate=[0,0,0],rotate=[0,0,0],d=0,gd=0,r=0,center=true,help=$helpM,p=1.5,endMod=true){
 
 s=is_undef(s)?p:s;//Steigung
@@ -4101,58 +4312,15 @@ if(center)
       }
     }     
     
-       if(!$children){
-        echo(" <font color='red'size=8>  »»»» Rand missing Object!«««« </font> ");
-        echo();
-        }     
-}
-
-
-module Grid(e=[2,2,1],es=10,s,center=true,name=$info,help=$helpM){
-    function n0(e)=is_undef(e)?1:max(e,1);
-    function n0s(e)=max(e-1,1);// e-1 must not be 0
-    
-    e=is_list(e)?is_num(e[2])?[max(e[0],1),max(e[1],1),n0(e[2])]:
-                    concat(e,[1]):
-        es[2]?[n0(e),n0(e),n0(e)]:
-        [n0(e),n0(e),1];
-    
-    es=is_undef(s)?is_list(es)?is_num(es[2])?es:
-                                concat(es,[0]):
-                    is_undef(es)?[0:0:0]:
-                        [es,es,es]:
-       is_list(s)?is_num(s[2])?[s[0]/n0s(e[0]),s[1]/n0s(e[1]),s[2]/n0s(e[2])]:
-                    [s[0]/n0s(e[0]),s[1]/n0s(e[1]),0]:
-        [s/n0s(e[0]),s/n0s(e[1]),s/n0s(e[2])];
-        
-
-   if(!$children){
-        echo(" <font color='red'size=8>  »»»» Grid missing Object!«««« </font> ");
-        echo();
-        }
-   if(name)echo(str(is_string(name)?"<H3>":"",name," Gridsize(",e,")=",e[0]*e[1]*e[2]," elements <font color=red>",(e[0]-1)*es[0],"</font>×<font color=green>",(e[1]-1)*es[1],"</font>×<font color=blue>",(e[2]-1)*es[2],"</font>mm",       center?str("<font color=red> ",-(e[0]-1)*es[0]/2," ↦",(e[0]-1)*es[0]/2,"</font>×<font color=green>",-(e[1]-1)*es[1]/2," ↦",(e[1]-1)*es[1]/2,"</font>×<font color=blue>",-(e[2]-1)*es[2]/2," ↦",(e[2]-1)*es[2]/2,"</font>mm"):""));  
-       
-    if(help)echo(str("<H3><font color='",helpMColor,"'>Help Grid(",
-        "e=",e,
-    " ,es=",es
-    ," ,s=",[(e[0]-1)*es[0],(e[1]-1)*es[1],(e[2]-1)*es[2]]
-    ," ,center=",center
-    ," ,name=",name
-    ," ,help=$helpM);"));
-
-   translate(center?[((1-e[0])*es[0])/2,((1-e[1])*es[1])/2,((1-e[2])*es[2])/2]:[0,0,0]) for(x=[0:e[0]-1],y=[0:e[1]-1],z=[0:e[2]-1]){
-       $idx=[x,y,z];
-       $info=norm($idx)?false:name;
-       $helpM=norm($idx)?false:$helpM;
-       T(x*es[0],y*es[1],z*es[2])children();
-   }
-          
-  
+    MO(!$children);
 }
 
 
 
-module Laser3D(h=4,layer=10,var=0.002,n=$info,on=-1){
+
+
+
+module Laser3D(h=4,layer=10,var=0.002,name=$info,on=-1){
 
   if(on==1)for (i=[0:h/layer:h]){
         c=i/h;
@@ -4167,15 +4335,12 @@ module Laser3D(h=4,layer=10,var=0.002,n=$info,on=-1){
           }
       } 
       
-   if(on==0) children();     
+    if(on==0) children();     
     
-T(z=-.48)color([0,0,0])cube([1000,1000,1],true);
+    T(z=-.48)color([0,0,0])cube([1000,1000,1],true);
     
-    if(!$children){
-        echo(" <font color='red'size=8>  »»»» Laser3D missing Object!«««« </font> ");
-        echo();
-        }
-    if(n)echo(str("<font color='green'>",n," Laser3D color resolution=",h/layer,"mm</font>"));  
+    MO(!$children);
+    InfoTxt("Laser3D",["color resolution=",str(h/layer,"mm")],name);  
     
 }
 
@@ -4195,7 +4360,7 @@ module Ellipse(x=2,y=2,z=0,fn=36,help=$helpM){
        }  
        
    }
-  if(!$children) echo("<font color='red'> Elipse has no children circle used</font>");
+  MO(!$children);
   if(help)echo(str("<H3><font color='",helpMColor,"'>Help Ellipse(x=",x,",y=",y,",z=",z,",fn=",fn,",help=$helpM);"));
 }
 
@@ -4520,14 +4685,15 @@ rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
      }
 
     }
-    Echo("LinEx missing Object!",condition=!$children);
+    MO(!$children);
     
-    if(name)echo(str(is_string(name)?"<H3>":"",name," LinEx core h= ",hc,"mm - twist per mm=",twist/(hc),"°, Fase für $d= ",$d,"mm ist ",grad,"°/",grad2,"° d=",$d*scale,"/",$d*scale2,"mm - r=",$r*scale,"/",$r*scale2,"mm Mantelwinkel für $d/$r=",$d,"/",$r,"mm⇒ ",mantelwinkel,"° twist=",twist,"° slices=",slices)); 
-    if(hc<0)echo(str("<H3><font color=red>",name," LinEx Höhe center=",hc,"mm"));
+    InfoTxt("LinEx",["core h",str(hc,"mm - twist per mm=",twist/(hc),"°, Fase für $d= ",$d,"mm ist ",grad,"°/",grad2,"° d=",$d*scale,"/",$d*scale2,"mm - r=",$r*scale,"/",$r*scale2,"mm Mantelwinkel für $d/$r=",$d,"/",$r,"mm⇒ ",mantelwinkel,"° twist=",twist,"° slices=",slices)],name); 
     
-    if(is_list(grad2)?$r*tan(min(grad2[0],grad2[1]))<(is_list($r)?[h22,h22]:h22)&&min(grad2[0],grad2[1])<90&&min(grad2[0],grad2[1])>0:$r*tan(grad2)<(is_list($r)?[h22,h22]:h22)&&grad2<90&&grad2>0)echo(str("<H3><font color=red>",name," LinEx Höhe h22=",h22," mm zu groß oder winkel/$r zu klein min=",atan(h22/$r),"° max=",is_list(grad2)?$r*tan(min(grad2[0],grad2[1])):$r*tan(grad2),"mm"));
+    Echo(str(name," LinEx Höhe center=",hc,"mm"),color="red",condition=hc<0);
+    
+    if(is_list(grad2)?$r*tan(min(grad2[0],grad2[1]))<(is_list($r)?[h22,h22]:h22)&&min(grad2[0],grad2[1])<90&&min(grad2[0],grad2[1])>0:$r*tan(grad2)<(is_list($r)?[h22,h22]:h22)&&grad2<90&&grad2>0)Echo(str(name," LinEx Höhe h22=",h22," mm zu groß oder winkel/$r zu klein min=",atan(h22/$r),"° max=",is_list(grad2)?$r*tan(min(grad2[0],grad2[1])):$r*tan(grad2),"mm"),color="red");
         
-    if(is_list(grad)?$r*tan(min(grad[0],grad[1]))<(is_list($r)?[h2,h2]:h2)&&min(grad[0],grad[1])<90&&min(grad[0],grad[1])>0:$r*tan(grad)<h2&&grad<90&&grad>0)echo(str("<H3><font color=red>",name," LinEx Höhe h2=",h2," mm zu groß oder winkel/$r zu klein min=",atan(h2/$r),"° max=",$r*tan(grad),"mm"));    
+    if(is_list(grad)?$r*tan(min(grad[0],grad[1]))<(is_list($r)?[h2,h2]:h2)&&min(grad[0],grad[1])<90&&min(grad[0],grad[1])>0:$r*tan(grad)<h2&&grad<90&&grad>0)Echo(str(name," LinEx Höhe h2=",h2," mm zu groß oder winkel/$r zu klein min=",atan(h2/$r),"° max=",$r*tan(grad),"mm"),color="red");    
     
     HelpTxt("LinEx",["h",h,"h2",h2,"h22",h22,"scale",scale,"scale2",scale2,"twist",twist,"twistcap",twistcap,"slices",slices,"$d",$d,"grad",grad,"grad2",grad2,", mantelwinkel",mantelwinkel,"center",center,"rotCenter",rotCenter,"end",end,"fn",fn,"name",name],help);  
     
@@ -4571,26 +4737,10 @@ module Rund(or=+0,ir,chamfer=false,fn=fn) {
    if(chamfer)offset(delta = or,chamfer=chamfer)offset(delta = -or,chamfer=chamfer)
               offset(delta = -ir,chamfer=chamfer)offset(delta = ir,chamfer=chamfer) 
        children();
- if(!$children){
-     echo(" <font color='red'size=8>  »»»» Rund missing Object!««« </font> ");
-    echo(); 
- }
+MO(!$children);
 }
 
 
-module M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=1,scalexz=1,scaleyz=1){
-    scalex=scale*scalexy*scalexz;
-    scaley=scale*scalexy*scaleyz;
-    scalez=scale*scalexz*scaleyz;    
-    multmatrix([
-    [scalex,skewyx,skewzx,0],
-    [skewxy,scaley,skewzy,0],    
-    [skewxz,skewyz,scalez,0],
-    [0,0,0,1.0],    
-    ])children();    
-  if(!$children){echo(" <font color='red'size=8>  »»»» M missing Object!««« </font> ");
-    echo(); } 
-}
 
 
 module Ttorus(r=20,twist=360,angle=360,pitch=0,scale=1,fn=fn,help=$helpM){
@@ -4614,22 +4764,20 @@ module Ttorus(r=20,twist=360,angle=360,pitch=0,scale=1,fn=fn,help=$helpM){
     }  
    } 
     
- if(!$children){echo(" <font color='red'size=8>  »»»» Ttorus missing Object!««« </font> ");
-    echo();}
+MO(!$children);
     
-if(help)echo(str("<H3> <font color=",helpMColor,">Help Ttorus(
-    r=",r,
-" ,twist=",twist,
-" ,angle=",angle,
-" ,pitch=",pitch,
-" ,scale=",scale,
-" ,fn=",fn,
-" ,help=#helpM);"));    
+HelpTxt("Ttorus",["
+    r",r,
+"twist",twist,
+"angle",angle,
+"pitch",pitch,
+"scale",scale,
+"fn=",fn],help);    
 }
 
 
 
-module Kontaktwinkel(winkel=60,d=10,center=true,2D=0,inv=false,n=$info){
+module Kontaktwinkel(winkel=60,d=10,center=true,2D=0,inv=false,name=$info){
 grad=-winkel+90;
 h=sin(grad)*d/2;
 b=sqrt(pow(d/2,2)-pow(h,2));    
@@ -4662,9 +4810,8 @@ b=sqrt(pow(d/2,2)-pow(h,2));
           
     }   
     
-if(!$children){echo(" <font color='red'size=8>  »»»» Kontaktwinkel missing Object!««« </font> ");
-    echo();}
-if(n)echo(str("Kontaktwinkel ",n," ∅=",d,"-",winkel,"°- Höhe= ",h," Breite= ",b*2));
+MO(!$children);
+if(name)echo(str("Kontaktwinkel ",n," ∅=",d,"-",winkel,"°- Höhe= ",h," Breite= ",b*2));
 }
 
 
@@ -4758,10 +4905,7 @@ else T(-shiftx/2*0){
     }
     
   }
-if(!$children){
-    echo(" <font color='red'size=8>  »»»» Rundrum missing Object!««« </font> ");
-    echo();
-    }
+MO(!$children);
 
     module Ecke(r=r){
         render()intersection(){
@@ -5242,18 +5386,17 @@ module Drehpunkt(x=0,rz=0,rx=0,ry=0,y=0,z=0,messpunkt=messpunkt,help=$helpM)
         if(rx)%color("red")translate([x,y,z])rotate([rx,ry,rz])rotate([0,90,0])cylinder(20,d=.5,center=true,$fn=12);   
         %color("yellow")translate([x,y,z])sphere(d=1,$fn=12);
     }
-     if(!$children){echo(" <font color='red'size=8>  »»»» Drehpunkt missing Object! ««« </font> ");
-    echo(); } 
+    MO(!$children);
     
-    if(help)echo(str("<H3><font color=",helpMColor,">Help Drehpunkt (",
-    "x=",x,
-    ", rz=",rz,
-    ", rx=",rx,
-    ", ry=",ry,
-    ", y=",y,
-    ", z=",z,
-    ", messpunkt=",messpunkt,
-    ", help=$helpM"));
+    HelpTxt("Drehpunkt",[
+    "x",x,
+    "rz",rz,
+    "rx",rx,
+    "ry",ry,
+    "y",y,
+    "z",z,
+    "messpunkt",messpunkt],
+    help);
 
 }
 
@@ -5265,87 +5408,6 @@ module Rohr(grad=90,rad=5,d=8,l,l1=10,l2=12,fn=fn,fn2=fn,rand=n(2),name=$info,ce
     HelpTxt(titel="Rohr",string=["grad",grad,"rad",rad,"d",d,"l",l,"l1",l1,"l2",l2,"fn",fn,"fn2",fn2,"rand",rand,"name",name,"center",center,"messpunkt",messpunkt],help=help);
     InfoTxt(name="Rohr",string=concat(rand>0?["ID",d-rand*2]:["OD",d-rand*2],["d",d]),info=name);
 
-}
-
-
-module MKlon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,mx,my,mz)
-{
-    mx=is_undef(mx)?sign(abs(tx)):mx;
-    my=is_undef(my)?sign(abs(ty)):my;
-    mz=is_undef(mz)?sign(abs(tz)):mz;
-    
-	translate([tx,ty,tz])rotate([rx,ry,rz])children();
-    $idx=0; 
-    union(){
-        $helpM=0;
-        $info=0; 
-        $idx=1; 
-	translate([-tx,-ty,-tz])rotate([-rx,-ry,-rz])mirror([mx,my,mz]) children(); }   
-   if(!$children){echo(" <font color='red'size=8>  »»»» Mklon missing Object! ««« </font> ");
-    echo(); }    
-}
-
-module Mklon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,mx=0,my=0,mz=1)
-{
-    mx=tx?1:mx;
-    my=ty?1:my;
-    mz=tz?1:mz;
-	translate([tx,ty,tz])rotate([rx,ry,rz])children(); 
-    union(){
-        $helpM=0;
-        $info=0;  
-	translate([-tx,-ty,-tz])rotate([-rx,-ry,-rz])mirror([mx,my,mz]) children(); }   
-   if(!$children){echo(" <font color='red'size=8>  »»»» Mklon missing Object! ««« </font> ");
-    echo(); }    
-}
-
-module Klon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0)
-{
-  union(){
-    $idx=0;  
- translate([tx,ty,tz])rotate([rx,ry,rz])children();
-  }
- union(){
-     $idx=1;
-    $helpM=0;
-    $info=0;  
- translate([-tx,-ty,-tz])rotate([-rx,-ry,-rz])children();  
- }   
-  if(!$children){echo(" <font color='red'size=8>  »»»» Klon missing Object! ««« </font> ");
-    echo(); }     
-}
-
-
-
-module Halb(i=0,x=0,y=0,z=0,2D=0)
-{
-    if(!2D){
-       if(i)difference()
-       {
-           children();
-         R(x?90:0,y?90:0)  cylinder(2000,d=2000,$fn=6);
-          
-       }
-      if(!i) intersection()
-      {
-          children();
-          R(x?90:0,y?90:0)  cylinder(2000,d=2000,$fn=6);
-      }
-  }
-  if(2D){
-      if(i)difference()
-      {
-          children();
-           T(y?-1000:0,x?-1000:0) square(2000);
-      }
-      if(!i) intersection()
-      {
-          children();
-          T(y?-1000:0,x?-1000:0) square(2000);
-      }
-  } 
- if(!$children){echo(" <font color='red'size=8>  »»»» Halb missing Object! ««« </font> ");
-    echo(); } 
 }
 
 
@@ -5527,41 +5589,6 @@ module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn=fn,fn2=fn,r2=0,spie
 }
 
 
-co=[
-["silver","lightgrey","darkgrey","grey","slategrey","red","orange","lime","cyan","lightblue","darkblue","purple",[.8,.8,.8,.3],[.8,.8,.8,.6],"cyan","magenta","yellow","black","white","red","green","blue",[0.77,0.75,0.72]],//std
-["White","Yellow","Magenta","Red","Cyan","Lime","Blue","Gray","Silver","Olive","Purple","Maroon","Teal","Green","Navy","Black"],//VGA
-["Gainsboro","LightGray","Silver","DarkGray","Gray","DimGray","LightSlateGray","SlateGray","DarkSlateGray","Black"],//grey
-["Pink","LightPink","HotPink","DeepPink","PaleVioletRed","MediumVioletRed"],//pink
-["LightSalmon","Salmon","DarkSalmon","LightCoral","IndianRed","Crimson","Firebrick","DarkRed","Red"],//red
-["OrangeRed","Tomato","Coral","DarkOrange","Orange"],//orange
-["Yellow","LightYellow","LemonChiffon","LightGoldenrodYellow","PapayaWhip","Moccasin","PeachPuff","PaleGoldenrod","Khaki","DarkKhaki","Gold"],//yellows
-["Cornsilk","BlanchedAlmond","Bisque","NavajoWhite","Wheat","Burlywood","Tan","RosyBrown","SandyBrown","Goldenrod","DarkGoldenrod","Peru","Chocolate","SaddleBrown","Sienna","Brown","Maroon"],//browns
-["DarkOliveGreen","Olive","OliveDrab","YellowGreen","LimeGreen","Lime","LawnGreen","Chartreuse","GreenYellow","SpringGreen","MediumSpringGreen","LightGreen","PaleGreen","DarkSeaGreen","MediumAquamarine","MediumSeaGreen","SeaGreen","ForestGreen","Green","DarkGreen"],//greens
-["Cyan","LightCyan","PaleTurquoise","Aquamarine","Turquoise","MediumTurquoise","DarkTurquoise","LightSeaGreen","CadetBlue","DarkCyan","Teal"],//cyans
-["LightSteelBlue","PowderBlue","LightBlue","SkyBlue","LightSkyBlue","DeepSkyBlue","DodgerBlue","CornflowerBlue","SteelBlue","RoyalBlue","Blue","MediumBlue","DarkBlue","Navy","MidnightBlue"],//blue
-["Lavender","Thistle","Plum","Violet","Orchid","Magenta","MediumOrchid","MediumPurple","BlueViolet","DarkViolet","DarkOrchid","DarkMagenta","Purple","Indigo","DarkSlateBlue","SlateBlue","MediumSlateBlue"],//violetts
-["White","Snow","Honeydew","MintCream","Azure","AliceBlue","GhostWhite","WhiteSmoke","Seashell","Beige","OldLace","FloralWhite","Ivory","AntiqueWhite","Linen","LavenderBlush","MistyRose"],//white
-["Red","darkorange","Orange","Yellow","Greenyellow","lime","limegreen","turquoise","cyan","deepskyblue","dodgerblue","Blue","Purple","magenta"],//rainbow
-["magenta","Purple","Blue","dodgerblue","deepskyblue","cyan","turquoise","limegreen","lime","Greenyellow","Yellow","Orange","darkorange","Red","darkorange","Orange","Yellow","Greenyellow","lime","limegreen","turquoise","cyan","deepskyblue","dodgerblue","Blue","Purple"]//rainbow2
-];
-
-
-module Col(no=0,alpha=1,pal=0,n=0)
-{
-   palette=["std","VGA","grey","pink","red","orange","yellow","brown","green","cyan","blue","violett","white","rainbow"]; 
-    
-
-
-    for(i=[0:1:$children-1]){
-    $idx=i;
-    color(co[pal][(no+i)%len(co[pal])],alpha)children(i);
-    if(n)echo(str("<font color=",co[pal][(no+i)%len(co[pal])]," size=5> ███  <font color=black>Color children ($idx) ",i," »»» ",no+i,"/",co[pal][(no+i)%len(co[pal])]," von ",len(co[pal])-1," — Palette ",pal,"/",palette[pal],(no+i>len(co[pal])-1)?" —<font color=red> Out of Range":"","</font>"));
-    }
-     if(!$children){echo(" <font color='red'size=8>  »»» Color missing Object! «««  </font>");
-    echo(); } 
-}
-
-
 
 module Sinuskoerper
 (
@@ -5736,7 +5763,7 @@ module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name=$i
       
   if(name)echo(str(name," Bogen ",grad,"° Radius=",rad,"mm Sekantenradius= ",hSek,"mm — Tangentenschnittpunkt=",hSek+hc,"mm TsSekhöhe=",hc,"mm Kreisstücklänge=",bl," inkl l=",bl+l1+l2,"mm"));
       
-  if(!$children&&name&&!2D)echo(" <font color='darkorange'size=3>  »»»» Bogen missing Object! using circle««« </font> ");
+  if(!$children&&name&&!2D)Echo("Bogen missing Object! using circle",color="warning");
   
   if(help)echo(str("<font color=",helpMColor," size=3><b>Help Bogen(grad=",grad,",rad=",rad,",l=",l,",l1=",l1,",l2=",l2,",fn=",fn,",center=",center,",tcenter=",tcenter,",name=",name,",d=",d,",fn2=",fn2,",ueberlapp=",ueberlapp,",help=$helpM, messpunkt=",messpunkt,", 2D=",2D,")"));
     
@@ -5750,7 +5777,7 @@ module BogenOrg(grad=90,rad=5,d=3,l1=10,l2=12,n=$info,fn=fn,fn2=fn,ueberlapp=-0.
       color("orange")R(z=-grad-180) T(-rad,ueberlapp)R(-90,180,0)cylinder(l2+0.0,d=d,$fn=fn);
   if(n)echo(str("»»» »»» ",n," Bogen ",grad,"° Durchmesser= ",d,"mm — Innenmaß= ",2*max(rad,d/2)-d,"mm Außenmaß= ",2*max(rad,d/2)+d));
       
-  if(!$children)echo(" <font color='darkorange'size=3>  »»»» Bogen missing Object! using circle««« </font> ");
+  if(!$children)Echo("Bogen missing Object! using circle",color="warning");
   
   if(help)echo(str("<font color=",helpMColor," size=3><b>Help Bogen(grad=90,rad=5,d=3,l1=10,l2=12,n=$info,fn=fn,fn2=fn,ueberlapp=-0.001,help=$helpM)"));
 }
@@ -6378,40 +6405,6 @@ cylinder ((d1-d2)/2*v,d1=d1,d2=d2,$fn=fn);
 }
 
 
-module T(x=0,y=0,z=0)
-{
-    //translate([x,y,z])children();
-if(is_list(x))
-    multmatrix(m=[
-    [1,0,0,x[0]],
-    [0,1,0,x[1]],    
-    [0,0,1,x[2]],
-    [0,0,0,1]    
-    ])children(); 
-else
-    multmatrix(m=[
-    [1,0,0,x],
-    [0,1,0,y],    
-    [0,0,1,z],
-    [0,0,0,1]    
-    ])children(); 
-
-
-    
-    if(!$children){echo(" <font color='red'size=8>  »»»» T missing Object!««« </font> ");
-    echo();}
-}
-
-module R(x=0,y=0,z=0)
-{
-    rotate([x,y,z])children();
-    
-    if(!$children){echo(" <font color='red'size=8>  »»»» R missing Object!««« </font> ");
-    echo();}
-}
-
-
-
 module Stabhalter (l=10,d=3.5)// Replaced with Ring(cd=-1,rand(n(1.5)),durchmesser=In6eck(3.1),fn=6)
 {
     
@@ -6763,89 +6756,6 @@ if (2D){
 
 
 
-module Schnitt(on=$preview,r=0,x=0,y=0,z=-0.01,rx=0,ry=0,sizex=500,sizey=500,sizez=500,center=0)
-{
-    center=is_bool(center)?center?1:0:center;
-    if($children)difference()
-    {
-        children();
-      if((on&&$preview)||on==2)  translate([x,y,z])rotate([rx,ry,r])color([1,0,0,1])translate([center>0?-sizex/2:0,abs(center)==1?-sizey/2:-sizey,center>1||center<0?-sizez/2:0])cube([sizex,sizey,sizez],center=false);
-    }
-  if (on==2&&!$preview)
-      {
-         echo(" <font color='red'size=8>  »»»»»»»»»»»»»»––SCHNITT––««««««««««««««« </font> ");
-        // echo(" «««««««««««««««««««––SCHNITT––»»»»»»»»»»»»»»»»»»»»»»»»»»»» "); 
-        // echo("   »»»»»»»»»»»»»»»»»»––SCHNITT––««««««««««««««««««««««««««« ");
-         echo();
-      }
- if(!$children){echo(" <font color='red'size=8>  »»»» Schnitt missing Object!««« </font> ");
-    echo(); }       
-
-}
-
-
-module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name=$info,n){
-    
-   name=is_undef(n)?name:n;
-   radius=Hypotenuse(x,y);
-   end=end==0?360:end;
-   winkel=abs(end)==360?360/e:end/max(1,e-1);
-   if(e>+0) rotate(r)for(i=[0:e-1]){
-        $idx=i;
-        $info=$idx?false:name;
-        $helpM=$idx?false:$helpM;
-        rotate(e==1&&end<360?winkel/2:i*winkel)translate([x,y,0])rotate([0,0, re+(i*winkel)/end*dr])children();
-    }
-     if(mitte){
-         $idx=e;
-         children(); 
-     }
- 
- if(name)echo(str(is_string(name)?"<H3>":"",name," Polar ×",e,
-     //"transX= ",x," transY= ",y,
-    " Radius=",radius,"mm ",re?str("rotElements=",re,"°"):"",end!=360?str(" End=",end,"°"):""," Element=",winkel,"° Abstand=",2*radius*PI/360*winkel,"mm (Sekante=",2*radius*sin(winkel/2),")"));
-    Echo("Polar missing Object!",color="red",condition=!$children);
-           
-     
-}
-
-
-
-module Linear(e=2,es=1,s=0,x=1,y=0,z=0,r=0,re=0,center=0,cx=0,cy=0,cz=0,name=$info,n)// ordnet das Element 20× im Abstand x Linear an.. es skaliert die vektoren . cx = center x
-{
-name=is_undef(n)?name:n;   
-$helpM=0;    
-s=es==1?s:0;
-
-    cx=center?1:cx;
-    cy=center?1:cy;  
-    cz=center?1:cz;
-if(s!=0&&e>0){if(e>1)translate([cx?-x*es/2*s:0,cy?-y*es/2*s:0,cz?-z*es/2*s:0])for(i=[0:e-1])//for (i=[+0:s/(e-1):s+.00001])
-         {
-            $idx=i;
-            $info=$idx?false:name; 
-            rotate([0,0, r])translate([i*x*es*(s/(e-1)),i*y*es*(s/(e-1)),i*z*es*(s/(e-1))])rotate([0,0, re])children();
-                
-             
-         }
-      else rotate([0,0, re])children();
-      }   
-if(s==0&&e>0)for (i=[0:e-1])
-         {
-            $idx=i;
-            $info=$idx?false:name;
-            rotate([0,0, r])translate(center?[(e-1)*es*x,(e-1)*es*y,(e-1)*es*z]/-2:[0,0,0])translate([i*es*x,i*es*y,i*es*z])rotate([0,0, re])children();
-          
-         }        
-        
-   if(!$children){echo(" <font color='red'size=8>  »»»» Linear missing Object!««« </font> ");
-    echo(); }  
-
-if(name)echo(str(is_string(name)?"<H3>":"",name," Linear länge =",(s?s:e*es)*norm([x,y,z]),"mm</b>"));    
-        
-         
-}
-
 
 module Servotraeger(SON=1,top=0)
  {
@@ -6884,10 +6794,25 @@ if (top) difference(){
     }   
         
    }
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
  if(version()[0]<2021)echo("<b><p style=background-color:#dddddd><font color='darkblue'size=4>---—————————————————————————————————————————————---</font>");
  else echo("\n---————————————————————————————————————————---\n");
  
- 
+ // for demo Objects (incomplete)
 if (show) %color([0.6,+0.0,0.9,0.8]){
 if (show==402)Strebe();    
 if (show==400)Pivot();    
@@ -6953,13 +6878,7 @@ if (show==1){cube(10,true);echo("<font size=6 color=darkviolet>10mm Cube");}
 }
  
  
- 
- 
- 
- 
- 
- 
- 
+
    
    
  /*  •••• Archive ••••  
@@ -7254,6 +7173,120 @@ v2019.5
 355|20 CHG Linear s⇒$idx
 357|20 CHG Color
 361|20 CHG Anordnen
+
+2021
+
+000|21 CHG Klammer l vector CHG Quad r=undef β19.78
+005|21 CHG Glied FIX LinEx FIX Schnitt β19.79
+007|21 CHG Vollwelle Add h β19.8
+011|21 CHG Vollwelle Add l CHG LinEx Add End ADD inch β19.81
+013|21 CHG Pille chg rad list FIX Kegelmantel FIX LinEx hc=0 CHG Klon Add $idx CHG LinEx end FIX Kassette name β19.82
+016|21 FIX Grid CHG Vollwelle list fn CHG Nut Add grad β19.821
+017|21 FIX CycloidZahn β19.822
+018|21 FIX Pille β19.83
+019|21 FIX SBogen/Bogen
+022|21 ADD gradB CHG Quad warning CHG Text help radius β19.84
+023|21 ADD funct vollwelle CHG Gewinde test vollwelle
+025|21 ADD fonts styles lists CHG Text β19.85
+026|21 CHG Text Add rot fix -h CHG Vollwellen grad list FIX Anschluss r1/2 β19.86
+027|21 CHG Linear  e first CHG Grid e first Add s
+028|21 CHG Vollwelle fix h replaced w. vollwelle() β19.88
+029|21 ADD GewindeV4 CHG Gewinde β19.89
+030|21 CHG GewindeV4 autocalc warning variables ADD useVersion ADD func gradS CHG Ring method FIX Prisma FIX LinEx β19.90
+031|21 CHG Pille Rad2 CHG Sichel Add step CHG DBogen Add spiel CHG Text fn FIX Kegel
+040|21 CHG Kegelmantel CHG Gewinde Add konisch β19.94
+042|21 CHG vollwelle g2 end Fix grad list,CHG GewindeV4 konisch grad2, FIX Caliper help β19.95
+043|21 FIX Bogen n CHG Gewinde Add ISO presets β19.951
+045|21 FIX Quad x=list CHG Drehpunkt Add vector help β19.952
+046|21 CHG Quad r gerunded CHG LinEx max slices Fix Luer β19.953
+051|21 FIX Pille rad2
+055|21 CHG Bogen Add l[] CHG Rundrum x[] β19.955
+056|21 CHG Gewinde
+057|21 FIX Nut console Add Pfeil CHG console colors β19.957
+058|21 FIX Linear e=1/0 β19.958  CHG Anordnen es⇔e es=Sehne
+059|21 CHG Rund Add vector ADD func radiusS
+060|21 ADD func radiusS+grad FIX Quad rundung CHG LinEx warning+h2=0 β19.960
+β21.60
+062|21 CHG Gewinde add tz in preset chg spiel CHG DRing Add center FIX Kehle bool
+063|21 FIX DBogen FIX Gewinde wand
+064|21 FIX Gewinde children old Version CHG DRing Add grad
+068|21 CHG Ring Add Id CHG Torus Add endRot ADD func Inch FIX Kehle end
+069|21 CHG Kehle Add Fillet
+070|21 CHG Kehle Add  dia/Fillet CHG Ring Add grad CHG help CHG Bevel Add messpunkt CHG Anordnen Add rot
+
+078|21 CHG Schnitt center bool CHG Color Add color names CHG Pfeil Add d
+079|21 CHG Gewinde Add gb
+081|21 FIX RStern n
+082|21 ADD Rosette
+083|21 ADD Scale CHG Rosette Add children Del round
+085|21 ADD GT
+087|21 FIX LinEx warning CHG WStrebe grad2 undef
+089|21 FIX LinEx grad list  CHG GT Add fn FIX SRing h
+091|21 ADD Egg ADD HelpTxt ADD InfoTxt CHG GT2 CHG Torus end fn2
+092|21 ADD BB FIX DBogen CHG Egg Add breit CHG Anordnen
+093|21 ADD $fs CHG DBogen CHG Egg ADD func fs2fn
+096|21 CHG BB Add achse center fixes FIX Polar e=0 
+098|21 FIX GewindeV3
+100|21 CHG Strebe Add fn2
+105|21 FIX Infotxt
+108|21 ADD Echo FIX HelpTxt InfoTxt for v[2021] CHG Achsenklammer CHG Ring help
+111|21 CHG Gewinde helptxt Fix SBogen -grad
+118|21 CHG Color Add spread
+119|21 FIX LinEx
+127|21 CHG Zylinder faces
+130|21 CHG Zylinder var
+138|21 ADD HexGrid
+139|21 CHG Zylinder Add center
+142|21 FIX Vollwelle 
+148|21 CHG Text add spacing
+149|21 ADD HypKehle
+151|21 CHG HexGrid es vector ADD PrintBed
+164|21 CHG Text spacing
+166|21 CHG Text not empty CHG vpt printBed/2
+176|21 CHG Pin 
+178|21 CHG Rohr
+181|21 CHG Cring
+194|21 ADD Abzweig FIX Anschluss
+215|21 ADD printPos FIX Abzweig
+216|21 ADD assert Version
+217|21 CHG Zylinder Add lambda
+218|21 CHG Pille Add r CHG Abzweig CHG T Add vector
+224|21 FIX printPos vpt
+235|21 FIX Luer 33.3
+237|21 CHG Zylinder lambda
+245|21 CHG menue layer nozzle var
+260|21 FIX LinEx list $r
+268|21 FIX Gewinde Mantel
+272|21 FIX removed ,, (test with [2021,9]) some formating regarding version
+273|21 FIX formating for v21
+276|21 FIX GewindeV4 faces error grad<360
+277|21 FIX LinEx vector, del Schnitt convexity, cCube
+280|21 FIX Polar 1 with end<360
+281|21 FIX Cring bool
+283|21 FIX Gewinde winkel
+284|21 FIX Kreis ceil(fn) CHG Bevel messpunkt FIX Trapez help
+285|21 FIX Ring rot 90
+286|21 FIX Anordnen;
+287|21 CHG Torus Add endspiel FIX Kreis r=0 b
+288|21 FIX Halb
+289|21 FIX Pille accuracy issue ADD minVal
+290|21 ADD clampToX0 FIX Pille help info FIX Torus grad end
+291|21 ADD KreisSeg
+292|21 FIX Cycloid points, Cyclgetriebe bool center + info CHG Kreis r=0 rand=0
+295|21 FIX HelpTxt,InfoTxt ↦ scad version > 2021
+296|21 CHG Vollwelle/ECHO
+297|21 CHG Gewindev4 calc dn=undef
+298|21 CHG Echo add color characters
+299|21 CHG Gewinde g rot CHG GewindeV4 add g autocalc
+301|21 CHG Tugel Add rand,help fix name,CHG help info DBogen
+305|21 CHG Bezier Add $idx for children ADD vektorWinkel ADD v3
+306|21 CHG Echo Add colors CHG Pfeil CHG Anordnen CHG Halbrund CHG Imprint 
+307|21 CHG helptext changes CHG Glied ADD GT2Pulley FIX Superellipse FIX LinEx2
+208|21 FIX help Diverse 
+309|21 CHG Gewinde Add other FIX Zylinder fix ub CHG SBogen ADD parentList
+310|21 FIX Anschluss
+311|21 FIX Grid ub FIX v3() CHG Bezier CHG parentList CHG SBogen 
+312|21 FIX Strebe
 
 
 */
