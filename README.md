@@ -1,5 +1,5 @@
 # UB.scad
-This library is a full workflow solution for [openSCAD](https://www.openscad.org).
+This [library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) is a full workflow solution for [openSCAD](https://www.openscad.org).
 - giving you [functions](#functions), tools to modify objects, [helper](#helper) for viewing,[2D polygones](#polygones), [basic objects](#objects) and [products](#products)
 
   use <ul>helpsw=true;</ul> (1-5 or true) to get a list within the output(console).<br>
