@@ -24,6 +24,7 @@ name="object";     // used in modules for showing name or number - if 0 no info 
 Changelog (archive at the very bottom)
 313|21  Reordering modules ADD teiler FIX Help txt ADD MO fix missing obj warnings
 314|21  ADD Example Fix Linear infotxt
+315|21  CHG Anordnen Add center CHG Pfeil  add center add inv CHG Calliper CHG Pivot
 
 */
 
@@ -825,8 +826,11 @@ module Schnitt(on=$preview,r=0,x=0,y=0,z=-0.01,rx=0,ry=0,sizex=500,sizey=500,siz
 MO(!$children);     
 }
 
+
+
+
 //Arranges (and color) list of children for display
-module Anordnen(es=10,e,option=1,axis=1,c=0,r,cl=.5,rot=0,loop=true,name=$info,help=$helpM){
+module Anordnen(es=10,e,option=1,axis=1,c=0,r,cl=.5,rot=0,loop=true,center=true,inverse=false,name=$info,help=$helpM){
    
 optiE= function(e=[0,0,1])
     let (sqC=sqrt($children))
@@ -851,30 +855,36 @@ $info=false;
  if(option==1){
      r=is_undef(r)?(es/2)/sin(180/e):r;
      Polar(e,x=r,re=rot)if(is_undef(c)&&(loop?true:$idx<$children))
-         children($idx%$children);//
+         children((inverse?$children-$idx-1:$idx)%$children);//
      else Color(c+1/$children*$idx,l=cl)
-         if(loop?true:$idx<$children)children($idx%$children);
+         if(loop?true:$idx<$children)children((inverse?$children-$idx-1:$idx)%$children);
      }
      
  if(option==2){
-    if(axis==1) Linear(e=e,es=es,re=rot,center=true,x=1)
+    if(axis==1) Linear(e=e,es=es,re=rot,center=center,x=1)
         if(is_undef(c))children($idx%$children);
             else Color(c+1/$children*$idx,l=cl)children($idx%$children);
     
-    if(axis==2) Linear(e=e,es=es,re=rot,center=true,x=0,y=1)
+    if(axis==2) Linear(e=e,es=es,re=rot,center=center,x=0,y=1)
         if(is_undef(c))children($idx%$children);
             else Color(c+1/$children*$idx,l=cl)children($idx%$children);
-    if(axis==3) Linear(e=e,es=es,re=rot,center=true,x=0,z=1)
+    if(axis==3) Linear(e=e,es=es,re=rot,center=center,x=0,z=1)
         if(is_undef(c))children($idx%$children);
             else Color(c+1/$children*$idx,l=cl)children($idx%$children);    
  }
- if(option==3) Grid(e=e,es=es,center=true)rotate(rot)if(is_undef(c)&&(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children))children(($idx[0]+e.x*$idx[1])%$children); else Color(([$idx.x/(e.x -1),$idx.y/(e.y -1),$idx.z/e.z]+[ 0,0,cl])){
-     if(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children)children(($idx[0]+e.x*$idx[1])%$children);
+ 
+ if(option==3) Grid(e=e,es=es,center=center){
+     childINDX=inverse?(loop?e.x*e.y*e.z:$children -1)-($idx[0]+e.x*$idx[1]):($idx[0]+e.x*$idx[1]);
+     rotate(rot)
+     if(is_undef(c)&&(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children))children(childINDX%$children);
+     else Color(([$idx.x/(e.x -1),$idx.y/(e.y -1),$idx.z/e.z]+[ 0,0,cl])){
+     if(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children)children(childINDX%$children);
      //text(str([$idx.x/(e.x-1), $idx.y/(e.y-1), $idx.z/e.z]+[ 0,0,cl]),size=2);
+ }
  }  
 
  
-HelpTxt("Anordnung",["e",e,"es",es,"option",option,"axis",axis,"c",c,"r",r,"cl",cl,"rot=",rot,"loop",loop,"name",name],help);
+HelpTxt("Anordnung",["e",e,"es",es,"option",option,"axis",axis,"c",c,"r",r,"cl",cl,"rot=",rot,"loop",loop,"center",center,"inverse",inverse,"name",name],help);
 }
 
 
@@ -1523,12 +1533,11 @@ HelpTxt("Rosette",[
 
 
 
-
-module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d,name=$info,help=$helpM){
+module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d,center=true,name=$info,help=$helpM){
  shift=is_list(shift)?shift:[shift,-shift];
  l=is_list(l)?l:[l/2,l/2]; 
  b=is_list(b)?b:[b,2*(l[1]-shift[0])*tan(grad/2)];
-    
+ center=is_bool(center)?center?[1,1]:[0,0]:is_list(center)?center:[center,center];   
  points=[
      [l[1],0],//spitze
      [shift[0],b[1]/2],
@@ -1541,7 +1550,9 @@ module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d,name=$info,help=$helpM){
     ];   
 
 
-if(d){
+if(d)translate(center.y?center.y<0?[0,d/2]:
+                                [0,0]:
+                [0,-d/2]){
     Kreis(d=d,rand=b[0],b=-l[0],center=false,rcenter=true); 
     
         translate([0,d/2])polygon(points);
@@ -1555,7 +1566,7 @@ if(d){
 //        %circle(r=d/2);
 //    }
 }
- else polygon(points);  
+ else translate([center.x?center.x>0?0:-l[1]:l[0],center.y?center.y>0?0:-b[1]/2:b[1]/2]) polygon(points);  
     
 InfoTxt("Pfeil",["Winkel",2*atan((b[1]/2)/(l[1]-shift[0]))],name);    
 HelpTxt("Pfeil",[   
@@ -1564,6 +1575,7 @@ HelpTxt("Pfeil",[
     "shift",shift,
     "grad",grad,
     "d",d,
+    "center",center,
     "name",name],help);
 }
 
@@ -3574,13 +3586,13 @@ points=concat(
 
 
 module Caliper(l=20,in=1,h=$vpd/15,center=true,messpunkt=true,translate=[0,0,0],end=1,help=$helpM){
-    
+    center=is_bool(center)?center?1:0:center;
     textl=in>1?h/3:h/4*0.6*(len(str(l))+5);
     
     if($preview)translate(translate)translate(in>1?center?[0,0]:[0,l/2]:center?[0,0]:[l/2,0]){
       if(end==1)Col(5){
-        rotate(in?in==2?90:in==3?-90:180:0)linear_extrude(1.1,center=true)Mklon(tx=l/2,mz=0)polygon([[-5,0],[0,h],[0,0]]);
-        rotate(in?in==2?90:in==3?-90:180:0)linear_extrude(1.1,center=true)Mklon(tx=-l/2,mz=0)polygon([[-5,0],[0,-h],[0,0]]);
+        rotate(in?in==2?90:in==3?-90:180:0)linear_extrude(1.1,center=true)Mklon(tx=l/2,mz=0)polygon([[max(-5,-l/3),0],[0,h],[0,0]]);
+        rotate(in?in==2?90:in==3?-90:180:0)linear_extrude(1.1,center=true)Mklon(tx=-l/2,mz=0)polygon([[max(-5,-l/3),0],[0,-h],[0,0]]);
         
         Text(h=1.15,text=str(l,"mm"),center=true,size=h/4);
         }
@@ -3593,15 +3605,15 @@ module Caliper(l=20,in=1,h=$vpd/15,center=true,messpunkt=true,translate=[0,0,0],
     
 Pivot(messpunkt=messpunkt,p0=translate);
     
-    if(help)echo(str("<H3><font color='",helpMColor,"' <b>Help Caliper(
-        l=",l,
-    " ,in=",in,
-    " ,h=",h,
-    " ,center=",center,
-    " ,messpunkt=",messpunkt,
-    " ,translate=",translate,
-    " ,end=",end,
-    " ,help=$helpM);"));
+    HelpTxt("Caliper",[
+    "l",l,
+    "in",in,
+    "h",h,
+    "center",center,
+    "messpunkt",messpunkt,
+    "translate",translate,
+    "end",end]
+    ,help);
 }
 
 
@@ -4608,33 +4620,31 @@ function rotate_from_to(a,b) =
 }
 
 
-
-module Pivot(p0=[0,0,0],size=pivotSize,active=[1,1,1,1,1,1],messpunkt=messpunkt,txt,help=false){
+module Pivot(p0=[0,0,0],size=pivotSize,active=[1,1,1,1,1,1],messpunkt=messpunkt,txt,rot=0,help=false){
     size=size==undef?5:size;
     size2=size/+5;
 if(messpunkt)translate(p0)%union(){
         
-      if(active[3])  color("blue")cylinder(size,d1=.5*size2,d2=0,center=false,$fn=4);
-      if(active[2])  color("green")rotate([-90,0,0])cylinder(size,d1=.5*size2,d2=0,center=false,$fn=4);
-      if(active[1])  color("red")rotate([0,90,0])cylinder(size,d1=.5*size2,d2=0,center=false,$fn=4);   
+      if(active[3])rotate(rot)  color("blue")cylinder(size,d1=.5*size2,d2=0,center=false,$fn=4);
+      if(active[2])rotate(rot)  color("green")rotate([-90,0,0])cylinder(size,d1=.5*size2,d2=0,center=false,$fn=4);
+      if(active[1])rotate(rot)  color("red")rotate([0,90,0])cylinder(size,d1=.5*size2,d2=0,center=false,$fn=4);   
        if(active[0]) color("yellow")sphere(d=size2*.6,$fn=12);
        //Text
-       if(active[4])%color("grey")rotate($vpr)
+       if(active[4]) color("grey")rotate($vpr)
           //linear_extrude(.1,$fn=1)
-       text(text=str(p0,"   "),size=size2,halign="right",valign="top",font="Bahnschrift:style=light",$fn=1);    
+       text(text=str(p0," ",rot?str(rot,"°"):"","   "),size=size2,halign="right",valign="top",font="Bahnschrift:style=light",$fn=1);    
        
        if(txt&&active[5])%color("lightgrey")rotate($vpr)translate([0,size/15])//linear_extrude(.1,$fn=1)
            text(text=str(txt,"   "),size=size2,font="Bahnschrift:style=light",halign="right",valign="bottom",$fn=1);
      
-     if(help)echo(str("<H3><font color='",helpMColor,"' <b>Help Pivot(
-         p0=",p0,
-        " ,size=",size,
-        " ,active=",active,
-        " ,messpunkt=",messpunkt,
-        " ,txt=",txt,
-        " ,help=",help," 
-        );")); 
-       
+     HelpTxt("Pivot",[
+         "p0",p0,
+        "size",size,
+        "active",active,
+        "messpunkt",messpunkt,
+        "txt",txt,
+        "rot",rot]
+        ,help); 
     }
 }
 
