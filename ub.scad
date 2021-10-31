@@ -23,6 +23,7 @@ name="object";     // used in modules for showing name or number - if 0 no info 
 
 Changelog (archive at the very bottom)
 313|21  Reordering modules ADD teiler FIX Help txt ADD MO fix missing obj warnings
+314|21  ADD Example Fix Linear infotxt
 
 */
 
@@ -79,7 +80,7 @@ helpMColor="#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.313;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.314;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -517,6 +518,18 @@ if(!$preview&&version()[0]<2021) echo("<H1 style=background-color:#aaffcc;color:
 
 //////////////////////////// Modules  /////////////////////////////
 
+module Example(variable=1,name=$info,help=$helpM){
+ 
+    if(variable==1)cube(10);
+    else if (variable==2)sphere(10);
+    
+ InfoTxt("Example",["variable",variable,"display",variable?variable==1?"cube":
+                                                                "sphere":
+                                                    "none"],name);
+ HelpTxt("Example",["variable",variable,"name",name],help);   
+}
+
+
 /// Tools / Modificator ///
 
 // short for translate[];
@@ -638,8 +651,8 @@ if(s==0&&e>0)for (i=[0:e-1])
         
 MO(!$children);
 
-InfoTxt("Linear länge",str((s?s:e*es)*norm([x,y,z]),"mm"),name);    
- HelpTxt("Linear",["e",e,"es",es,"s",s,"x",x,"y",y,"z",z,"r",r,"re",re,"center",center,"cx",cx,"cy",cy,"cz",cz,"name",name],help);       
+InfoTxt("Linear",["länge",str((s?s:e*es)*norm([x,y,z]),"mm")],name);    
+HelpTxt("Linear",["e",e,"es",es,"s",s,"x",x,"y",y,"z",z,"r",r,"re",re,"center",center,"cx",cx,"cy",cy,"cz",cz,"name",name],help);       
         
 }
 
