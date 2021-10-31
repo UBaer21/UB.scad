@@ -9,14 +9,28 @@ This [library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) is 
 
 ![modifier](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOmodifier.png)
 
+# 3DModifier
+
+![3Dmodifier](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMO3Dmodifier.png)
+
 # Helper
-# Polygones
+
+![helper](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOhelper.png)
+
+# Polygons
+
+![polygons](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOpolygons.png)
+
 # Objects
+
+![objects](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOobjects.png)
 
 # Products
 
 ![Products](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOProd.png)
 
 # Functions
+
+![functions](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOfunctions.png)
 
 
