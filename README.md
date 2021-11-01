@@ -1,6 +1,13 @@
 # UB.scad
 This [library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) is a full 3Dprinting workflow solution for [openSCAD](https://www.openscad.org).
-- giving you [functions](#functions), tools to [modify](#modifier) objects, [helper](#helper) for viewing,[2D polygones](#polygones), [basic objects](#objects) and [products](#products)
+- giving you
+  * [functions](#functions)
+  *  tools to [modify](#modifier) objects
+  *  to [generate](#generator) 3D objects
+  *   [helper](#helper) for viewing
+  *   [2D polygones](#polygones)
+  *   [basic objects](#objects)
+  *    and [products](#products)
 
 🌐**But why would you need it? Best to judge from what you can accomplish - i build this lib to make these [Prints](https://www.prusaprinters.org/social/167780)**
 
@@ -14,9 +21,9 @@ This [library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) is 
 
 ![modifier](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOmodifier.png)
 
-# 3DModifier
+# Generator
 
-![3Dmodifier](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMO3Dmodifier.png)
+![3Dmodifier](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOgenerator.png)
 
 # Helper
 
