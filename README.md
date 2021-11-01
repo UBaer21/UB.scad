@@ -30,7 +30,7 @@ This [library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) is 
 
 # Products
 
-![Products](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOProd.png)
+![Products](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOproducts.png)
 
 # Functions
 
