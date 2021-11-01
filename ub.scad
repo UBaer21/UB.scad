@@ -25,6 +25,7 @@ Changelog (archive at the very bottom)
 313|21  Reordering modules ADD teiler FIX Help txt ADD MO fix missing obj warnings
 314|21  ADD Example Fix Linear infotxt
 315|21  CHG Anordnen Add center CHG Pfeil  add center add inv CHG Calliper CHG Pivot
+316|21  ADD 3Projection CHG Scale CHG Halb CHG Rand add help
 
 */
 
@@ -81,7 +82,7 @@ helpMColor="#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.314;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.316;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -90,6 +91,7 @@ tw=acos(-1/3);// tetraeder winkel;
 twF=acos(1/3);// tetraeder winkel face edge face;
 inch=25.4; // inch/Zoll
 minVal=0.0000001; // minimum für nicht 0
+view=$preview?tan($vpf)*$vpd:50000; // größe Sichtfeld 
 //echo(tw,twF);
 //PHI=(1+sqrt(5))/2;
 
@@ -503,9 +505,16 @@ messpunkt=",messpunkt?"<font color='green'>On</font>":"<font color='red'>Off</fo
 " • help=",help?"<font color='green'>On</font>":"<font color='red'>Off</font>",
 " • $info=",$info?"<font color='green'>On</font>":"<font color='red'>Off</font>",
 " •</font>"));
+ else echo    (str("Schalter•\n 
+messpunkt=",messpunkt?"🟢✔":"<font color='red'>Off</font>",
+" • vp=",vp?"🟢✔":"🔴",
+" • anima=",anima?"🟢✔":"🔴",
+//" • texton=",texton?"🟢✔":"🔴",
+" • help=",help?"🟢✔":"🔴",
+" • $info=",$info?"🟢✔":"🔴",
+" •"));
 
-if(anima)echo(str("\n<p style=background-color:#ccbbee;>
-    <font size=5 color='darkviolet'>Zeit t0:",t0,
+if(anima)echo(str("\n Zeit t0:",t0,
     "\nZeit t1:",t1,"\nZeit t2:",t2,"\n
 Zeit t3:",t3(),"\n
 ••••  anima on! tset=",tset," t=0⇒1 || t0=0⇒360 || t1=-1⇔1 || t2=0⇔1 || t3(wert=1,grad=360,delta=0)  •••••"));    
@@ -709,31 +718,31 @@ module Klon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,help=$helpM){
 
 
 // Cuts away half of Object at [0,0,0]
-module Halb(i=0,x=0,y=0,z=0,2D=0)
+module Halb(i=0,x=0,y=0,z=0,2D=0,size=view)
 {
     if(!2D){
        if(i)difference()
        {
            children();
-         R(x?90:0,y?90:0)  cylinder(2000,d=2000,$fn=6);
+         R(x?90:0,y?90:0)  cylinder(size,d=size,$fn=6);
           
        }
       if(!i) intersection()
       {
           children();
-          R(x?90:0,y?90:0)  cylinder(2000,d=2000,$fn=6);
+          R(x?90:0,y?90:0)  cylinder(size,d=size,$fn=6);
       }
   }
   if(2D){
       if(i)difference()
       {
           children();
-           T(y?-1000:0,x?-1000:0) square(2000);
+           T(y?-size/2:0,x?-size/2:0) square(size);
       }
       if(!i) intersection()
       {
           children();
-          T(y?-1000:0,x?-1000:0) square(2000);
+          T(y?-size/2:0,x?-size/2:0) square(size);
       }
   } 
  MO(!$children); 
@@ -826,7 +835,21 @@ module Schnitt(on=$preview,r=0,x=0,y=0,z=-0.01,rx=0,ry=0,sizex=500,sizey=500,siz
 MO(!$children);     
 }
 
+// 3 axis Projection 
 
+module 3Projection(s=10,cut=true,active=[1,1,1],help=$helpM){
+    s=is_list(s)?s:[s,s];
+    cut=is_list(cut)?cut:[cut,cut,cut];
+    $info=false;
+    $helpM=false;
+   if(active.z) projection(cut=cut.z)children();
+   if(active.x) translate([s.x,0,0])projection(cut=cut.x)rotate([0,90,0])children();
+   if(active.y) translate([0,s.y,0])projection(cut=cut.y)rotate([-90,0,0])children();
+    %children();
+    MO(!$children);
+    HelpTxt("3Projection",["s",s,"cut",cut,"active",active],help);
+    
+}
 
 
 //Arranges (and color) list of children for display
@@ -1081,11 +1104,14 @@ center=true,
 name=$info,
 help=$helpM){
 d=2*z/PI+(0.63-0.254)*2+0.2;
-$info=false;
+    
+
 center=is_bool(center)?center?1:0:center;
 T(center?center<0?[0,0,h/2+1.1]:
             [0,0,0]:
         [z/PI,z/PI,h/2]){
+if($info)%Ring(h,d=2*z/PI,rand=-.63,center=true);            
+$info=false;            
 LinEx(h+1,center=true)GT(z=z,achse=achse);
 difference(){
     
@@ -1097,7 +1123,7 @@ cylinder(50,d=achse,center=true);
 MKlon(tz=-h/2-1.3)Kegel(achse+0.75);
 }
 //%Ring(h,d=d,rand=1.38,center=true);
-%Ring(h,d=2*z/PI,rand=-.63,center=true);
+
 }
 
 InfoTxt("GT2Pulley",["aussenH",h+2.2,"d",d,"radius Riemenmitte",z/PI],name);
@@ -1429,67 +1455,73 @@ HelpTxt("GT",["z",z,
 }
 
 
+
 module Scale(v=[+1.5,+0.8,+0.8,0.6,0.7,1.3],//  scaling factors for quadrants [x-,x+,y-,y+,z-,z+]
-2D=true,help=$helpM){
+2D=true,size=view/2,help=$helpM){
+    
+  makeV =function(v=v) [for(i=[0:5])is_undef(v[i])?1:v[i]]; 
+ v=makeV();
+ size=is_undef(size)?bed?printBed:100:size;   
+    
 if($children)if(2D){
     scale([v[1],v[3]])intersection(){
     children();
-    rotate(0)square(1000);
+    rotate(0)square(size);
     }
     
     scale([v[0],v[3]])intersection(){
     children();
-    rotate(90)square(1000);
+    rotate(90)square(size);
     }
     scale([v[0],v[2]])intersection(){
     children();
-    rotate(180)square(1000);
+    rotate(180)square(size);
     }
     
     scale([v[1],v[2]])intersection(){
     children();
-    rotate(-90)square(1000);
+    rotate(-90)square(size);
     }
 }else{
     
     scale([v[0],v[2],v[5]])intersection(){
     children();
-    rotate(-180)cube(1000);
+    rotate(-180)cube(size);
     }  
     scale([v[0],v[3],v[5]])intersection(){
     children();
-    rotate(+90)cube(1000);
+    rotate(+90)cube(size);
     }   
     scale([v[1],v[3],v[5]])intersection(){
     children();
-    rotate(0)cube(1000);
+    rotate(0)cube(size);
     }     
     scale([v[1],v[2],v[5]])intersection(){
     children();
-    rotate(-90)cube(1000);
+    rotate(-90)cube(size);
     } 
     
     scale([v[0],v[2],v[4]])intersection(){
     children();
-    rotate([-90,0,-180])cube(1000);
+    rotate([-90,0,-180])cube(size);
     }  
     scale([v[0],v[3],v[4]])intersection(){
     children();
-    rotate([-90,0,90])cube(1000);
+    rotate([-90,0,90])cube(size);
     }   
     scale([v[1],v[3],v[4]])intersection(){
     children();
-    rotate([-90,0,0])cube(1000);
+    rotate([-90,0,0])cube(size);
     }     
   
     scale([v[1],v[2],v[4]])intersection(){
     children();
-    rotate([-90,0,-90])cube(1000);
+    rotate([-90,0,-90])cube(size);
     }       
 
 }
 HelpTxt("Scale",["v",v,
-"2D",2D],help);
+"2D",2D,"size",size],help);
 MO(!$children);
 }
 
@@ -2177,8 +2209,8 @@ module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60
         LinEx(h=h,h2=h2,$d=z/2*modul,mantelwinkel=w,slices=preview?(h-1)*2:2,grad=d>r*2?-grad:grad)
         if($preview&&!preview) Kreis(d=d>r*2?d:$d,rand=d>r*2?d/2-r:r-d/2);
         else render()CycloidZahn(modul=modul,z=z/2,d=d,spiel=spiel,fn=fn);
-      if(achse)  Tz(-minVal)LinEx(h=h+.002,h2=h2,$d=achse,grad=-achsegrad)circle(d=$d);
-        if(light)Tz(-minVal)Polar(light)T(mitteR)LinEx(h=h+.002,h2=h2,$r=rand,grad=-60)T(-mitteR)Rund(min(rand/light,rand/2-0.1),fn=18)Kreis(r=mitteR,rand=rand,grad=min(360/light-15,320),grad2=max(360/light-40,10),rcenter=true,fn=z/light);
+      if(achse)  Tz(-.01)LinEx(h=h+.02,h2=h2,$d=achse,grad=-achsegrad)circle(d=$d);
+        if(light)Tz(-0.01)Polar(light)T(mitteR)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(-mitteR)Rund(min(rand/light,rand/2-0.1),fn=18)Kreis(r=mitteR,rand=rand,grad=min(360/light-15,320),grad2=max(360/light-40,10),rcenter=true,fn=z/light);
             if(lock)LinEx(h=h,h2=h2,$r=1.65,grad=-60)WStern(help=0,r=$r);
     }
     InfoTxt("CyclGetriebe",["Wälzradius",z/4*modul],name);
@@ -3585,34 +3617,70 @@ points=concat(
 }
 
 
-module Caliper(l=20,in=1,h=$vpd/15,center=true,messpunkt=true,translate=[0,0,0],end=1,help=$helpM){
-    center=is_bool(center)?center?1:0:center;
-    textl=in>1?h/3:h/4*0.6*(len(str(l))+5);
+module Caliper(l=20,in=1,s=$vpd/15,center=true,messpunkt=true,translate=[0,0,0],end=1,h=1.1,render=false,l2,txt,help=$helpM){
     
-    if($preview)translate(translate)translate(in>1?center?[0,0]:[0,l/2]:center?[0,0]:[l/2,0]){
-      if(end==1)Col(5){
-        rotate(in?in==2?90:in==3?-90:180:0)linear_extrude(1.1,center=true)Mklon(tx=l/2,mz=0)polygon([[max(-5,-l/3),0],[0,h],[0,0]]);
-        rotate(in?in==2?90:in==3?-90:180:0)linear_extrude(1.1,center=true)Mklon(tx=-l/2,mz=0)polygon([[max(-5,-l/3),0],[0,-h],[0,0]]);
+    txt=is_undef(txt)?str(l,"mm "):txt;
+    center=is_bool(center)?center?1:0:center;
+    textl=in>1?s/3:s/4*(len(str(txt)));// end=0 use own def
+    line=s/20;
+    //l2=is_undef(l2)?s:ls;
+    
+    
+    if($preview||render)translate(translate)translate(in>1?center?[0,0]:[0,l/2]:center?[0,0]:[l/2,0]){
+      if(end==1&&h)Col(5){
+        rotate(in?in==2?90:in==3?-90:180:0)linear_extrude(h,center=true)Mklon(tx=l/2,mz=0)polygon([[max(-5,-l/3),0],[0,s],[0,0]]);
+        rotate(in?in==2?90:in==3?-90:180:0)linear_extrude(h,center=true)Mklon(tx=-l/2,mz=0)polygon([[max(-5,-l/3),0],[0,-s],[0,0]]);
         
-        Text(h=1.15,text=str(l,"mm"),center=true,size=h/4);
+        Text(h=h+.1,text=txt,center=true,size=s/4);
         }
-      if(end==2)Col(3)union(){
-        rotate(in?in==2?90:in==3?-90:180:0)MKlon(tx=l/2)T(-(l-textl)/4,0)cube([(l-textl)/2,h/20,1.1],center=true);
-        rotate(in?in==2?90:in==3?-90:180:0)MKlon(tx=l/2)T(-h/40)cube([h/20,h,2.1],center=true);    
-        Text(h=1.15,text=str(l,"mm"),center=true,size=h/4);   
+     else if(end==2&&h)Col(3)union(){
+        rotate(in?in==2?90:in==3?-90:180:0)MKlon(tx=l/2)T(-(l-textl)/4,0)cube([(l-textl)/2,line,h],center=true);
+        rotate(in?in==2?90:in==3?-90:180:0)MKlon(tx=l/2)T(-line/2)cube([line,s,h],center=true);    
+        translate([(l<textl+1&&in<2)?l/2+textl/2+1:0,l<textl+1&&in>1?l/2+textl/2+1:0,0])Text(h=h+.1,text=txt,center=true,size=s/4);
+         if(l<textl+1)
+             if(in<2)translate([.5,0])square([l+.5,line],true);
+                else translate([0,.5])square([line,l+.5],true);
+         
+        }
+        else Col(1)union(){
+            s=s==$vpd/15?5:s;
+            line=s/20;
+            l2=is_undef(l2)?s:ls;
+            textl=in>1?s/3:s/4*len(txt);
+            // text line
+        rotate(in?in==2?90:in==3?-90:180:0)MKlon(tx=l/2)T(-(l-textl)/4,0)square([(l-textl)/2,line],center=true);
+            //End lines
+        rotate(in?in==2?90:in==3?-90:180:0){MKlon(tx=l/2){
+           T(+line/2) square([line,l2],center=true);
+            Pfeil([0,min(l/3,s/2)],b=[line,s],center=[-1,1]);
+        }    
+         translate([l<textl+s?l/2+textl/2+1:0,0])rotate(in>1?-90:180) Text(h=0,text=txt,center=true,size=s/4);
+        // verbindung text ausserhalb
+        if(l<textl+s) translate([.5,0])square([l+.5,line],true);
+        }
+        // verlängerungen translate auf 0
+       if(translate.y)MKlon(tx=l/2) mirror([0,translate.y>0?1:0,0])square([line,abs(translate.y)],false);
+       if(translate.x)MKlon(ty=l/2) mirror([translate.x>0?1:0,0,0])square([abs(translate.x),line],false);    
+       //if(translate.x) mirror([translate.x>0?1:0,0,0])T(l/2,-line/2)square([abs(translate.x),line],false);
+
         }
     }
-    
-Pivot(messpunkt=messpunkt,p0=translate);
+ Echo("Caliper will render",color="warning",condition=render);  
+if(h&&end)    
+Pivot(messpunkt=messpunkt,p0=translate,active=[1,1,1,1,norm(translate)]);
     
     HelpTxt("Caliper",[
     "l",l,
     "in",in,
-    "h",h,
+    "s",s,
     "center",center,
     "messpunkt",messpunkt,
     "translate",translate,
-    "end",end]
+    "end",end,
+    "h",h,
+    "render",render,
+    "l2",l2,
+    "txt",txt]
     ,help);
 }
 
@@ -4314,7 +4382,7 @@ else if(preset=="M6"){// M6 Gewinde
 }
 
 
-module Rand(rand=n(1),center=false,fn=fn,delta=false,chamfer=false){
+module Rand(rand=n(1),center=false,fn=fn,delta=false,chamfer=false,help=$helpM){
     
 if(!center){ 
     if(rand>0)difference(){
@@ -4346,6 +4414,8 @@ if(center)
     }     
     
     MO(!$children);
+    
+    HelpTxt("Rand",["rand",rand,"center",center,"fn",fn,"delta",delta,"chamfer",chamfer],help);
 }
 
 
@@ -4623,7 +4693,7 @@ function rotate_from_to(a,b) =
 module Pivot(p0=[0,0,0],size=pivotSize,active=[1,1,1,1,1,1],messpunkt=messpunkt,txt,rot=0,help=false){
     size=size==undef?5:size;
     size2=size/+5;
-if(messpunkt)translate(p0)%union(){
+if(messpunkt&&$preview)translate(p0)%union(){
         
       if(active[3])rotate(rot)  color("blue")cylinder(size,d1=.5*size2,d2=0,center=false,$fn=4);
       if(active[2])rotate(rot)  color("green")rotate([-90,0,0])cylinder(size,d1=.5*size2,d2=0,center=false,$fn=4);
