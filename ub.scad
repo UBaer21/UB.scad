@@ -26,6 +26,8 @@ Changelog (archive at the very bottom)
 314|21  ADD Example Fix Linear infotxt
 315|21  CHG Anordnen Add center CHG Pfeil  add center add inv CHG Calliper CHG Pivot
 316|21  ADD 3Projection CHG Scale CHG Halb CHG Rand add help
+317|21  CHG WStern help CHG Caliper CHG GT2Pull ADD gcode CHG Tri, Quad, Kreis
+318|21  CHG Tri90, Linse, Pivot, Star, 7Seg
 
 */
 
@@ -82,7 +84,7 @@ helpMColor="#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.316;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.317;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -233,6 +235,21 @@ teiler = function (n,div=2) (n%div)?div>n?n:
                                          teiler(n=n,div=div+1):
                                   div;
 
+// generates G-Code (G1 x,y,(z),(e),(f))
+gcode=function(points,chunksize=600,i,f)
+let(i=is_undef(i)?len(points)-1:i,
+chunk=function(pos=0,end) (pos+1)>end?str(chunk(pos=pos-1,end=end),
+"G1 X",
+points[pos].x,
+" Y",points[pos].y,
+len(points[pos])>2?str(" Z",points[pos].z,""):"",
+len(points[pos])>3?str(" E",points[pos][3],""):"",
+f?str(" F",len(points[pos])==5?points[pos][4]:f):"","\n"):""
+)
+i>+0?str(gcode(i=i-chunksize,chunksize=chunksize,points=points),chunk(i,max(0,i-chunksize))):"";
+
+
+
 $fn=fn;
 $fs=fs;
 help=$preview?anima?false:helpsw:false;
@@ -315,6 +332,7 @@ echo    ("••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
 ••• v3(v); makes v a vector3 •••\n
 ••• parentList() list with all modules •••\n
 ••• teiler(n,div=2) least divisior •••\n
+••• gcode(points,f) generates gcode in output •••\n
 ");
     
 }
@@ -506,12 +524,12 @@ messpunkt=",messpunkt?"<font color='green'>On</font>":"<font color='red'>Off</fo
 " • $info=",$info?"<font color='green'>On</font>":"<font color='red'>Off</font>",
 " •</font>"));
  else echo    (str("Schalter•\n 
-messpunkt=",messpunkt?"🟢✔":"<font color='red'>Off</font>",
-" • vp=",vp?"🟢✔":"🔴",
-" • anima=",anima?"🟢✔":"🔴",
-//" • texton=",texton?"🟢✔":"🔴",
-" • help=",help?"🟢✔":"🔴",
-" • $info=",$info?"🟢✔":"🔴",
+messpunkt=",messpunkt?"🟢✔":"❌",
+" • vp=",vp?"🟢✔":"❌",
+" • anima=",anima?"🟢✔":"❌",
+//" • texton=",texton?"🟢✔":"❌",
+" • help=",help?"🟢✔":"❌",
+" • $info=",$info?"🟢✔":"❌",
 " •"));
 
 if(anima)echo(str("\n Zeit t0:",t0,
@@ -601,6 +619,8 @@ module M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=
     MO(!$children);
     HelpTxt("M",["skewzx",skewzx,"skewzy",skewzy,"skewxz",skewxz,"skewxy",skewxy,"skewyz",skewyz,"skewyx",skewyx,"scale",scale,"scalexy",scalexy,"scalexz",scalexz,"scaleyz",scaleyz],help);
 }
+
+
 
 // multiply children polar (e=number, x/y=radial distance)
 module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name=$info,n,help=$helpM){
@@ -3114,9 +3134,9 @@ module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,name=$info,help=$helpM){
     points=[[0,y],[x,y2],[x,-y2],[0,-y],[-x,-y2],[-x,y2]];
 
   T(center?0:l/2+b/2+spiel,center?0:l+b/2+spiel*2){
-    Grid(es=l+spiel*2,n=0)if(num[$idx[0]+$idx[1]*2])Rund(is_undef(rund)?0:rund?rund:b/2-minVal)polygon(points);
+    Grid(es=l+spiel*2,name=0)if(num[$idx[0]+$idx[1]*2])Rund(is_undef(rund)?0:rund?rund:b/2-minVal)polygon(points);
         
-    Grid(es=l+spiel*2,e=[1,3,1],n=0)rotate(90)if(num[4+$idx[1]])Rund(is_undef(rund)?0:rund?rund:b/2-minVal)polygon(points);
+    Grid(es=l+spiel*2,e=[1,3,1],name=0)rotate(90)if(num[4+$idx[1]])Rund(is_undef(rund)?0:rund?rund:b/2-minVal)polygon(points);
   }
   if(name)echo(str(is_string(name)?"<H3>":"",name," Seg7 Höhe=",l*2+b+spiel*4,"mm Breite=",l+b+spiel*2,"mm"));
       
@@ -3364,19 +3384,18 @@ module WaveEx(grad=0,h=50,r=5,ry,f=0,fy,a=1,ay,fv=0,fvy,tf=0,trx=20,try,tfy=0,tf
 }
 
 
-
 module WStern(f=5,r=1.65,a=.25,r2,fn=fn,fv=0,name=$info,help=$helpM){
    
     step=360/fn;
     a=is_undef(r2)?a:(r2-r)/2;
     r=is_undef(r2)?r:r+a;
-    points=[for(i=[0:fn])[(r+a*cos(f*i*step+fv))*sin(i*step),(r+a*cos(f*i*step+fv))*cos(i*step)]];
+    points=[for(i=[0:fn])let(i=i%fn)[(r+a*cos(f*i*step+fv))*sin(i*step),(r+a*cos(f*i*step+fv))*cos(i*step)]];
        
     
     polygon(points);  
-  if(name)echo(str(name," WStern OD=",(r+a)*2,"mm ID=",(r-a)*2,"mm"));  
-  if(help){ echo(str("<H3><font color=",helpMColor,">Help WStern(f=",f,",r=",r,",a=",a,",r2=",r2,",fn=",fn,",fv=",fv,", name=",name,",help=$helpM) "));
-  }
+  InfoTxt("WStern",["OD",(r+a)*2,"ID",(r-a)*2],name);  
+  HelpTxt("WStern",["f",f,"r",r,"a",a,"r2",r2,"fn",fn,"fv",fv,"name",name],help);
+  
 }
 
 
@@ -3506,13 +3525,13 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
 
 module Tri90(grad,a=25,b=25,c,r=0,messpunkt=0,tang=true,fn=fn,name=$info,help=$helpM){
  
-  if (is_list(r)&&!tang)echo("<H2><font color=red>TriR Winkelfehler r is list & tang=false!");  
+  if (is_list(r)&&!tang)Echo("Tri90 Winkelfehler r is list & tang=false!",color="red");  
     
  b=is_undef(grad)?is_undef(c)?b:sqrt(pow(c,2)-pow(a,2)):tan(grad)*a;
  grad=atan(b/a);
- r1=is_list(r)?r[0]:r;   
- r2=is_list(r)?r[1]:r;
- r3=is_list(r)?r[2]:r; 
+ r1=is_list(r)?is_undef(r[0])?0:r[0]:r;   
+ r2=is_list(r)?is_undef(r[1])?0:r[1]:r;
+ r3=is_list(r)?is_undef(r[2])?0:r[2]:r; 
     
  gradB=90-grad;   
     
@@ -3528,14 +3547,14 @@ module Tri90(grad,a=25,b=25,c,r=0,messpunkt=0,tang=true,fn=fn,name=$info,help=$h
     
 if(messpunkt){
             Col(6)union(){ // mittelpunkte
-            Pivot(tA,active=[1,0,0,1]);
-            Pivot(tB,active=[1,0,0,1]);   
-            Pivot(tC,active=[1,0,0,1]);
+            Pivot(tA,active=[1,0,0,1,1],size=messpunkt);
+            Pivot(tB,active=[1,0,0,1,1],size=messpunkt);   
+            Pivot(tC,active=[1,0,0,1,1],size=messpunkt);
         }
             union(){ // tangentenpunkte
-            Pivot([0,0],active=[1,0,0,1]);
-            Pivot([0,b],active=[1,0,0,1]);   
-            Pivot([a,0],active=[1,0,0,1]);
+            Pivot([0,0],active=[1,0,0,1,1,1],txt="C",size=messpunkt);
+            Pivot([0,b],active=[1,0,0,1,1],size=messpunkt);   
+            Pivot([a,0],active=[1,0,0,1,1],size=messpunkt);
         }          
 
 }
@@ -3550,14 +3569,14 @@ if(messpunkt){
 
  polygon(points,convexity=5);  
    
-if(name)echo(str(name," Tri90 a=",a," b=",b," c=",Hypotenuse(a,b),"mm",r?str(" <b>true a=",tB[0]+r2," b=",tA[1]+r1," c=",norm(tA-tB)+r1+r2,"</b>"):""," grad α=",grad,"° grad β=",gradB,"° γ=90° Höhe c=",a*sin(gradB)));
-if(help)echo(str("<H3><font color='",helpMColor,"' <b>Help TriR(grad=",grad,",a=",a,", b=",b,",c=",c,",r=",r,",messpunkt=",messpunkt," tang=",tang,",fn=",fn,",name=",name,",help=$helpM);"));     
+InfoTxt("Tri90",["a",str(a," b=",b," c=",Hypotenuse(a,b),"mm",r?str(" true a=",tB[0]+r2," b=",tA[1]+r1," c=",norm(tA-tB)+r1+r2):""," grad α=",grad,"° grad β=",gradB,"° γ=90° Höhe c=",a*sin(gradB))],name);
+HelpTxt("Tri90",["grad",grad,"a",a,"b",b,"c",c,"r",r,"messpunkt",messpunkt,"tang",tang,"fn",fn,"name",name],help);     
     
 }
 
 
 
-module Tri(grad=60,l=20,l2,h=0,r=0,messpunkt=0,center=+0,top=0,tang=1,fn=fn,n=$info,help=$helpM){
+module Tri(grad=60,l=20,l2,h=0,r=0,messpunkt=0,center=+0,top=0,tang=1,fn=fn,name=$info,help=$helpM){
     
   l22=is_undef(l2)?l:l2;  //wip
  
@@ -3567,9 +3586,15 @@ module Tri(grad=60,l=20,l2,h=0,r=0,messpunkt=0,center=+0,top=0,tang=1,fn=fn,n=$i
  
  rot=w2/2;   
  
- r1=is_list(r)?r[0]:r;   
- r2=is_list(r)?r[1]:r;
- r3=is_list(r)?r[2]:r;    
+ r1=is_list(r)?is_undef(r[0])?0:
+                        r[0]:
+            r;   
+ r2=is_list(r)?is_undef(r[1])?0:
+                        r[1]:
+            r;
+ r3=is_list(r)?is_undef(r[2])?0:
+                           r[2]:
+            r;    
   
  
  l2=h?1/cos(grad/2)*(!tang?h+TangentenP(w1,r1):h):l22;   
@@ -3597,22 +3622,22 @@ points=concat(
         polygon(points,convexity=5);
         if(messpunkt){
             union(){//TangentenP
-                Pivot(active=[1,1,0,1]);
-                translate(RotLang(90-grad/2,l2))rotate(90+w2/2)Pivot(active=[1,0,1,1]);
-                translate(RotLang(90+grad/2,l3))rotate(90-w3/2)Pivot(active=[1,0,1,1]);
+                Pivot(active=[1,1,0,1],size=messpunkt);
+                translate(RotLang(90-grad/2,l2))rotate(90+w2/2)Pivot(active=[1,0,1,1],size=messpunkt);
+                translate(RotLang(90+grad/2,l3))rotate(90-w3/2)Pivot(active=[1,0,1,1],size=messpunkt);
             }
             
             Col(6)union(){ // mittelpunkte
-                Pivot(t1,active=[1,0,0,1]);
-                Pivot(t2,active=[1,0,0,1]);   
-                Pivot(t3,active=[1,0,0,1]);
+                Pivot(t1,active=[1,0,0,1],size=messpunkt);
+                Pivot(t2,active=[1,0,0,1],size=messpunkt);   
+                Pivot(t3,active=[1,0,0,1],size=messpunkt);
             }
 
         }
     }
    
- if(n)echo(str(n," Tri reale Höhe=",tang?hc-TangentenP(w1,r1):hc,"mm - h=",tang?hc:hc+TangentenP(w1,r1),"mm - Basis=",2*Kathete(l2,tang?hc:hc+TangentenP(w1,r1)),"mm Umkreis r=",2*Kathete(l2,hc)/(2*sin(grad)),"mm"));
- if(help)echo(str("<H3><font color='",helpMColor,"' <b>Help Tri(grad=",grad,",l=",l,", l2=",l2,",h=",h,",r=",r,",messpunkt=",messpunkt,",center=",center,",top=",top,",tang=",tang,",fn=",fn,",n=",n,",help=$helpM);"));    
+ InfoTxt("Tri",["reale Höhe=",tang?hc-TangentenP(w1,r1):hc,"h",tang?hc:hc+TangentenP(w1,r1),"Basis",2*Kathete(l2,tang?hc:hc+TangentenP(w1,r1)),"Umkreis r",2*Kathete(l2,hc)/(2*sin(grad))],name);
+ HelpTxt("Tri",["grad",grad,"l",l,"l2",l2,"h",h,"r",r,",messpunkt",messpunkt,",center=",center,"top",top,"tang",tang,"fn",fn,",name",name],help);    
  
 }
 
@@ -3695,9 +3720,8 @@ module Kreis(r=10,rand=0,grad=360,grad2,fn=fn,center=true,sek=false,r2=0,rand2,r
    polygon(Kreis(r=r,rand=rand,grad=grad,grad2=grad2,fn=fn,center=center,sek=sek,r2=r2,rand2=rand2,rcenter=rcenter,rot=rot,t=t),convexity=5);
    
     
-    if(help){
-    echo(str("<H3><font color='",helpMColor,"' <b>Help Kreis(r=",r,",rand=",rand,",grad=",grad,",grad2=",grad2,",fn=",fn,", center=",center,", sek=",sek,",r2=",r2,",rand2=",rand2,",rcenter=",rcenter,", rot=",rot,", t=",t,", name=",name,", d=",d,", b=",b,")"));
-    }
+    HelpTxt("Kreis",["r",r,"rand",rand,"grad",grad,"grad2",grad2,"fn",fn,"center",center,"sek",sek,"r2",r2,"rand2",rand2,"rcenter",rcenter,"rot",rot,"t",t,"name",name,"d",d,", b",b],help);
+    
     if(name){
         if(!rcenter){
         if(rand>0)echo(str(name," Kreis id=",2*(r-abs(rand))," od=",2*r));
@@ -4123,7 +4147,7 @@ if(help)
 
 
 
-module Stern(e=5,r1=10,r2=5,mod=2,delta=+0,center=1,n=$info,help=$helpM){
+module Stern(e=5,r1=10,r2=5,mod=2,delta=+0,center=1,name=$info,help=$helpM){
     
     star=
     let(schritt=360/(e*mod))
@@ -4141,10 +4165,10 @@ module Stern(e=5,r1=10,r2=5,mod=2,delta=+0,center=1,n=$info,help=$helpM){
     
     rotate((center==-1?180/e:0)-90+(center?sWinkel/4*(mod-(mod%2?1:2))+delta*sWinkel/2:+0))polygon(points=star,convexity=5);
     
-    if(n&&delta!=-deltaSoll)echo(str("<font color=red>Delta für Spitze r1=",-deltaSoll));
-    if(n&&mod==2&&delta==0)echo(str(n," Stern Spitzenabstand r1=",abstandR1," Abstand r2=",abstandR2," Flanke=",hypR1," Winkel r1 =",delta==-deltaSoll?gradR1:gradR1-(sWinkel*(deltaSoll+delta)),"° Winkel r2 =",mod==2?gradR2:undef,"° Schrittwinkel=",sWinkel,"°"));   
-    else if (n)echo(str(n," Stern Flanke=",hypR1," Winkel r1 =",delta==-deltaSoll?gradR1:gradR1-(sWinkel*(deltaSoll+delta)),"° Schrittwinkel=",sWinkel,"°"));
-    if(help)echo(str("<H3> <font color=",helpMColor,">Help Stern (e=",e," ,r1=",r1," ,r2=",r2," ,mod=",mod," ,delta=",delta," ,center=",center," ,n=",n," ,help=$helpM);"));
+    if(name&&delta!=-deltaSoll)Echo(str("Delta für Spitze r1=",-deltaSoll),color="green");
+    if(name&&mod==2&&delta==0)echo(str(name," Stern Spitzenabstand r1=",abstandR1," Abstand r2=",abstandR2," Flanke=",hypR1," Winkel r1 =",delta==-deltaSoll?gradR1:gradR1-(sWinkel*(deltaSoll+delta)),"° Winkel r2 =",mod==2?gradR2:undef,"° Schrittwinkel=",sWinkel,"°"));   
+    else if (name)echo(str(name," Stern Flanke=",hypR1," Winkel r1 =",delta==-deltaSoll?gradR1:gradR1-(sWinkel*(deltaSoll+delta)),"° Schrittwinkel=",sWinkel,"°"));
+    HelpTxt("Stern",["e",e,"r1",r1,"r2",r2,"mod",mod,"delta",delta,"center",center,"name",name],help);
   
 }
 
@@ -4226,39 +4250,40 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,name=$info,m
     p4=x/2-shiftX4/2+r4*1/tan(grad2);
     x1=abs(p3)+abs(p4);   
     x2=abs(p1)+abs(p2);
+    
+    cTrans=center?
+         [basisX==1?-p3+(p3-p4)/2:basisX==-1?-p1+(p1-p2)/2:0,sign(basisX)*y/2]
+        :[x/2+shiftX3/2-r3*1/tan(grad),y/2];
      
         
-    k1=Kreis(rand=0,r=r1,t=[-x/2+r1*rf1+shiftX1/2,y/2-r1],grad=180-grad,rot=225+45-(180-grad)/2,fn=fn/4);
-    k2=Kreis(rand=0,r=r2,t=[x/2-r2*rf2+shiftX2/2,y/2-r2],grad=grad2,rot=-45+45-(180-grad2)/2,fn=fn/4);
-    k3=Kreis(rand=0,r=r3,t=[-x/2+r3*rf1-shiftX3/2,-y/2+r3],grad=grad,rot=-225+45-(180-grad)/2,fn=fn/4);
-    k4=Kreis(rand=0,r=r4,t=[x/2-r4*rf2-shiftX4/2,-y/2+r4],grad=180-grad2,rot=-315+45-(180-grad2)/2,fn=fn/4);
+    k1=Kreis(rand=0,r=r1,t=[-x/2+r1*rf1+shiftX1/2,y/2-r1]+cTrans,grad=180-grad,rot=225+45-(180-grad)/2,fn=fn/4);
+    k2=Kreis(rand=0,r=r2,t=[x/2-r2*rf2+shiftX2/2,y/2-r2]+cTrans,grad=grad2,rot=-45+45-(180-grad2)/2,fn=fn/4);
+    k3=Kreis(rand=0,r=r3,t=[-x/2+r3*rf1-shiftX3/2,-y/2+r3]+cTrans,grad=grad,rot=-225+45-(180-grad)/2,fn=fn/4);
+    k4=Kreis(rand=0,r=r4,t=[x/2-r4*rf2-shiftX4/2,-y/2+r4]+cTrans,grad=180-grad2,rot=-315+45-(180-grad2)/2,fn=fn/4);
  
- translate(center?
-         [basisX==1?-p3+(p3-p4)/2:basisX==-1?-p1+(p1-p2)/2:0,sign(basisX)*y/2]
-        :[x/2+shiftX3/2-r3*1/tan(grad),y/2]){
+ union(){
      polygon(concat(k1,k2,k4,k3),convexity=5);
      if(messpunkt){
-         T(p1,y/2)Pivot();
-         T(p2,y/2)Pivot();
-         T(p3,-y/2)Pivot();
-         T(p4,-y/2)Pivot();
+         Pivot([p1,y/2]+cTrans,active=[1,0,0,1,1],size=messpunkt);
+         Pivot([p2,y/2]+cTrans,active=[1,0,0,1,1],size=messpunkt);
+         Pivot([p3,-y/2]+cTrans,active=[1,0,0,1,1],size=messpunkt);
+         Pivot([p4,-y/2]+cTrans,active=[1,0,0,1,1],size=messpunkt);
      }
      
  }
     
-  if(r1+r2>abs(trueX2)||r3+r4>abs(trueX1))echo("<H2><font color='red'>‼ Quad x too small or r too big");  
-  if(r1+r1*sin(90-grad)+r3+r3*sin(grad-90)>abs(y)||r2+r2*sin(grad2-90)+r4+r4*sin(90-grad2)>abs(y))echo("<H2><font color='red'>‼ Quad y too small or r too big");
+  if(r1+r2>abs(trueX2)||r3+r4>abs(trueX1))Echo("Quad x too small or r too big",color="red");  
+  if(r1+r1*sin(90-grad)+r3+r3*sin(grad-90)>abs(y)||r2+r2*sin(grad2-90)+r4+r4*sin(90-grad2)>abs(y))Echo("Quad y too small or r too big",color="red");
       
-  if(name)echo(str(is_string(name)?"<H3>":"",name," Quad TangentsizeX1=",x1," sizeX2=",x2,"mm- real ",trueX1,"/",trueX2," r=",r));
+  InfoTxt("Quad",["TangentsizeX1",x1,"sizeX2",x2,"real",str(trueX1,"/",trueX2),"r",r],name);
       
-  if(help)
-        echo(str("<H3><font color='",helpMColor,"' <b>Help Quad(x=",x,",y=",y,",r=",r," ,grad=",grad,",grad2=",grad2,", fn=",fn,",center=",center,", name=",name,", messpunkt=",messpunkt,", trueX=",trueX," ,centerX=",centerX," ,help=$helpM);"));
+  HelpTxt("Quad",["x",x,"y",y,"r",r,"grad",grad,"grad2",grad2,"fn",fn,"center",center,"name",name,"messpunkt",messpunkt,"trueX",trueX,"centerX",centerX],help);
 }
 
 
 module Linse(dia=10,r=7.07107,name=$info,messpunkt=true,help=$helpM){
 
-if(name)echo(str(is_string(name)?"<H3>":"",name," Linsendicke= ",dick,"mm Kreisgrad= ",grad,"°"));
+InfoTxt("Linse",["Dicke",dick,"Kreisgrad",str(grad,"°")],name);
 
 tx=Kathete(r,dia/2);
 grad=2*asin((dia/2)/r);    
@@ -4266,13 +4291,18 @@ dick=2*(r-tx);
 
 
    polygon(concat(Kreis(rand=0,r=r,grad=grad,t=[tx,0],rot=180),Kreis(rand=0,r=r,grad=grad,t=[-tx,0]))); 
-  if(messpunkt) Klon(tx)Pivot(active=[1,0,0,1,0]); 
- if(help)echo(str("<H3><font color='",helpMColor,"' <b>Help Linse(",
-  "dia=",dia,
-" r=",r,
-" name=",name,
-" messpunkt=",messpunkt, 
- "help=$helpM);"));
+  if(messpunkt){
+      Pivot([tx,0],active=[1,0,0,1,0],size=messpunkt);
+      Pivot([0,dia/2],active=[1,0,0,1,1],size=messpunkt);
+      Pivot([-tx,0],active=[1,0,0,1,1],size=messpunkt);
+      
+  }
+ HelpTxt("Linse",[
+ "dia",dia,
+ "r",r,
+ "name",name,
+ "messpunkt=",messpunkt],
+  help);
 }
 
 module VorterantQ(size=20,ofs=.5,n=$info){
@@ -4691,7 +4721,8 @@ function rotate_from_to(a,b) =
 
 
 module Pivot(p0=[0,0,0],size=pivotSize,active=[1,1,1,1,1,1],messpunkt=messpunkt,txt,rot=0,help=false){
-    size=size==undef?5:size;
+    p0=is_num(p0)?[p0,0]:p0;
+    size=is_undef(size)?pivotSize:is_bool(size)?pivotSize:size;
     size2=size/+5;
 if(messpunkt&&$preview)translate(p0)%union(){
         
@@ -4705,7 +4736,7 @@ if(messpunkt&&$preview)translate(p0)%union(){
        text(text=str(p0," ",rot?str(rot,"°"):"","   "),size=size2,halign="right",valign="top",font="Bahnschrift:style=light",$fn=1);    
        
        if(txt&&active[5])%color("lightgrey")rotate($vpr)translate([0,size/15])//linear_extrude(.1,$fn=1)
-           text(text=str(txt,"   "),size=size2,font="Bahnschrift:style=light",halign="right",valign="bottom",$fn=1);
+         Tz(0.1) text(text=str(txt,"   "),size=size2,font="Bahnschrift:style=light",halign="right",valign="bottom",$fn=1);
      
      HelpTxt("Pivot",[
          "p0",p0,
@@ -6070,13 +6101,23 @@ else for(i=[0:len(str(text))-1])rotate(center?gradB((size*spacing)/2*(len(str(te
 }
 
 
-module Bitaufnahme(l=10,star=true)
+
+module Bitaufnahme(l=10,star=true,help=$helpM)
 {
  if(star){
-    linear_extrude(l,scale=.95,convexity=5)Rund(1,fn=36)Polar(2)circle(4.6,$fn=3);
-    T(z=l){
+    linear_extrude(l,scale=.95,convexity=5){
+        if(star==true||star==1)Rund(1,fn=36)Polar(2)circle(4.6,$fn=3);
+        if(star==2)WStern(6,r=3.5,fn=6*10,help=0,r2=3.1);
+        }
+    if(star==2)T(z=l){
+     Tz(-0.30)scale([1,1,0.60]) sphere(d=5.8,$fn=36);
+     linear_extrude(1.00,scale=0.56,convexity=5)scale(.95)WStern(6,r=3.5,fn=6*10,help=0,r2=3.1);
+        }
+   else T(z=l){
      Tz(-0.29)scale([1,1,0.6]) sphere(d=5.3,$fn=36);
      linear_extrude(0.80,scale=0.56,convexity=5)scale(.95)Rund(1,fn=36)Polar(2)circle(4.6,$fn=3);
+        
+        
     }
  }
  if(!star){hull()
@@ -6085,8 +6126,10 @@ module Bitaufnahme(l=10,star=true)
             T(z=l)R(0)sphere(d=Umkreis(6,5.5),$fn=36);
         }
         
-       T(z=-.01)color("red")Kegel(d1=Umkreis(6,6.5),d2=Umkreis(6,6.1),v=+43.31,fn=6,n=0); 
+       T(z=-.01)color("red")Kegel(d1=Umkreis(6,6.5),d2=Umkreis(6,6.1),v=+43.31,fn=6,name=0); 
     }
+    
+  HelpTxt("Bitaufnahme",["l",l,"star",star],help);  
 }
 
 
@@ -6971,16 +7014,15 @@ if (show==23)Klon(tx=10,rx=+25)cube(10,true);
 if (show==22)Polar(x=10,y=10)cube(5);    
 if (show==21)Linear(es=0.5,s=1.0,e=4,x=90,y=0,z=0,r=0,re=0,center=+1,cx=+0)cube(5);
 
-if (show==4){cube(50,true);echo("<font size=6 color=darkviolet>50mm Cube");}
-if (show==3){cube(20,true);echo("<font size=6 color=darkviolet>20mm Cube");}   
-if (show==2){cylinder(10,d=n(1),$fn=36,center=true);echo(str("<font size=6 color=darkviolet>",n(1)," mm ∅ =n(1) cylinder×10mm"));}
-if (show==1){cube(10,true);echo("<font size=6 color=darkviolet>10mm Cube");}
+if (show==4){cube(50,true);Echo("50mm Cube",color="purple");}
+if (show==3){cube(20,true);echo("20mm Cube",color="purple");}   
+if (show==2){cylinder(10,d=n(1),$fn=36,center=true);echo(str(n(1)," mm ∅ =n(1) cylinder×10mm"),color="purple");}
+if (show==1){cube(10,true);echo("10mm Cube",color="purple");}
 
 }
  
  
 
-   
    
  /*  •••• Archive ••••  
    
