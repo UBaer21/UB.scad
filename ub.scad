@@ -1,17 +1,21 @@
+// maintained https://github.com/UBaer21/UB.scad
+
+// under windows save here
 // ..\Documents\OpenSCAD\libraries
 
 /*
 Open SCAD library www.openscad.org by ulrich.baer+openscad@gmail.com (mail me if you need help - i am happy to assist)
-Copy this file into your libaries directory (File » show Library)
+Copy this file into your libaries directory (File » show Libraries)
 [https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries]
 
 Use it by starting your project with including the library.
 All needed Information will be displayed in your console window, you may need to make that bigger.
 Write:
-include<ub.scad>   // no ";" [https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Include_Statement]
+include<ub.scad>;
+[https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Include_Statement]
+
 name="my project"; // the name will never be rendered
- 
-helpsw=1;       // switch to show the information
+helpsw=1;       // switch to show the information (1-5 or true)
 $info=1;        // switch to get feedback/info from objects
 helpM=1;        // switch to get help for used objects
 nozzle=.4;      // set your printers nozzle diameter
@@ -19,6 +23,7 @@ layer=.2;       // set your layerhigh
 show=2;         // will show you Object n (any number) from this library
 anima=1;        // activate animation variables else "tset=.5" can be used
 vp=1;           // switch fixed Viewports
+bed=true        // Print bed active (centers vp printPos)
 name="object";     // used in modules for showing name or number - if 0 no info is shown
 
 Changelog (archive at the very bottom)
@@ -27,7 +32,9 @@ Changelog (archive at the very bottom)
 315|21  CHG Anordnen Add center CHG Pfeil  add center add inv CHG Calliper CHG Pivot
 316|21  ADD 3Projection CHG Scale CHG Halb CHG Rand add help
 317|21  CHG WStern help CHG Caliper CHG GT2Pull ADD gcode CHG Tri, Quad, Kreis
-318|21  CHG Tri90, Linse, Pivot, Star, 7Seg
+318|21  CHG Tri90, Linse, Pivot, Star, 7Seg, DBogen
+319|21  ADD b() CHG PCBcase
+320|21  CHG view to viewportSize
 
 */
 
@@ -39,9 +46,10 @@ test=42;
 helpsw=false;//activates help in console window
 //animation
 anima=false;
-bed=true;
-debug=$preview?anima?false:true:false;//activates module information (n)
-$info=debug;
+// use print Bed as center and show boarder
+bed=true; 
+debug=$preview?anima?false:true:false;
+$info=debug;//activates module information (name)
 //viewpoint
 //vp=false;
 vp=$preview?false:true;
@@ -84,7 +92,7 @@ helpMColor="#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.317;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.320;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -93,7 +101,7 @@ tw=acos(-1/3);// tetraeder winkel;
 twF=acos(1/3);// tetraeder winkel face edge face;
 inch=25.4; // inch/Zoll
 minVal=0.0000001; // minimum für nicht 0
-view=$preview?tan($vpf)*$vpd:50000; // größe Sichtfeld 
+viewportSize=$preview?tan($vpf)*$vpd:50000; // größe Sichtfeld 
 //echo(tw,twF);
 //PHI=(1+sqrt(5))/2;
 
@@ -248,16 +256,26 @@ f?str(" F",len(points[pos])==5?points[pos][4]:f):"","\n"):""
 )
 i>+0?str(gcode(i=i-chunksize,chunksize=chunksize,points=points),chunk(i,max(0,i-chunksize))):"";
 
+function b(n)=is_list(n)?[for(i=[0:len(n)-1])b(n[i])]:
+                         is_num(n)?n?true:
+                                     false:
+                                   n?1:
+                                     0;
 
+
+
+
+
+///////////////////////////////////////////////////////
 
 $fn=fn;
 $fs=fs;
 help=$preview?anima?false:helpsw:false;
-helpFunc=helpsw==1?true:helpsw==true?true:false;//Funktionen
-helpMod=helpsw==2?true:helpsw==true?true:false;//Objektmodifikatoren
-helpB=helpsw==3?true:helpsw==true?true:false;//Basis help
-helpP=helpsw==4?true:helpsw==true?true:false;//Produkte help
-help2D=helpsw==5?true:helpsw==true?true:false;// 2D Objekte
+helpFunc= helpsw==1||helpsw==true?true:false;//Funktionen
+helpMod=  helpsw==2||helpsw==true?true:false;//Objektmodifikatoren
+helpB=    helpsw==3||helpsw==true?true:false;//Basis help
+helpP=    helpsw==4||helpsw==true?true:false;//Produkte help
+help2D=   helpsw==5||helpsw==true?true:false;// 2D Objekte
 //helpM=help;//module help old
 $helpM=help;//module help
 
@@ -333,6 +351,7 @@ echo    ("••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
 ••• parentList() list with all modules •••\n
 ••• teiler(n,div=2) least divisior •••\n
 ••• gcode(points,f) generates gcode in output •••\n
+••• b(n); switches bool in num and vica versa (works on vectors) •••\n
 ");
     
 }
@@ -530,6 +549,7 @@ messpunkt=",messpunkt?"🟢✔":"❌",
 //" • texton=",texton?"🟢✔":"❌",
 " • help=",help?"🟢✔":"❌",
 " • $info=",$info?"🟢✔":"❌",
+" • bed=",bed?"🟢✔":"❌", 
 " •"));
 
 if(anima)echo(str("\n Zeit t0:",t0,
@@ -738,7 +758,7 @@ module Klon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,help=$helpM){
 
 
 // Cuts away half of Object at [0,0,0]
-module Halb(i=0,x=0,y=0,z=0,2D=0,size=view)
+module Halb(i=0,x=0,y=0,z=0,2D=0,size=viewportSize)
 {
     if(!2D){
        if(i)difference()
@@ -927,7 +947,7 @@ $info=false;
  }  
 
  
-HelpTxt("Anordnung",["e",e,"es",es,"option",option,"axis",axis,"c",c,"r",r,"cl",cl,"rot=",rot,"loop",loop,"center",center,"inverse",inverse,"name",name],help);
+HelpTxt("Anordnung",["es",es,"e",e,"option",option,"axis",axis,"c",c,"r",r,"cl",cl,"rot=",rot,"loop",loop,"center",center,"inverse",inverse,"name",name],help);
 }
 
 
@@ -1477,7 +1497,7 @@ HelpTxt("GT",["z",z,
 
 
 module Scale(v=[+1.5,+0.8,+0.8,0.6,0.7,1.3],//  scaling factors for quadrants [x-,x+,y-,y+,z-,z+]
-2D=true,size=view/2,help=$helpM){
+2D=true,size=viewportSize/2,help=$helpM){
     
   makeV =function(v=v) [for(i=[0:5])is_undef(v[i])?1:v[i]]; 
  v=makeV();
@@ -1949,7 +1969,7 @@ rad,
 base=+0,
 fn,
 fs=fs,
-messpunkt=$messpunkt, 
+messpunkt=false, 
 spiel=minVal,
 name=$info,
 help=$helpM
@@ -1969,14 +1989,15 @@ r=is_undef(grad)?rad:(l-r2x*2)/(2*sin(a/2));
 h=r*cos(a/2);
 r2h=r2*sin(a2);
 
-if($parent_modules<2&&messpunkt){
-Caliper(abs(l),h=7,center=1,messpunkt=0,end=2,translate=[00,-2,0]);//color("red")cube([l,1,1],true);
-Caliper(Sehne(r=r,a=a),h=7,center=1,messpunkt=0,end=2,translate=[00,-h+r2h+r+2,0]);
-Caliper(-h+r2h+r,h=7,in=+2,center=0,messpunkt=0,end=2,translate=[00,+0,0]);
+if($parent_modules<2&&$messpunkt||messpunkt){
+Caliper(abs(l),s=7,center=1,messpunkt=0,end=2,translate=[00,-2,0]);//color("red")cube([l,1,1],true);
+Caliper(Sehne(r=r,a=a),s=7,center=1,messpunkt=0,end=2,translate=[00,-h+r2h+r+2,0]);
+Caliper(-h+r2h+r,s=7,in=+2,center=0,messpunkt=0,end=2,translate=[00,+0,0]);
 //color("yellow")cube([1,h,1],false);
 //color("green")T(-l/2,r2h)cube([r2x,.1,2]);
+    Pivot([0,-h+r2h],active=[1,0,0,1,1],size=messpunkt);
 }
-InfoTxt("DBogen",["radius",str(r,"mm"),"∅",str(2*r,"mm"), "r2",r2,"h",str(-h+r2h+r,"mm")],name);//
+InfoTxt("DBogen",["radius",str(r,"mm"),"center r",-h+r2h,"∅",str(2*r,"mm"), "r2",r2,"h",str(-h+r2h+r,"mm")],name);//
     
 if(!$children&&name)Echo("DBogen has no 2D-Object",color="black");
 HelpTxt("DBogen",[
@@ -2961,7 +2982,7 @@ name=$info,
 clip=true,
 help=$helpM
 ){
- 
+  deckel=is_bool(deckel)?b(deckel):deckel;
   $info=false; 
   rS=abs(rS);
   rC=max(rS,abs(rC));  
@@ -2980,7 +3001,7 @@ help=$helpM
 
 
 
-if(deckel){ // for render
+if(deckel&&!(deckel<0)){ // for render
 
         
     difference(){
@@ -3016,7 +3037,7 @@ if(kanal)intersection(){
 //PCB dummy
 if(dummy&&$preview)color([0.6,0.6,0.2,0.5])translate([0,0,tasche-pcb[2]])linear_extrude(pcb[2],convexity=5)square([pcb[0],pcb[1]],true);
     
-if(!deckel||$preview||deckel==2)color(alpha=deckel==1?0.5:1){
+if(!deckel||($preview&&deckel!=3)||deckel==2||deckel<0)color(alpha=deckel==1?0.5:1){
     difference(){
      if(!$children)   minkowski(){
           translate([0,0,h/2])cube([pcb[0]-rS*2-(rC-rS)*2+wand*2+spiel*2,pcb[1]-rS*2-(rC-rS)*2+wand*2+spiel*2,h-rS*2],true);
@@ -4549,8 +4570,8 @@ module Strebe(h=20,d=5,d2,rad=4,rad2,sc=0,grad=0,skew=0,single=false,angle=360,s
        
  
 if (2D||parent_module($parent_modules-1)=="Rundrum")M(skewyx=skew)T(0,center?-h/2:0){
-       if(grad1>90) echo(str("<H2><font color='red'>Strebe ∅",d,"mm is d=",(d/2-rad+sin(grad1)*rad)*2));
-    if(grad2>90) echo(str("<H2><font color='red'>Strebe ∅",d2,"mm is d2=",(d2/2-rad2+sin(grad2)*rad2)*2));
+       if(grad1>90) Echo(str("Strebe ∅",d,"mm is d=",(d/2-rad+sin(grad1)*rad)*2),color="warning");
+    if(grad2>90) Echo(str("Strebe ∅",d2,"mm is d2=",(d2/2-rad2+sin(grad2)*rad2)*2),color="warning");
    
     scale([sc,1])polygon(concat(
     2D==2?[[0,h+spiel]]:single?[[-d2/2,h]]:Kreis(fn=fn2,rand=0,r=rad2,grad=-grad2,rot=+grad2,center=false,sek=true,t=[-d2/2-abs(sin(winkel))*rad2,h-rad2]),
@@ -4720,7 +4741,7 @@ function rotate_from_to(a,b) =
 }
 
 
-module Pivot(p0=[0,0,0],size=pivotSize,active=[1,1,1,1,1,1],messpunkt=messpunkt,txt,rot=0,help=false){
+module Pivot(p0=[0,0,0],size=pivotSize,active=[1,1,1,1,1,1],messpunkt=$messpunkt,txt,rot=0,help=false){
     p0=is_num(p0)?[p0,0]:p0;
     size=is_undef(size)?pivotSize:is_bool(size)?pivotSize:size;
     size2=size/+5;
