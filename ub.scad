@@ -35,6 +35,7 @@ Changelog (archive at the very bottom)
 318|21  CHG Tri90, Linse, Pivot, Star, 7Seg, DBogen
 319|21  ADD b() CHG PCBcase
 320|21  CHG view to viewportSize
+321|21  CHG Kehle ADD KBS REN KreisSeg↦TorusSeg
 
 */
 
@@ -88,11 +89,11 @@ vpf=22.5;
 texton=name!=undef?$preview?true:false:false;
 
 // Colors
-helpMColor="#5500aa";
+helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.320;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.321;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -211,7 +212,8 @@ function Hexstring(c)=str("#",Hex(c[0]*255),Hex(c[1]*255),Hex(c[2]*255));
 
 function RotPoints(grad,points)=[for(i=[0:len(points)-1])RotLang(rot=atan2(points[i][0],points[i][1])+grad,l=norm([points[i][0],points[i][1]]),z=points[i][2])];
 
-function negRed(num)=num<0?str("<font color=red ><b>",num,"</font>"):num; // display console text
+//function negRedOLD(num)=num<0?str("<font color=red ><b>",num,"</font>"):num; // display console text
+function negRed(num)=num<0?str("🔻",num):num; // display console text
 function gradB(b,r)=360/(PI*r*2)*b; // winkel zur Bogen strecke b des Kreisradiuses r
 function gradS(s,r)=asin(s/(2*r))*2;// winkel zur Sehne s des Kreisradiuses r
 function radiusS(n,s,a)=(s/2)/(sin((is_undef(n)?a:360/n)/2));// Radius  zur Sehne
@@ -301,6 +303,7 @@ if(version()[0]<2021)
 echo(str("<p style=background-color:#ccccdd>",
 "<ul>     •••••••••••••••••••••••••• UB (USER libary v2019) included! <a href=http://v.gd/ubaer> v.gd/ubaer </a> •••••••••••••••••••••••••\n",
 "••• Version: β",Version," v ",version(),"  ——  Layer: ",layer," Nozzle ∅: ",nozzle," ••• fn=",fn,"••• Spiel: ",spiel," •••"));
+
 else{ echo(str("•••••••••••••••••• UB (USER library v2021) included! v.gd/ubaer  •••••••••••••••••"));
 echo(str("• Version: β",Version," v ",version(),"  —  Layer: ",layer," Nozzle ∅: ",nozzle," • fn=",fn," • Spiel: ",spiel," •"));
 }
@@ -308,21 +311,21 @@ echo(str("• Version: β",Version," v ",version(),"  —  Layer: ",layer," Nozz
 
 
 if (!help) if(version()[0]<2021)echo    ("<h4 style=background-color:lightgrey>••••• Help off       use: helpsw=1;  •••••");
-    else echo    ("••••• Help off       use: helpsw=1;  •••••");
+    else echo    ("❌••••• Help off       use: helpsw=1;  •••••");
     
 
 if (help)
 {
-    echo ("<h3 style=background-color:#ccbbbb><font color='pink'size='5'>••••••• Konstanten:   ••••••••</font></h3>");
+    echo ("••••••• Konstanten:   ••••••••");
     echo(PHI=PHI,gw=gw,tw=tw,twF=twF,inch=inch);
 //echo(str("•••••••••• Help is on! (helpsw=1)•• debug=",debug," ••••••••••••••••••••••••"));
 //echo();
-if (show)echo(str("<font color='darkviolet'size=8> ••• show=",show,"</font>")); 
+if (show)echo(str("🟣 ••• show=",show,)); 
     
 
-if(!helpFunc)echo("<h4 style=background-color:#bbbbbb>••••• Functions off — use» helpFunc=true; •••••");
+if(!helpFunc)echo("❌••••• Functions List off — use» helpFunc=true; •••••");
 if (helpFunc){
-echo    ("<h3 style=background-color:#bbbbcc><font color='blue'size='5'>•••••••••• Funktionen:   •••••••••••••••</font></h3>");
+echo    ("•••••••••• Funktionen:   •••••••••••••••");
 echo    ("••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
 ••• Inkreis(eck,rU) •• Umkreis(eck,rI) •••\n
 ••• Hypotenuse(a,b) length •• Kathete(hyp,kat) length •••\n
@@ -357,9 +360,9 @@ echo    ("••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
 }
 
 //Objektmodifikatoren
-if(!helpMod)echo("<h4 style=background-color:#bbbbbb>••••• Objektmodifikatoren off — use» helpMod=true; •••••");
+if(!helpMod)echo("❌••••• Objektmodifikatoren List off — use» helpMod=true; •••••");
 if (helpMod){
-echo    ("<h3 style=background-color:#bbccbb><font color='green'size=5>•••••••••• Objektmodifikatoren:   ••••••</font></h3>");
+echo    ("•••••••••• Objektmodifikatoren:   ••••••");
 echo    ("•••• T(x=0,y=0,z=0)•Tz(z=0) ••• R(x=0,y=0,z=0)  ••");
 echo    ("•••• M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=1,scalexz=1,scaleyz=1)••");
 echo    ("•••• Col(no=0,alpha=1,pal=0,n=0)multi Objekt color  ••");
@@ -403,11 +406,11 @@ echo    ("\n
 }
 
 
-  if(!helpB)echo("<h4 style=background-color:#bbbbbb>••••• Basis objects off — use» helpB=true; •••••");   
+  if(!helpB)echo("❌••••• Basis objects List off — use» helpB=true; •••••");   
  if(helpB){//  BASIS OBJEKTE   
     
 echo();    
-echo    ("<h3 style=background-color:#bbddbb><font color='darkgreen'size=5>•••••••••• BasisObjekte:   •••••••••••••</font></h3>");
+echo    ("•••••••••• BasisObjekte:   •••••••••••••");
 
 
 
@@ -450,13 +453,17 @@ echo    ("•• [67] Disphenoid(h=15,l=25,b=20,r=1,ty=0,tz=0,fn=36)••••
 echo    ("•• Zylinder(help=1)••••");
 echo    ("•• Welle(help=1) opt polygon••••");
 echo    ("•• Anschluss(help=1) ••••");
-echo    ("•• KreisSeg(help=1) ••••");
+echo    ("•• TorusSeg(help=1) ••••");
+echo    ("\n
+•• Buchtung(help=1);••••\n
+•• SpiralCut(help=1);••••\n
+");
 
 }
- if(!helpP)echo("<h4 style=background-color:#bbbbbb>••••• Produkt objects off — use» helpP=true; •••••");
+ if(!helpP)echo("❌••••• Produkt List off — use» helpP=true; •••••");
  if(helpP){ // PRODUKT OBJEKTE
 
-echo    ("<h3 style=background-color:#bbbbbb><font color='grey'><font size=5>•••••••••• Produkt Objekte:   ••••••••••</font></h3>");
+echo    ("•••••••••• Produkt Objekte:   ••••••••••");
 echo    ("•• [400] Pivot(p0=[0,0,0],size=pivotSize,active=[1,1,1,1]) ••••");
 echo    ("•• [401] Line(p0, p1, d=.5,center=false) ••••");
 echo    ("•• [402] SCT(a=90) sin cos tan info ••••");
@@ -486,22 +493,21 @@ echo    ("\n
 •• Klammer(help=1);••••\n
 •• Pin(help=1);••••\n
 •• CyclGetriebe(help=1);••••\n
-•• Buchtung(help=1);••••\n
-•• SpiralCut(help=1);••••\n
 •• SRing(help=1);••••\n
 •• DRing(help=1);opt polygon••••\n
 •• GewindeV4(help=1); ••••\n
 •• BB(help=1); Ballbearing ••••\n
 •• Abzweig(help=1) ••••\n
 •• GT2Pulley(help=1) ••••\n
+•• KBS(help=1) KlemmBauStein••••\n
 ");
 }
 
 //  2D 
 
-if(!help2D)echo("<h4 style=background-color:#bbbbbb>••••• help 2D off — use» help2D=true; •••••");
+if(!help2D)echo("❌••••• Polygon List off — use» help2D=true; •••••");
 if (help2D){
-echo    ("<h3 style=background-color:#aaaacc><font color='lightblue'size=5>•••••• 2D ••••••</font></h3>");
+echo    ("•••••• Polygons ••••••");
 echo    ("•• [100] Trapez(h=2.5,x1=6,x2=3.0,d=1,x2d=0,fn=36,n=$info)••••");
 echo    ("•• Tri(grad=60,l=20,h=0,r=0,messpunkt=0,center=+0,top=1,tang=1,fn=fn,n=$info,help=helpM)••••");
 echo    ("•• Tri90(grad,a,b,c,help=1) ••••"); 
@@ -557,14 +563,52 @@ if(anima)echo(str("\n Zeit t0:",t0,
 Zeit t3:",t3(),"\n
 ••••  anima on! tset=",tset," t=0⇒1 || t0=0⇒360 || t1=-1⇔1 || t2=0⇔1 || t3(wert=1,grad=360,delta=0)  •••••"));    
     
-if (vp)echo (str(version()[0]<2021?"\n<p style=background-color:#bbbbee;><font size=5 color=#555599>":"","\n\tViewportcontrol vpr: ",$vpr,"\n\t
+if (vp)echo (str(version()[0]<2021?"\n<p style=background-color:#bbbbee;><font size=5 color=#555599>":
+        "",
+"\n\tViewportcontrol vpr: ",$vpr,"\n\t
 Viewportcontrol vpt: ",$vpt,"\n\t
 Viewportcontrol vpd: ",$vpd,"\n\t
 Viewportcontrol vpf: ",$vpf,"\n\t
 ••••  vp=on  •••••"));
-if(!$preview&&version()[0]<2021) echo("<H1 style=background-color:#aaffcc;color:#7766aa;>\nRendering…wait!");   
+if(!$preview) echo("\n\t\t⏳ Rendering…wait! ⌛");   
 
 //////////////////////////// Modules  /////////////////////////////
+
+
+
+module KBS(e=2,grad=2,center=true,male=true,rot=0,n=4,name=$info,help=$helpM){
+d=4.8;		//knobs on top of blocks
+h=2;// knob height
+    
+ks=8.0; // spacing
+rand=1.45;
+bh=9.5;// block height
+roof_thickness=1.05;    
+pin_diameter=3;		//pin for bottom blocks with width or length of 1
+post_diameter=6.5;
+reinforcing_width=1.5;
+axle_spline_width=2.0;
+axle_diameter=5;
+e=is_list(e)?e:[e,e];    
+
+ if(e.z)linear_extrude(e.z*bh,scale=1,convexity=5)hull()Grid(e=e,es=[ks,ks,0],center=center,name=false)square(d+rand*2,center=center);
+ Grid(e=e,es=[ks,ks,0],center=center,name=false){
+    if(male)translate([0,0,e.z?e.z*bh+h:h])rotate(180,[1,0])linear_extrude(h,scale=(d/2-h/tan(90-grad))/(d/2),convexity=5) circle(d=d);
+        // for holes on bottom
+    else {
+        h=bh/3-roof_thickness;
+
+        translate([0,0,(e.z?e.z*bh:0)-.001])linear_extrude(h,scale=(d/2-(h)/tan(90+grad))/(d/2),convexity=5)rotate(180/n+rot)Rund(d/3)circle(d=Umkreis(n,d),$fn=n);//;square(d,center=center);
+    }
+ }
+InfoTxt("KBS",["size",str(
+    str(e.x*d+rand*2,"×",e.y*d+rand*2,e.z?str("×",e.z*bh):"")
+    ,grad?str(" diff ",grad,"° bei h=2mm ",tan(grad)*2):
+       ""
+    )],name);
+ 
+HelpTxt("KBS",["e",e,"grad",grad,"center",center,"male",male,"rot",rot,"n",n,"name",name],help);    
+}
 
 module Example(variable=1,name=$info,help=$helpM){
  
@@ -801,11 +845,12 @@ module RotEx(grad=360,fn=fn,center=false,cut=false,convexity=5,help=$helpM){
     if(help)echo(str("<H3><font color='",helpMColor,"' <b>Help RotEx(grad=",grad,",fn=",fn,",center=",center,",cut=",cut,", convexity=",convexity,",help=$helpM);"));   
 }
 
+
 // multiply children in a given matrix (e= number es =distance)
 module Grid(e=[2,2,1],es=10,s,center=true,name=$info,help=$helpM){
     function n0(e)=is_undef(e)?1:max(e,1);
     function n0s(e)=max(e-1,1);// e-1 must not be 0
-    
+    center=is_list(center)?v3(center):[center,center,center];
     e=is_list(e)?is_num(e[2])?[max(e[0],1),max(e[1],1),n0(e[2])]:
                     concat(e,[1]):
         es[2]?[n0(e),n0(e),n0(e)]:
@@ -820,7 +865,12 @@ module Grid(e=[2,2,1],es=10,s,center=true,name=$info,help=$helpM){
         [s/n0s(e[0]),s/n0s(e[1]),s/n0s(e[2])];
         
    MO(!$children);
-   InfoTxt("Grid",[str("Gridsize(",e,")"),str(e[0]*e[1]*e[2]," elements ",(e[0]-1)*es[0],"×",(e[1]-1)*es[1],"×",(e[2]-1)*es[2],"mm",  center?str(-(e[0]-1)*es[0]/2," ↦",(e[0]-1)*es[0]/2,"",-(e[1]-1)*es[1]/2," ↦",(e[1]-1)*es[1]/2,"×",-(e[2]-1)*es[2]/2," ↦",(e[2]-1)*es[2]/2,"mm"):"")],name);  
+   InfoTxt("Grid",[str("Gridsize(",e,")"),str(e[0]*e[1]*e[2]," elements ",(e[0]-1)*es[0],"×",(e[1]-1)*es[1],"×",(e[2]-1)*es[2],"mm ",
+    
+    center.x?str("\n\tX ",-(e[0]-1)*es[0]/2," ⇔ ",(e[0]-1)*es[0]/2," mm"):"",
+    center.y?str("\n\tY ",-(e[1]-1)*es[1]/2," ⇔ ",(e[1]-1)*es[1]/2," mm"):"",
+    center.z?str("\n\tZ ",-(e[2]-1)*es[2]/2," ⇔ ",(e[2]-1)*es[2]/2," mm"):"")
+    ],name);  
        
     HelpTxt("Grid",[
     "e",e
@@ -830,7 +880,10 @@ module Grid(e=[2,2,1],es=10,s,center=true,name=$info,help=$helpM){
     ,"name",name]
     ,help);
 
-   translate(center?[((1-e[0])*es[0])/2,((1-e[1])*es[1])/2,((1-e[2])*es[2])/2]:[0,0,0]) for(x=[0:e[0]-1],y=[0:e[1]-1],z=[0:e[2]-1]){
+   translate([
+   center.x?((1-e[0])*es[0])/2:0,
+   center.y?((1-e[1])*es[1])/2:0,
+   center.z?((1-e[2])*es[2])/2:0]) for(x=[0:e[0]-1],y=[0:e[1]-1],z=[0:e[2]-1]){
        $idx=[x,y,z];
        $info=norm($idx)?false:name;
        $helpM=norm($idx)?false:$helpM;
@@ -838,12 +891,16 @@ module Grid(e=[2,2,1],es=10,s,center=true,name=$info,help=$helpM){
    }
 }
 
+
 // Grid but with alternating row offset - hex or circle packing
 module HexGrid(e=[11,4],es=5,center=true){
-    Grid(e=e,es=is_list(es)?es:[es*sin(60),es],center=center)translate([0,$idx[0]%2?is_list(es)?es[1]/2:es/2:0])children();
+    Grid(e=e,es=is_list(es)?es:[es*sin(60),es],center=center)
+    translate([0,
+    $idx[0]%2?is_list(es)?es[1]/2:es/2:
+            0
+    ])children();
     MO(!$children);
 }
-
 
 
 
@@ -1170,7 +1227,9 @@ InfoTxt("GT2Pulley",["aussenH",h+2.2,"d",d,"radius Riemenmitte",z/PI],name);
 HelpTxt("GT2Pulley",["h",h,"z",z,"achse",achse,"center",center,"name",name],help);
 }
 
-module KreisSeg(
+
+// Was KreisSeg(
+module TorusSeg(
 grad=90,
 size=4,
 h,
@@ -5701,14 +5760,14 @@ module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn=fn,fn2=fn,r2=0,spie
            translate([-spiel[0],-spiel[1]]) square([sin(-90+ax)*rad+rad+spiel[0],sin(a-90)*rad+rad+spiel[1]]);
             T(rad,rad)rotate(r2)circle(rad,$fn=fn2);
         }
-	
+// dia	
 	if(!is_undef(dia)&&!2D){	rotate(center?-180-angle/2:0)difference(){
         rotate_extrude(angle=angle,$fn=fn,convexity=5)
             difference()
             {
                 T(dia/2)translate([-spiel[0],-spiel[1]])square([sin(-90+ax)*rad+rad+spiel[0],sin(a-90)*rad+rad+spiel[1]]);
                 T(dia/2)T(rad,rad)rotate(r2)circle(rad,$fn=fn2);
-                if(dia>-rad*2)T(-50,-25)square(50);
+                if(dia>-rad*2)T(-200,-100)square(200);
             }
           if(fase&&angle)T(dia/2+rad,z=rad)R(-90*sign(dia))Kegel(d2=0,d1=Hypotenuse(rad+spiel[0],rad+spiel[1])*2,fn=fn2);
           if(fase>1&&angle)rotate(angle)T(dia/2+rad,z=rad)R(90*sign(dia))Kegel(d2=0,d1=Hypotenuse(rad+spiel[0],rad+spiel[1])*2,fn=fn2);    
