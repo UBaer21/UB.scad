@@ -1,52 +1,59 @@
 include<ub.scad> 
 /*[Hidden]*/
-useVersion=21.299;//⇒ v.gd/ubaer
+useVersion=21.317;//⇒ v.gd/ubaer
 assert(Version>=useVersion,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 nozzle=.2;
 bed=false;
 
 /*[Demo]*/
-show=0;//[modifier,helper,polygon,objects,products,functions]
+show=0;//[modifier,generator,helper,polygons,objects,products,functions]
 /*[Hidden]*/
-textPos=[-2,-3];
+$textPos=[-2,-3];
 objPos=[12];
 color2=0;
 
 
 
-T(textPos+[0,-6])Text(h=0,text=show,cy=-1);
+T($textPos+[0,-6])Tz(-.1)Text(h=0,text=show,size=3,cy=-1);
 
 module P(){
 Pfeil(l=6,b=[1,2.5],shift=-0.5,center=[1,1]);    
 }
-module Txt(text){
-T(textPos)text(text,size= 1.3,valign="top");    
+module Txt(text,line=0){
+Col(4)T($textPos+[0,line*1.3*1.5])text(text,size= 1.3,valign="top");    
+}
+module Cross(s=5,line=0.1){
+   %Tz(.1)union(){
+       square([line,s],true);
+       square([s,line],true);
+   }
+    children();
 }
 
 if(show=="modifier")Anordnen(option=3,es=[20,15],c=undef,loop=false,center=false,inverse=true){
 
 union(){//T moves
-    square();T(objPos/2)P();T(objPos+[3])Tz(z=0)Color(color2) square();
+    square(2);T(objPos/2)P();T(objPos+[3])Tz(z=0)Color(color2) square(2);
     Txt("T(x=3)");
 }
 union(){//R rotates
-    square();T(objPos/2+[1])Pfeil([6,2],[1,2],d=3);T(objPos)R(x=0,y=0,z=-45) Color(color2)square();
+    square([1,2]);T(objPos/2+[1])Pfeil([6,2],[1,2],d=3);T(objPos)R(x=0,y=0,z=-45) Color(color2)square([1,2]);
     Txt("R(z=-45)");    
 }
 union(){//M skews
-    square();T(objPos/2)P();T(objPos)M(skewyx=1)Color(color2) square();
+    square([2,2]);T(objPos/2)P();T(objPos)M(skewyx=1)Color(color2) square([2,2]);
     Txt("M(skewyx=1)");     
 }
 
 union(){//Scale scales quadrants independently
-    circle();T(objPos/2)P();T(objPos)Tz(-.01)Color(color2)Scale(v=[0.6,2,1,2]) circle();
+    Cross()circle();T(objPos/2)P();T(objPos)Tz(-.01)Cross()Color(color2)Scale(v=[0.6,2,1,2],size=3) circle();
     Txt("Scale(v=[0.6,2,1,2])");     
 }
 
 
 union(){//Rund rounds (2D)
-    MKlon(mx=1,my=1)square([1,2],true);T(objPos/2)P();T(objPos)Color(color2)Rund(.2,.4)MKlon(mx=1,my=1)square([2,1],true);
-    Txt("Rund(.2,.4)");
+    MKlon(mx=1,my=1)square([1,3],true);T(objPos/2)P();T(objPos)Color(color2)Rund(0.5,0.75)MKlon(mx=1,my=1)square([1,3],true);
+    Txt("Rund(.5,.75)");
 }
 
 
@@ -67,148 +74,41 @@ union(){//Grid multiply as matrix
 }
 union(){//HexGrid multiply as matrix with alternating Yoffset 
     circle(.5);T(objPos/2)P();T(objPos)Color(color2)HexGrid([5,2],1.25,center=false)circle(.5);
-    Txt("HexGrid(2,1.5)"); 
+    Txt("HexGrid([5,2],1.25)"); 
 }
 union(){// Klon clones
-    circle(.5);T(objPos/2)P();T(objPos)Color(color2)Klon(.75)circle(.5);
-    Txt("Klon(.75)"); 
+    Cross()circle(1);T(objPos/2)P();T(objPos)Cross()Color(color2)Klon(tx=1.5)circle(1);
+    Txt("Klon(tx=1.5)"); 
 }
 union(){// MKlon mirror clones
-    circle(.75,$fn=3);T(objPos/2)P();T(objPos)Color(color2)MKlon(.75)circle(.75,$fn=3);
-    Txt("MKlon(.75)"); 
+    Cross()circle(1,$fn=3);T(objPos/2)P();T(objPos)Cross()Color(color2)MKlon(1)circle(1,$fn=3);
+    Txt("MKlon(tx=1)"); 
 }
 
 union(){// Rand makes rand
     circle(1,$fn=6);T(objPos/2)P();T(objPos)Color(color2)Rand(.5)circle(1,$fn=6);
     Txt("Rand(.5)"); 
 }
-
-
-//ECHO: "•••• Halb(i=0,x=0,y=0,z=1,2D=0)Objekt      ••"
-//ECHO: "•••• Drehpunkt(rx=0,ry=0,rz=0,x=0,y=0,z=0,messpunkt=1)Objekt      ••"
-//ECHO: "•••• Rand(rand=n(1),center=false,fn=fn,delta=false,chamfer=false)  ••"
-
+union(){// Halb cut half away
+    Cross()circle(2);T(objPos/2)P();T(objPos)Cross()Color(color2)Halb(x=true,2D=true)circle(2);
+    Txt("Halb(x=true)"); 
 }
 
-if(show=="helper")union()//•••••••••• helper:   ••••••••••
-Anordnen(es=[20,15],option=3,c=undef,loop=false,center=false){
- 
-union(){// Schnitt cuts objects in preview
-    square(1,true);T(objPos/2)P();T(objPos)Schnitt(true)square(1,true);
-    Txt("Schnitt()"); 
-} 
-
-union(){// Color colors (hui)
-    square();T(objPos/2)P();T(objPos)Color(.5)square();
-    Txt("Color(.5)"); 
-}
-
-union(){// Color colors (hui)
-    T(-.75){square();T(1.5)square();T(1.5,1.5)square();T(0,1.5)square();}T(objPos/2)P();T(objPos)Color(.5){square();T(1.5)square();T(1.5,1.5)square();T(0,1.5)square();}
-    Txt("Color(.5)"); 
-}
-
-union(){// Anorden arranges
-    square();circle();T(objPos/2)P();T(objPos)Anordnen(es=1.5){square();circle();}
-    Txt("Anordnen(es=1.5)"); 
-}
-union(){// Calliper measures
-    T(objPos/2)Caliper(h=3,l=8,end=+1,messpunkt=false);
-    Txt("Caliper(l=8)"); 
-}
-union(){// Calliper measures
-    T(objPos/2)Caliper(h=3,l=8,end=+2,messpunkt=false);
-    Txt("Caliper(l=8,end=2)"); 
-}
-
-union(){// Pivot shows point
-    T(objPos/2)Pivot([-3,+1],size=5);
-    Txt("Pivot([-3,1])"); 
-}
-
-union(){// Line line between P0 P1
-    T(objPos/2)Line([-7,-1,0],p1=[2,4,0],2D=true);
-    Txt("Line(p0,p1)"); 
-}
-
-
-}
-
-if(show=="polygons")union()//•••••••••• polygons:   ••••••••••
-Anordnen(es=50,option=3,c=undef,loop=false,center=false){
+union(){//Drehpunkt move fulcrum
+Cross()circle(1.5);T(objPos/2)P();T(objPos){
     
-    
-}
-if(show=="objects")union()//•••••••••• objects:   ••••••••••
-Anordnen(es=50,option=3,c=undef,loop=false,center=false){
-    
-    
+    Cross()Drehpunkt(rz=-45,x=2)Color(color2)circle(1.5);
+    }
+    Txt("Drehpunkt(rz=-45,x=2)");
+
 }
 
 
-if(show=="products")union()//•••••••••• Produkt Objekte:   ••••••••••
-Anordnen(es=50,option=3,c=undef,loop=false,center=false){
-
-Pivot(help=1);//p0=[0,0,0],size=10,active=[1,1,1,1]) ;
-Line(help=$helpM);//p0=[0,0,0], p1=[20,20,0], d=2,center=false) ;
-//SCT(a=90); //sin cos tan info 
-Gardena(help=$helpM);//l=10);
-Servotraeger(help=$helpM);//SON=1);
-    Servo(help=$helpM);//r=0,narbe=1) ;
-Knochen(help=$helpM);//l=+15,d=3,d2=5,b=0,fn=36)   ;
-    
-Glied(help=$helpM);//l=35,spiel=0.5,la= -0.5,fn=20,d=8,h=10,rand=2);
-  union(){
-    rotate(90)  DGlied0(l1=12,l2=12,la=-1,rand=.75,d=2) ;
-    DGlied1(l1=12,l2=12,la=-1,d=2,rand=.75) ;
-  }
-  
-Luer(help=$helpM);//male=1,lock=1,slip=1) ;
-Bitaufnahme(help=$helpM);//l=10,star=true);
-  
-Imprint(help=$helpM);//txt1="Imprint",radius=10,abstand=29,rotz=-2,h=1.2,rotx=0,roty=0,stauchx=0,stauchy=0,txt0="›",txt2="‹",size=5,font="DejaVusans:style=bold",name=$info)cylinder(1,r=20);
-  
-Achshalter(help=$helpM);//laenge=30,achse=+5,schraube=3,mutter=5.5,schraubenabstand=15,hoehe=8,fn=fn) ;
-Achsenklammer(help=$helpM);//abst=10,achse=3.5,einschnitt=1,h=3,rand=n(2),achsenh=0,fn=72);
-  
-Vorterantrotor(help=$helpM,rU=5,h=15);//h=40,twist=360,scale=1,zahn=0,rU=10,achsloch=4,ripple=0,caps=2,caps2=0,capdia=6.5,capdia2=0,screw=1.40,screw2=0,screwrot=60,n=1);
-  
-ReuleauxIntersect(help=$helpM);//h=2,rU=5,2D=false); 
-Tugel(help=$helpM);//dia=20,loch=15,scaleKugel=2,scaleTorus=2);
-
-Glied3(help=$helpM);//x=10);
-Gelenk(help=$helpM);//l=10,w=0);
- 
-Balg(help=$helpM);//sizex=16,sizey=16,z=10.0,kerb=6.9,rand=-0.5);
-Tring(help=$helpM);//spiel=+0,angle=153,r=5.0,xd=+0.0,h=1.75,top=n(2.5),base=n(4),name=0);
-Servokopf(help=$helpM);//rot=0,spiel=0)cylinder(5,d=10);//Objekt
-Klon(10)if($idx)Halbrund(h=15,d=8+2*spiel,x=1.5,name=$info);else Halbrund(d=8,x=1,doppel=true)cylinder(4,d=10);///Objekt mikroGetriebemotor Wellenaufnahme 
-//depriciate Riemenscheibe(help=$helpM,e=22,radius=15)cylinder(8,d=30);//e=40,radius=25,nockendurchmesser1=2,nockendurchmesser2=2,hoehe=8,name=$info)cylinder(8,r=25);//opt Objekt 
-Cring(help=$helpM);//id=20,grad=230,h=15,rand=3,rad=1,end=1,txt=undef,tWeite=15,tSize=5,center=true,fn=fn,fn2=36);
-
-PCBcase(help=$helpM)cube(30,true);
-Klammer(help=$helpM);
-Pin(help=$helpM);
-CyclGetriebe(help=$helpM,light=3,lRand=1);
-Buchtung(help=$helpM);
-SpiralCut(help=$helpM);
-SRing(help=$helpM);
-DRing(help=$helpM);//opt polygon
-DRing(help=$helpM)circle(1,$fn=5);
-GewindeV4(help=$helpM);
-BB(help=$helpM); //Ballbearing
-union(){
-    Abzweig(r1=5,r2=15,help=$helpM);
-    cylinder(30,r=5);
-    R(90)cylinder(10,r=15);
-}
-GT2Pulley(help=$helpM);
 }
 
+if(show=="generator")Anordnen(option=3,es=[20,15],c=undef,loop=false,center=false,inverse=true){
 
 /*
-
-
 ECHO: "•••• Rundrum(x=+40,y=30,r=10,eck=4,twist=0,grad=0,spiel=0.005,fn=fn,n=$info) polygon RStern(help=$helpM)polygon ••"
 ECHO: "••••  Kextrude(help=$helpM); ••"
 ECHO: "•••• LinEx(help=$helpM) polygon  ••"
@@ -228,11 +128,161 @@ ECHO: "
 •••• Row(help=$helpM) opt. Objekt ••
 •••• Anordnung(help=$helpM) Objekte ••
 •••• Bevel(help=$helpM) Objekt ••
+*/
+}
 
 
 
 
-•••••••••• BasisObjekte:   •••••••••••••
+
+
+if(show=="helper")union()//•••••••••• helper:   ••••••••••
+Anordnen(es=[20,15],option=3,c=undef,loop=false,center=false){
+    
+    
+union(){ // 3 axis Projection
+    3Projection(1,cut=false)difference(){
+    Tz(2)Prisma(2,3,4,x2=1.5,y2=2,x2d=.25,y2d=.5,c1=0,s=0,center=false);
+    } 
+    Txt("3Projection()");
+}
+   
+ 
+union(){// Schnitt cuts objects in preview
+    cube(2,true);T(objPos/2)P();T(objPos)Schnitt(true)cube(2,true);
+    Txt("Schnitt()"); 
+} 
+
+union(){// Color colors (hui)
+    square();T(objPos/2)P();T(objPos)Color(.5)square();
+    Txt("Color(.5)"); 
+}
+
+union(){// Color colors (hui)
+    T(-.75){square();T(1.5)square();T(1.5,1.5)square();T(0,1.5)square();}T(objPos/2)P();T(objPos)Color(.5){square();T(1.5)square();T(1.5,1.5)square();T(0,1.5)square();}
+    Txt("Color(.5)"); 
+}
+
+union(){// Anorden arranges
+    Cross(){square();circle();}T(objPos/2)P();T(objPos)Cross()Anordnen(es=2.5,option=2){square();circle();}
+    Txt("Anordnen(es=2.5)"); 
+}
+union(){// Calliper measures
+    T(objPos/2)Caliper(s=3,l=8,end=+1,h=.5,messpunkt=false);
+    Txt("Caliper(l=8)"); 
+}
+union(){// Calliper measures
+    T(objPos/2)Caliper(s=3,l=4,end=0,messpunkt=false);
+    Txt("Caliper(l=8,end=0)"); 
+}
+
+union(){// Pivot shows point
+    T(objPos/2)Pivot([-3,+1],size=5);
+    Txt("Pivot([-3,1])"); 
+}
+
+union(){// Line line between P0 P1
+    T(objPos/2)Line([-7,-1,0],p1=[2,4,0],2D=true);
+    Txt("Line(p0,p1)"); 
+}
+
+
+}
+
+if(show=="polygons")union()//•••••••••• polygons:   ••••••••••
+T(0,5)Anordnen(es=[35,20],option=3,c=undef,loop=false,center=false){
+$textPos=[-8,-8];
+    union(){// Triangle
+        Cross();
+        linear_extrude(.1)Tri(h=10,r=[1,.5],top=true,messpunkt=5);
+        Txt("Tri(h=10,r=[1,.5],top=1);");
+    }
+    union(){// Quad
+        Cross();
+        Quad(12,10,grad=135,messpunkt=5);
+        //T(0,-2.5)Rand(.1)square([10,5],true);
+        Txt("Quad(10,5,grad=135);");
+    }    
+    union(){// Kreis
+        Cross();
+        Kreis(5,rand=1);
+        Txt("Kreis(5,rand=1);");
+    }    
+    union(){// Tri90
+        Cross();
+        Tri90(grad=20,r=[1,2],messpunkt=5);
+        Txt("Tri90(grad=20,r=[1,2]);");
+    }    
+    union(){// Lens
+        Cross();
+        Linse(messpunkt=5);
+        Txt("Linse();");
+    }    
+    union(){// Star
+        Cross();
+        Stern(5,7,4);
+        Txt("Stern();");
+    } 
+    union(){// Wave Star
+        Cross();
+        WStern(f=5,r=5,a=1,fn=5*10);
+        Txt("WStern(f=5,r=5,a=1);");
+    }     
+  
+    union(){// Super Ellipse
+        Cross();
+        Color(){
+        Tz($idx/10)Superellipse(3.5,r=5,fn=4*10);    
+        Tz($idx/10)Superellipse(1.5,r=5,fn=4*10);
+        Tz($idx/10)Superellipse(0.5,r=5,fn=4*10);
+            
+        }
+        Txt("Superellipse(n=3,r=5);");
+    }    
+    union(){// 7-Segment
+        Cross();
+        Seg7(8);
+        Txt("Seg7(8);");
+    }      
+    
+    
+  /* 
+    •••••• 2D ••••••
+
+
+ECHO: "•• [100] Trapez(h=2.5,x1=6,x2=3.0,d=1,x2d=0,fn=36,n=$info)••••"
+
+ECHO: "•• VorterantQ(size=20,ofs=.5)••••"
+ECHO: "•• Bogendreieck(rU=5,vari=-1,fn=fn,n=$info) ••• Reuleaux(rU=5,n=$info,fn=fn)••••"
+ECHO: "•• Stern(e=5,r1=10,r2=5,mod=2,delta=+0,n=$info)••••"
+ECHO: "•• ZigZag(e=5,es=0,x=50,y=5,mod=2,delta=+0,base=2,center=true,n=$info,help=helpM)••••"
+ECHO: "
+
+•• Flower(help=$helpM);
+•• 
+•• WKreis(help=$helpM);
+•• RSternFill(help=$helpM);
+ •• Cycloid(help=$helpM);
+•• SQ(help=$helpM);
+•• Vollwelle(help=$helpM);
+•• CycloidZahn(help=$helpM);
+•• Nut(help=$helpM);
+•• DBogen(help=$helpM);(opt polygon)
+ •• Pfeil(help=$helpM);
+•• Rosette(help=$helpM);
+•• GT(help=$helpM);•• Egg(help=$helpM);"
+*/
+    
+}
+
+
+
+if(show=="objects")union()//•••••••••• objects:   ••••••••••
+Anordnen(es=50,option=3,c=undef,loop=false,center=false){
+    
+    
+ /* 
+  •••••••••• BasisObjekte:   •••••••••••••
 
 ECHO: "•• [300] Kugelmantel(d=20,rand=n(2),fn=fn); ••••"
 ECHO: "•• [30] Kegel (d1=12,d2=6,v=1,fn=fn,n=$info,center=false,grad=0)  ••• [31]MK(d1=12,d2=6,v=19.5)//v=Steigung ••••"
@@ -268,39 +318,146 @@ ECHO: "•• Zylinder(help=$helpM)••••"
 ECHO: "•• Welle(help=$helpM) opt polygon••••"
 ECHO: "•• Anschluss(help=$helpM) ••••"
 ECHO: "•• KreisSeg(help=$helpM) ••••"
+*/
+}
+
+
+if(show=="products")union()//•••••••••• Produkt Objekte:   ••••••••••
+Anordnen(es=50,option=3,c=undef,loop=false,center=false){
+
+//Pivot(help=1);//p0=[0,0,0],size=10,active=[1,1,1,1]) ;
+//Line(help=$helpM);//p0=[0,0,0], p1=[20,20,0], d=2,center=false) ;
+//SCT(a=90); //sin cos tan info 
+
+Knochen(help=$helpM);//l=+15,d=3,d2=5,b=0,fn=36)   ;
+Gardena(help=$helpM);//l=10);
+Servotraeger(help=$helpM);//SON=1);
+    Servo(help=$helpM);//r=0,narbe=1) ;    
+Glied(l=30,spiel=0.5,la= -0.5,fn=20,d=6,h=10,rand=2);
+  union(){
+    rotate(90)  DGlied0(l1=12,l2=12,la=-1,rand=.75,d=2) ;
+    DGlied1(l1=12,l2=12,la=-1,d=2,rand=.75) ;
+  }
+  
+Luer(help=$helpM);//male=1,lock=1,slip=1) ;
+Bitaufnahme(help=$helpM);//l=10,star=true);
+  
+/* replaced with
+  union(){mirror([0,1])rotate(-28)Text("Imprint",h=1.2*.15*2,radius=10,cz=1); 
+  Imprint("Imprint",radius=10,abstand=29,help=$helpM);}//txt1="Imprint",radius=10,abstand=29,rotz=-2,h=1.2,rotx=0,roty=0,stauchx=0,stauchy=0,txt0="›",txt2="‹",size=5,font="DejaVusans:style=bold",name=$info)cylinder(1,r=20);
+*/
+  
+Achshalter(help=$helpM);//laenge=30,achse=+5,schraube=3,mutter=5.5,schraubenabstand=15,hoehe=8,fn=fn) ;
+Achsenklammer(abst=15,achse=6,rand=2);//abst=10,achse=3.5,einschnitt=1,h=3,rand=n(2),achsenh=0,fn=72);
+  
+Vorterantrotor(help=$helpM,rU=5,h=15);//h=40,twist=360,scale=1,zahn=0,rU=10,achsloch=4,ripple=0,caps=2,caps2=0,capdia=6.5,capdia2=0,screw=1.40,screw2=0,screwrot=60,n=1);
+  
+ReuleauxIntersect(help=$helpM);//h=2,rU=5,2D=false); 
+Tugel(help=$helpM);//dia=20,loch=15,scaleKugel=2,scaleTorus=2);
+
+Glied3(help=$helpM);//x=10);
+Gelenk(help=$helpM);//l=10,w=0);
+ 
+render()Balg(help=$helpM);//sizex=16,sizey=16,z=10.0,kerb=6.9,rand=-0.5);
+Tring(help=$helpM);//spiel=+0,angle=153,r=5.0,xd=+0.0,h=1.75,top=n(2.5),base=n(4),name=0);
+Servokopf(help=$helpM);//rot=0,spiel=0)cylinder(5,d=10);//Objekt
+Klon(10)if($idx)Halbrund(h=15,d=8+2*spiel,x=1.5,name=$info);else Halbrund(d=8,x=1,doppel=true)cylinder(4,d=10);///Objekt mikroGetriebemotor Wellenaufnahme 
+//depriciate Riemenscheibe(help=$helpM,e=22,radius=15)cylinder(8,d=30);//e=40,radius=25,nockendurchmesser1=2,nockendurchmesser2=2,hoehe=8,name=$info)cylinder(8,r=25);//opt Objekt 
+Cring(help=$helpM);//id=20,grad=230,h=15,rand=3,rad=1,end=1,txt=undef,tWeite=15,tSize=5,center=true,fn=fn,fn2=36);
+
+PCBcase(deckel=1);//cube(30,true);
+Klammer(d=10,breite=3);
+Pin(d=12,l=30);
+CyclGetriebe(help=$helpM,modul=5,z=15,achse=10,light=3,lRand=2);
+Buchtung(help=$helpM);
+SpiralCut(help=$helpM);
+SRing(e=5,id=10,od=20,rand=2.5);
+DRing(help=$helpM);//opt polygon
+DRing(help=$helpM)circle(1,$fn=5);
+GewindeV4(dn=15,h=20,p=3,help=$helpM);
+BB(help=$helpM); //Ballbearing
+union(){
+    Abzweig(r1=5,r2=15,help=$helpM);
+    cylinder(30,r=5);
+    R(90)cylinder(10,r=15);
+}
+GT2Pulley(h=10,z=40,center=false,achse=10);
+}
+
+
+/*
 
 
 
 
 
-
-•••••• 2D ••••••
-
-
-ECHO: "•• [100] Trapez(h=2.5,x1=6,x2=3.0,d=1,x2d=0,fn=36,n=$info)••••"
-ECHO: "•• Tri(grad=60,l=20,h=0,r=0,messpunkt=0,center=+0,top=1,tang=1,fn=fn,n=$info,help=helpM)••••"
-ECHO: "•• Tri90(grad,a,b,c,help=$helpM) ••••"
-ECHO: "•• Quad((x=20,y=20,r=3,grad=90,grad2=90,fn=36,center=true,centerX=false,n=false,messpunkt=false,help=helpM)••••"
-ECHO: "•• VorterantQ(size=20,ofs=.5)••••"
-ECHO: "•• Linse(dia=10,r=7.5,n=$info,messpunkt=true)••••"
-ECHO: "•• Bogendreieck(rU=5,vari=-1,fn=fn,n=$info) ••• Reuleaux(rU=5,n=$info,fn=fn)••••"
-ECHO: "•• Stern(e=5,r1=10,r2=5,mod=2,delta=+0,n=$info)••••"
-ECHO: "•• ZigZag(e=5,es=0,x=50,y=5,mod=2,delta=+0,base=2,center=true,n=$info,help=helpM)••••"
-ECHO: "
-    •• WStern(help=$helpM);
-•• Superellipse(help=$helpM);
-•• Flower(help=$helpM);
-•• Seg7(help=$helpM);
-•• WKreis(help=$helpM);
-•• RSternFill(help=$helpM);
- •• Cycloid(help=$helpM);
-•• SQ(help=$helpM);
-•• Vollwelle(help=$helpM);
-•• CycloidZahn(help=$helpM);
-•• Nut(help=$helpM);
-•• DBogen(help=$helpM);(opt polygon)
- •• Pfeil(help=$helpM);
-•• Rosette(help=$helpM);
-•• GT(help=$helpM);•• Egg(help=$helpM);"
 
 */
+
+
+if(show=="functions")Anordnen(option=3,es=[30,15],c=undef,loop=false,center=false){
+  
+  union(){
+    square([10,n(4)]);
+    Txt("square([10,n(4)]);",0);
+    Txt("nozzle*4+.015 wide",-1);
+  }
+  union(){
+    
+    square([10,l(10)]);
+    Txt("square([10,l(12)]);",0);
+    Txt("12 layer high ",-1);
+  }  
+  
+  union(){
+    rotate(180)Rand(.5)circle(2,$fn=5);
+    Color(color2)circle(Inkreis(5,2),$fn=5);
+    Txt("circle(Inkreis(5,2),$fn=5);",0);
+    Txt("inner circle of n-gon ",-1); 
+  }
+  union(){
+    rotate(180)circle(2,$fn=5);//Rand(0)
+    Tz(-0.1)Color(color2)circle(Umkreis(5,2),$fn=5);
+    Txt("circle(Umkreis(5,2),$fn=5);",0);
+    Txt("outer circle of n-gon ",-1); 
+  }  
+  
+  
+  
+  
+  /*
+••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
+••• Inkreis(eck,rU) •• Umkreis(eck,rI) •••\n
+••• Hypotenuse(a,b) length •• Kathete(hyp,kat) length •••\n
+••• Sehne(n,r,a) length n-eck/alpha winkel •••\n
+••• RotLang(rot,l,z,e,lz) [vector] (e=elevation)•••\n
+••• Bezier(t,p0=[0,0],p1=[-20,20],p2=[20,20],p3=[0,0]) points   •••\n
+••• Kreis(r=10,rand=+5,grad=360,grad2=+0,fn=fn,center=true,sek=true,r2=0,rand2=0,rcenter=0,rot=0,t=[0,0]) points •••\n
+••• KreisXY(r=5,grad=0) [vector]•••\n
+••• 5gon(b1=20,l1=15,b2=10,l2=30) points •••\n
+••• ZigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0) points •••\n
+••• TangentenP(grad,rad,r) length •••\n
+••• Hexstring(c=[r,g,b]) #hexcolor •••\n
+••• RotPoints(grad,points) •••\n
+••• negRed(num) negative consolen Werte in rot•••\n   
+••• gradB(b,r) grad zum Bogenstück b •••\n 
+••• gradS(s,r) grad zur Sehne s •••\n     
+••• vollwelle() ⇒ Vollwelle(help=1) •••\n
+••• runden(x,dec=2) x runden auf Dezimalstelle ••• \n
+••• radiusS(n,s,a); radius zur Sehne ••• \n
+••• grad(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0); Winkelmaßumrechnung ••• \n  
+••• inch(inch); Inch⇒mm •••\n 
+••• kreisbogen(r,grad=360); ••• \n
+••• fs2fn(r,grad=360,fs=fs,minf=3); •••\n
+••• vektorWinkel(p1,p2,twist=0); •••\n
+••• v3(v); makes v a vector3 •••\n
+••• parentList() list with all modules •••\n
+••• teiler(n,div=2) least divisior •••\n
+••• gcode(points,f) generates gcode in output •••\n
+••• b(n); switches bool in num and vica versa (works on vectors) •••\n
+••• scaleGrad(grad=45,h=1,r=1) scale factor for extrusions•••\n
+*/
+}
+
+
+
