@@ -45,7 +45,7 @@ This [library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) is 
 
 # Functions
 
-<!--![functions](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOfunctions.png)-->
+![functions](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOfunctions.png)
 * l(x) № layer in mm depending on layer=
 * n(x) wall / perimeter depending on nozzle=
 * Inkreis(eck,rU) inner circle of n-gon
