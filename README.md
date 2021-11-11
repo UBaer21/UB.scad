@@ -18,6 +18,9 @@ This [library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) is 
   
   Also every module Example() has an internal help, use: `Example(help=true);` or `$helpM=true;` to activate all active modules help.<br>Additional there are informations displayed on the console window. When giving a name to module `Example(name="Test");` they are emphasized `$info=false;` deactivates all info texts from modules without a name.
   ![](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/consoleTXT.png)
+  
+  and switches to show the status
+  ![](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/consoleSchalter.png)
 
 # Modifier
 
