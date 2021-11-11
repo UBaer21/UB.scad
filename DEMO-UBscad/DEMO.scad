@@ -1,6 +1,6 @@
 include<ub.scad> 
 /*[Hidden]*/
-useVersion=21.317;//⇒ v.gd/ubaer
+useVersion=21.325;//⇒ v.gd/ubaer
 assert(Version>=useVersion,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 nozzle=.2;
 bed=false;
@@ -106,10 +106,71 @@ Cross()circle(1.5);T(objPos/2)P();T(objPos){
 
 }
 
-if(show=="generator")Anordnen(option=3,es=[20,15],c=undef,loop=false,center=false,inverse=true){
+if(show=="generator")Anordnen(option=3,es=[30,15],c=undef,loop=false,center=false,inverse=true){
+objPos=[4,4];
+
+union(){// linear extrude
+    T(objPos)R(90)LinEx(5,1,end=true,fn=36)circle();
+    T(objPos)T(10)R(90)LinEx(5,1,scale=1.5,end=true,twist=45,twistcap=true,fn=10)Stern(r1=1,r2=1.5);
+    Txt("LinEx(5,1,end=true)circle()"); 
+}
+
+union(){// rotate extrude
+    T(objPos)R(90)RotEx(cut=true)T(-3)circle(5);
+    Txt("RotEx(cut=true)T(-3)circle(5)"); 
+}
+
+union(){// linear extrude2
+    T(objPos)R(-90)Tz(-5)LinEx2(2,1.3,twist=15,s=1,fs=1.02)circle(3,$fn=3);
+    T(objPos+[10,0])R(-90)Tz(-5)LinEx2(1,1.0,twist=-15,s=1.1,fs=0.98)circle(3,$fn=6);
+    Txt("LinEx2(2,1.3,twist=15)circle(3)"); 
+}
+
+union(){//  torus
+    T(objPos)Torus(dia=8,d=1.5)circle(d=$d);
+    T(objPos+[10,0])rotate(-110)Torus(dia=8,d=2,grad=220,end=+1,gradEnd=90,trxEnd=-2,endRot=90/5,fn=60)Stern(5,1,.5);
+    Txt("Torus(dia=8,d=1.5)circle(d=$d)"); 
+}
+
+union(){// Twisted torus
+    T(objPos)Ttorus(r=5)R(90)cylinder(.1,d1=2,d2=0,$fn=6);
+    T(objPos+[10,0])Ttorus(r=2,r2=+0.5,pitch=6,twist=360,angle=720,scale=0.4)R(90)cylinder(.1,d1=2,d2=0,$fn=6);
+    Txt("Ttorus()R(90)cylinder()"); 
+}
+
+union() { //Bezier
+    T(objPos)Bezier(p0=[0,+5],p1=[10,+0],p2=[-9,+3],p3=[10,-5],messpunkt=3)R(90)cylinder(.1,d1=1,d2=0);
+    Txt("Bezier()R(90)cylinder()"); 
+}
+
+union(){ // around
+  T(objPos)Rundrum(10,6,r=[2.5,4,1,0],help=0)rotate(30)circle(1,$fn=6);
+  Txt("Rundrum()circle()"); 
+}
+
+union(){ // Bow
+  T(objPos)Bogen(l=2,messpunkt=5,grad=65)circle(1);
+  Txt("Bogen()circle()"); 
+}
+union(){ // S-Bow
+  T(objPos)SBogen(l1=4,r1=4,r2=1.5,dist=3,messpunkt=5)circle(1);
+  Txt("SBogen()circle()"); 
+}
+
+union(){ // Bevel
+  T(objPos)Bevel(5,on=true)cube(5);
+  Txt("Bevel(5)(cube(5)"); 
+}
+union(){ // RStern
+  T(objPos)RStern(e=3,r1=9,r2=3,rad1=2,rad2=4,messpunkt=5)circle(.5);
+  Txt("RStern()circle()"); 
+}
+
 
 /*
-ECHO: "•••• Rundrum(x=+40,y=30,r=10,eck=4,twist=0,grad=0,spiel=0.005,fn=fn,n=$info) polygon RStern(help=$helpM)polygon ••"
+ECHO: "•••• Rundrum(x=+40,y=30,r=10,eck=4,twist=0,grad=0,spiel=0.005,fn=fn,n=$info) polygon 
+
+RStern(help=$helpM)polygon ••"
 ECHO: "••••  Kextrude(help=$helpM); ••"
 ECHO: "•••• LinEx(help=$helpM) polygon  ••"
 ECHO: "•••• LinEx2(bh=5,h=1,slices=10,s=1.00,ds=0.01,dh=0.7,fs=1,fh=1,twist=0,n=$info,fn=fn) ••"
