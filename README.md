@@ -1,6 +1,8 @@
 # UB.scad
 This [library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) is a full 3Dprinting workflow solution for [openSCAD](https://www.openscad.org).
+There are a lot of settings available but most is using  pre configuration - so you can start with the template but also just with `include<ub.scad>`
 - giving you
+  * [parameter](#parameter)
   * [functions](#functions)
   *  tools to [modify](#modifier) objects
   *  to [generate](#generator) 3D objects
@@ -21,6 +23,36 @@ This [library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) is 
   
   and switches to show the status
   ![](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/consoleSchalter.png)
+  
+# Parameter
+`name="myProject";` shows a name 
+
+`nozzle=.4;`     defines the nozzle and walls or perimeters
+
+`layer=.2;`      defines the layer hight
+
+`vp=false;`      if you want a fixed viewport
+
+`anima=false;`   if you like to use animation (where `tset,t,t1,t2,t3()`) are active - for viewing animation the animation view in oscad need to be active) 
+
+`bed=true;`      showing a print bed and center at `printPos`
+
+`printBed=[220,220];`  your print bed size
+
+`hires=false;`   switches higher resolution on
+
+`show=0;`        show objects like a nozzle width cylinder
+
+`spiel=.2;`      define clearance / padding
+
+`$info=true`     show info text
+
+`$helpM=true`    show all active modules help
+
+`helpsw=1`       show the help (1-5)
+
+`useVersion=21.325` will help to mark which version was used for your design and can improve compatibility
+
 
 # Modifier
 
