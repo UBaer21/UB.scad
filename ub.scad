@@ -2319,7 +2319,7 @@ module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60
         if($preview&&!preview) Kreis(d=d>r*2?d:$d,rand=d>r*2?d/2-r:r-d/2);
         else render()CycloidZahn(modul=modul,z=z/2,d=d,spiel=spiel,fn=fn);
       if(achse)  Tz(-.01)LinEx(h=h+.02,h2=h2,$d=achse,grad=-achsegrad)circle(d=$d);
-        if(light)Tz(-0.01)Polar(light)T(mitteR)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(-mitteR)Rund(min(rand/light,rand/2-0.1),fn=18)Kreis(r=mitteR,rand=rand,grad=min(360/light-15,320),grad2=max(360/light-40,10),rcenter=true,fn=z/light);
+        if(light)Tz(-0.01)Polar(light)T(-mitteR)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(mitteR)Rund(min(rand/light,rand/2-0.1),fn=18)Kreis(r=mitteR,rand=rand,grad=min(360/light-15,320),grad2=max(360/light-40,10),rcenter=true,fn=z/light);
             if(lock)LinEx(h=h,h2=h2,$r=1.65,grad=-60)WStern(help=0,r=$r);
     }
     InfoTxt("CyclGetriebe",["Wälzradius",z/4*modul],name);
