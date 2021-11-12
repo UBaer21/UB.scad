@@ -39,7 +39,7 @@ There are a lot of settings available but most is using  pre configuration - so 
 * `t0`   rotation 360 deg
 * `t1`   -1 ⇔ 1   ( 0↦1↦0↦-1↦0 )
 * `t2`   0  ⇔ 1   ( 0↦1↦0 )
-* `t3(wert,grad=360,delta)` allow phase shift in sin(wert*grad+delta)  
+* `t3(wert,grad=360,delta)` allow phase shift in wert*sin($t*grad+delta)  
 
 `bed=true;`      showing a print bed and center at `printPos`
 
