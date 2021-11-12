@@ -38,6 +38,7 @@ Changelog (archive at the very bottom)
 321|21  CHG Kehle ADD KBS REN KreisSeg↦TorusSeg
 324|21  ADD scaleGrad CHG RotEx $fa
 325|21 !CHG Kreis rotate 180 for center==true ⇒ CHG Quad ⇒ Egg ⇒ WKreis ⇒ GT ⇒ RSternFill ⇒ Tri CHG LinEx CHG Bezier CHG Ttorus CHG Torus CHG Rundrum CHG Pivot CHG Bogen
+326|21  CHG CyclGetriebe CHG Pivot CHG Kreis CHG Klammer CHG KBS add top
 
 */
 
@@ -96,7 +97,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.325;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.326;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -285,10 +286,11 @@ help2D=   helpsw==5||helpsw==true?true:false;// 2D Objekte
 //helpM=help;//module help old
 $helpM=help;//module help
 
-t=$preview?anima?$t:tset:tset;
-t0=$preview?anima?$t*360:tset*360:tset*360;
-t1=$preview?anima?sin($t*360):tset:tset;
-t2=$preview?anima?sin($t*180):tset:tset;
+$t=$preview?anima?$t:tset:tset;
+t=$t;
+t0=$t*360%360;
+t1=sin($t*360);
+t2=sin($t*180);
 
 $vpr=vp?vpr:$vpr;    
 $vpt=vp?vpt:$vpt;
@@ -302,23 +304,23 @@ $messpunkt=messpunkt;
 
 if (texton)%T(20,-30,25)R(90)color("slategrey")text(str(name),font="DejaVusans:style=bold",halign="left",size=3,$fn=100);
     
-if (bed)color(alpha=.1)%Rand(-5,delta=1)square(printBed);
+if (bed&&!anima)color(alpha=.1)%Rand(-5,delta=1)square(printBed);
 if(version()[0]<2021)
 echo(str("<p style=background-color:#ccccdd>",
 "<ul>     •••••••••••••••••••••••••• UB (USER libary v2019) included! <a href=http://v.gd/ubaer> v.gd/ubaer </a> •••••••••••••••••••••••••\n",
 "••• Version: β",Version," v ",version(),"  ——  Layer: ",layer," Nozzle ∅: ",nozzle," ••• fn=",fn,"••• Spiel: ",spiel," •••"));
 
-else{ echo(str("•••••••••••••••••• UB (USER library v2021) included! v.gd/ubaer  •••••••••••••••••"));
+else if(!anima) { echo(str("•••••••••••••••••• UB (USER library v2021) included! v.gd/ubaer  •••••••••••••••••"));
 echo(str("• Version: β",Version," v ",version(),"  —  Layer: ",layer," Nozzle ∅: ",nozzle," • fn=",fn," • Spiel: ",spiel," •"));
 }
 
 
 
-if (!help) if(version()[0]<2021)echo    ("<h4 style=background-color:lightgrey>••••• Help off       use: helpsw=1;  •••••");
+if (!help&&!anima) if(version()[0]<2021)echo    ("<h4 style=background-color:lightgrey>••••• Help off       use: helpsw=1;  •••••");
     else echo    ("❌••••• Help off       use: helpsw=1;  •••••");
     
 
-if (help)
+if (help&&!anima)
 {
     echo ("••••••• Konstanten:   ••••••••");
     echo(PHI=PHI,gw=gw,tw=tw,twF=twF,inch=inch);
@@ -564,7 +566,7 @@ messpunkt=",messpunkt?"🟢✔":"❌",
 " • hires=",hires?"🟢✔":"❌", 
 " •"));
 
-if(anima)echo(str("\n Zeit t0:",t0,
+if(anima||tset)echo(str("\n Zeit t0:",t0,
     "\nZeit t1:",t1,"\nZeit t2:",t2,"\n
 Zeit t3:",t3(),"\n
 ••••  anima on! tset=",tset," t=0⇒1 || t0=0⇒360 || t1=-1⇔1 || t2=0⇔1 || t3(wert=1,grad=360,delta=0)  •••••"));    
@@ -582,7 +584,7 @@ if(!$preview) echo("\n\t\t⏳ Rendering…wait! ⌛");
 
 
 
-module KBS(e=2,grad=2,center=true,male=true,rot=0,n=4,name=$info,help=$helpM){
+module KBS(e=2,grad=2,center=true,male=true,rot=0,n=4,top=false,name=$info,help=$helpM){
 d=4.8;		//knobs on top of blocks
 h=2;// knob height
     
@@ -604,7 +606,10 @@ e=is_list(e)?e:[e,e];
     else {
         h=bh/3-roof_thickness;
 
-        translate([0,0,(e.z?e.z*bh:0)-.001])linear_extrude(h,scale=(d/2-(h)/tan(90+grad))/(d/2),convexity=5)rotate(180/n+rot)Rund(d/3)circle(d=Umkreis(n,d),$fn=n);//;square(d,center=center);
+        translate([0,0,(e.z?e.z*bh:0)-.001]){
+          linear_extrude(h,scale=(d/2-(h)/tan(90+grad))/(d/2),convexity=5)rotate(180/n+rot)Rund(d/3)circle(d=Umkreis(n,d),$fn=n);//;square(d,center=center);
+      if(top)Tz(h-.001)linear_extrude(is_bool(top)?1:top,scale=0,convexity=5)scale((d/2-(h)/tan(90+grad))/(d/2))rotate(180/n+rot)Rund(d/3)circle(d=Umkreis(n,d),$fn=n);
+      }
     }
  }
 InfoTxt("KBS",["size",str(
@@ -613,7 +618,7 @@ InfoTxt("KBS",["size",str(
        ""
     )],name);
  
-HelpTxt("KBS",["e",e,"grad",grad,"center",center,"male",male,"rot",rot,"n",n,"name",name],help);    
+HelpTxt("KBS",["e",e,"grad",grad,"center",center,"male",male,"rot",rot,"n",n,"top",top,"name",name],help);    
 }
 
 module Example(variable=1,name=$info,help=$helpM){
@@ -2319,7 +2324,7 @@ module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60
         if($preview&&!preview) Kreis(d=d>r*2?d:$d,rand=d>r*2?d/2-r:r-d/2);
         else render()CycloidZahn(modul=modul,z=z/2,d=d,spiel=spiel,fn=fn);
       if(achse)  Tz(-.01)LinEx(h=h+.02,h2=h2,$d=achse,grad=-achsegrad)circle(d=$d);
-        if(light)Tz(-0.01)Polar(light)T(-mitteR)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(mitteR)Rund(min(rand/light,rand/2-0.1),fn=18)Kreis(r=mitteR,rand=rand,grad=min(360/light-15,320),grad2=max(360/light-40,10),rcenter=true,fn=z/light);
+        if(light)Tz(-0.01)Polar(light)T(mitteR)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(-mitteR)Rund(min(rand/light,rand/2-0.1),fn=18)Kreis(r=mitteR,rand=rand,grad=min(360/light-15,320),grad2=max(360/light-40,10),rcenter=true,fn=z/light);
             if(lock)LinEx(h=h,h2=h2,$r=1.65,grad=-60)WStern(help=0,r=$r);
     }
     InfoTxt("CyclGetriebe",["Wälzradius",z/4*modul],name);
@@ -2883,9 +2888,9 @@ module Klammer(l=10,grad=250,d=4,rad2=5,offen=+25,breite=2.5,fn=fn,help=$helpM){
      Kreis(grad=grad,center=true,r=d/2,rand=-breite,fn=fn); 
      MKlon(mz=0,my=1){
          rotate((grad-180.01)/2)T(0,rad2+breite+d/2)rotate(180){
-             Kreis(grad=w2,fn=fn/2,center=false,r=rad2,rand=-breite);
+             Kreis(grad=w2,fn=fn/2,center=false,r=rad2,rot=-90,rand=-breite);
             rotate(-w2)T(0,rad2){ square([$idx?l[0]:l[1],breite]);
-             T($idx?l[0]:l[1],breite/2)Kreis(grad=180,fn=fn/4,center=false,r=breite/2,rand=0);
+             T($idx?l[0]:l[1],breite/2)Kreis(grad=180,fn=fn/4,center=false,rot=-90,r=breite/2,rand=0);
             }
          }
          
@@ -3808,7 +3813,7 @@ module Kreis(r=10,rand=0,grad=360,grad2,fn=fn,center=true,sek=false,r2=0,rand2,r
     grad=is_undef(b)?grad:r==0?0:b/(2*PI*r)*360;
     b=2*r*PI*grad/360;
     
-   polygon(Kreis(r=r,rand=rand,grad=grad,grad2=grad2,fn=fn,center=center,sek=sek,r2=r2,rand2=rand2,rcenter=rcenter,rot=rot,t=t),convexity=5);
+   polygon(Kreis(r=r,rand=rand,grad=grad,grad2=grad2,fn=fn,center=center,sek=sek,r2=r2,rand2=rand2,rcenter=rcenter,rot=grad==360?center?rot:rot+90:center?rot+180:rot+90,t=t),convexity=5);
    
     
     HelpTxt("Kreis",["r",r,"rand",rand,"grad",grad,"grad2",grad2,"fn",fn,"center",center,"sek",sek,"r2",r2,"rand2",rand2,"rcenter",rcenter,"rot",rot,"t",t,"name",name,"d",d,", b",b],help);
@@ -4823,7 +4828,7 @@ if(messpunkt&&$preview)translate(p0)%union(){
        //Text
        if(active[4]) color("grey")rotate($vpr)
           //linear_extrude(.1,$fn=1)
-       text(text=str(p0," ",rot?str(rot,"°"):"","   "),size=size2,halign="right",valign="top",font="Bahnschrift:style=light",$fn=1);    
+       text(text=str(norm(p0)?p0:""," ",rot?str(rot,"°"):"","   "),size=size2,halign="right",valign="top",font="Bahnschrift:style=light",$fn=1);    
        
        if(txt&&active[5])%color("lightgrey")rotate($vpr)translate([0,size/15])//linear_extrude(.1,$fn=1)
          Tz(0.1) text(text=str(txt,"   "),size=size2,font="Bahnschrift:style=light",halign="right",valign="bottom",$fn=1);
