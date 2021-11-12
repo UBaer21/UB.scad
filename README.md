@@ -18,7 +18,7 @@ There are a lot of settings available but most is using  pre configuration - so 
   use `helpsw=true;` (1-5 or `true` for all) to get an overview <br>
   On the top you see some variables like nozzle or clearance aswell fragments (these change automatically when rendering), switches or for animation
   
-  Also every module Example() has an internal help, use: `Example(help=true);` or `$helpM=true;` to activate all active modules help.<br>Additional there are informations displayed on the console window. When giving a name to module `Example(name="Test");` they are emphasized `$info=false;` deactivates all info texts from modules without a name.
+  Also every module Example() has an internal help, use: `Example(help=true);`<br>Additional there are informations displayed on the console window. When giving a name to module `Example(name="Test");` they are emphasized.
   ![](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/consoleTXT.png)
   
   and switches to show the status
@@ -33,11 +33,17 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 `vp=false;`      if you want a fixed viewport
 
-`anima=false;`   if you like to use animation (where `tset,t,t1,t2,t3()`) are active - for viewing animation the animation view in oscad need to be active) 
+`anima=false;`   use in animations - for viewing animation the animation view in oscad need to be active) 
+* `tset` allows to simulate a value when anima=false and then replaces $t in following variables
+* `t`    is $t 
+* `t0`   rotation 360 deg
+* `t1`   -1 ⇔ 1   ( 0↦1↦0↦-1↦0 )
+* `t2`   0  ⇔ 1   ( 0↦1↦0 )
+* `t3(wert,grad=360,delta)` allow phase shift in sin(wert*grad+delta)  
 
 `bed=true;`      showing a print bed and center at `printPos`
 
-`printBed=[220,220];`  your print bed size
+`printBed=[220,220];`  set your print bed size
 
 `hires=false;`   switches higher resolution on
 
@@ -45,7 +51,7 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 `spiel=.2;`      define clearance / padding
 
-`$info=true`     show info text
+`$info=false`    disable info text for all active nameless modules
 
 `$helpM=true`    show all active modules help
 
