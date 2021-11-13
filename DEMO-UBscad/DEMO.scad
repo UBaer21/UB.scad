@@ -20,7 +20,7 @@ module P(){
 Pfeil(l=6,b=[1,2.5],shift=-0.5,center=[1,1]);    
 }
 module Txt(text,line=0){
-Col(4)T($textPos+[0,line*1.3*1.5])text(text,size= 1.3,valign="top");    
+Col(8)T($textPos+[0,line*1.3*1.5])text(str(text),size= 1.3,valign="top");    
 }
 module Cross(s=5,line=0.1){
    %Tz(.1)union(){
@@ -456,12 +456,12 @@ GT2Pulley(h=10,z=40,center=false,achse=10);
 */
 
 
-if(show=="functions")Anordnen(option=3,es=[30,15],c=undef,loop=false,center=false){
-  
+if(show=="functions")Anordnen(option=3,es=[30,18],e=[3,4],c=undef,loop=false,center=false){
+objPos=[2,1,0];
   union(){
-    square([10,n(4)]);
-    Txt("square([10,n(4)]);",0);
-    Txt("nozzle*4+.015 wide",-1);
+    Color(color2)Rand(n(4))square(5);
+    Txt("Rand(n(4))square([5]);",0);
+    Txt("4 Walls (nozzle*4+.015)",-1);
   }
   union(){
     
@@ -482,15 +482,98 @@ if(show=="functions")Anordnen(option=3,es=[30,15],c=undef,loop=false,center=fals
     Txt("circle(Umkreis(5,2),$fn=5);",0);
     Txt("outer circle of n-gon ",-1); 
   }  
+  union(){// Hypotenuse
+    rotate(90)square(2);
+    rotate(-90)square(3);
+    T(3)rotate(270-atan(2/3))Tz(-0.1)rotate(180)Color(color2)square(Hypotenuse(2,3));;
+    Txt("square(Hypotenuse(2,3));",0);
+    
+  }
+  union(){// Kathete
+    Color(color2)rotate(90)square(Kathete(4,3));
+    rotate(-90)square(3);
+    T(3)rotate(270-acos(3/4))Tz(-0.1)rotate(180)square(4);;
+    Txt("square(Kathete(4,3));",0);
+    
+  }  
+  union(){//scaleGrad
+    grad=65;
+    Color(color2)T(0,5)scale([scaleGrad(grad,5,10),1,1])square([10,1]);
+    square([10,1]);
+    T(10)mirror([1,0])Pivot(rot=grad,size=9,active=[0,1,0,0,0]);
+    T(10)Pivot(rot=grad,size=10,active=[0,0,0,0,1]);
+    
+    T(15)R(-90) linear_extrude(5,scale=scaleGrad(grad,5,4))circle(4);
+    
+    Txt(str("scale=scaleGrad(",grad,",h=5,r=10)"),0);
+    Txt("usefull in extrusions",-1);
+  }    
   
+  union(){// Sehne
+    T([0,0,-0.2]+objPos )Color(color2)square([10,Sehne(n=5,r=3)],true);
+    T(objPos) Rand(-1)circle(3,$fn=5);
+    T(10){T([0,0,-0.2]+objPos )Color(color2)square([Sehne(a=60,r=3),7],true);
+    T(objPos) Rand(-1)circle(3,$fn=6);}
+    
+    Txt("Sehne(n=5,r=3)",0);
+    Txt("Sehne(r=3,a=60)",-1);
+  }    
+  
+  union(){// radiusS
+    T([0,0,+0.1]+objPos )Color(color2)circle(r=radiusS(7,3),$fn=7);
+    T([0,0,+0.2]+objPos )rotate(360/7*4)Color(0.5)square([radiusS(7,3),1]);
+    T(objPos)square([10,3],center=true);
+    
+    Txt("r=radiusS(n=7,r=3)",0);
+  }    
+  
+  union(){// gradS
+    s=4;
+    rot=gradS(s=s,r=3.5);
+    T(+objPos)rotate(-rot/2){
+      T([0,0,+0.0] )Color(color2)Rand(-.5)Kreis(grad=360-rot,r=3.5,rot=90,center=false);
+      T([3.5,0,+0.1] )rotate(rot/2){
+        Color(0.6)square(s);
+        Caliper(s,center=false,s=4,messpunkt=0,end=3,translate=[8,0],in=2);
+      }
+    }
+    //T(objPos)square([10,3],center=true);
+    
+    Txt(str("gradS(s=",s,",r=3)"),0);
+  } 
+  
+  union(){// gradB
+    T(objPos)for(i=[1:5]) Kreis(grad=gradB(4,i),r=i,rand=.5,rot=0);
+    
+    Txt("gradB(b=4,r=3)",0);
+    Txt("deg for arc length(b))",-1);
+  }    
+  
+  
+    union(){// runden
+    T(-8 )Text(5.1256,size=3,cy=true);
+     T(objPos +[5]) P();
+     T(10) Color(color2)Text(runden(5.1256,2),size=3,cy=true);
+    
+    Txt("runden(5.1256,2)",0);
+  } 
   
   
   
   /*
+  
+
 ••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
 ••• Inkreis(eck,rU) •• Umkreis(eck,rI) •••\n
+  
 ••• Hypotenuse(a,b) length •• Kathete(hyp,kat) length •••\n
 ••• Sehne(n,r,a) length n-eck/alpha winkel •••\n
+  
+••• gradB(b,r) grad zum Bogenstück b •••\n 
+••• gradS(s,r) grad zur Sehne s •••\n     
+••• radiusS(n,s,a); radius zur Sehne ••• \n
+••• kreisbogen(r,grad=360); ••• \n  
+  
 ••• RotLang(rot,l,z,e,lz) [vector] (e=elevation)•••\n
 ••• Bezier(t,p0=[0,0],p1=[-20,20],p2=[20,20],p3=[0,0]) points   •••\n
 ••• Kreis(r=10,rand=+5,grad=360,grad2=+0,fn=fn,center=true,sek=true,r2=0,rand2=0,rcenter=0,rot=0,t=[0,0]) points •••\n
@@ -501,15 +584,14 @@ if(show=="functions")Anordnen(option=3,es=[30,15],c=undef,loop=false,center=fals
 ••• Hexstring(c=[r,g,b]) #hexcolor •••\n
 ••• RotPoints(grad,points) •••\n
 ••• negRed(num) negative consolen Werte in rot•••\n   
-••• gradB(b,r) grad zum Bogenstück b •••\n 
-••• gradS(s,r) grad zur Sehne s •••\n     
+  
 ••• vollwelle() ⇒ Vollwelle(help=1) •••\n
 ••• runden(x,dec=2) x runden auf Dezimalstelle ••• \n
-••• radiusS(n,s,a); radius zur Sehne ••• \n
+••• 
 ••• grad(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0); Winkelmaßumrechnung ••• \n  
 ••• inch(inch); Inch⇒mm •••\n 
-••• kreisbogen(r,grad=360); ••• \n
-••• fs2fn(r,grad=360,fs=fs,minf=3); •••\n
+
+••• fs2fn(r,grad=360,fs=fs,minf=3); convert $fs ⇒ $fn •••\n
 ••• vektorWinkel(p1,p2,twist=0); •••\n
 ••• v3(v); makes v a vector3 •••\n
 ••• parentList() list with all modules •••\n

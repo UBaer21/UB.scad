@@ -39,6 +39,7 @@ Changelog (archive at the very bottom)
 324|21  ADD scaleGrad CHG RotEx $fa
 325|21 !CHG Kreis rotate 180 for center==true ⇒ CHG Quad ⇒ Egg ⇒ WKreis ⇒ GT ⇒ RSternFill ⇒ Tri CHG LinEx CHG Bezier CHG Ttorus CHG Torus CHG Rundrum CHG Pivot CHG Bogen
 326|21  CHG CyclGetriebe CHG Pivot CHG Kreis CHG Klammer CHG KBS add top
+327|21  CHG HypKehle/HypKehleD ADD Isopshere Add pPos
 
 */
 
@@ -68,7 +69,8 @@ layer=0.08;// one step = 0.04 (8mm/200steps)
 //Print Bed
 printBed=[220,220];
 //Printposition;
-printPos=bed?printBed/2:[0,0,0];
+pPos=printBed/2;
+printPos=bed?pPos:[0,0,0];
 //global fragment size
 hires=false;
 fn=$preview?36:hires?144:72;
@@ -97,7 +99,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.326;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.327;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -464,6 +466,7 @@ echo    ("•• TorusSeg(help=1) ••••");
 echo    ("\n
 •• Buchtung(help=1);••••\n
 •• SpiralCut(help=1);••••\n
+•• Isosphere(help=1);••••\n
 ");
 
 }
@@ -582,7 +585,23 @@ if(!$preview) echo("\n\t\t⏳ Rendering…wait! ⌛");
 
 //////////////////////////// Modules  /////////////////////////////
 
-
+module Isosphere(r=1,d,q=70,help=$helpM){
+  r=is_undef(d)?r:d/2;
+/* Kogan, Jonathan (2017) "A New Computationally Efficient Method for Spacing n Points on a Sphere," Rose-Hulman Undergraduate Mathematics Journal: Vol. 18 : Iss. 2 , Article 5.
+    Available at: https://scholar.rose-hulman.edu/rhumj/vol18/iss2/5 */
+    function sphericalcoordinate(x,y)=  [cos(x  )*cos(y  ), sin(x  )*cos(y  ), sin(y  )];
+    function NX(n=70,x)= 
+    let(toDeg=57.2958,PI=acos(-1)/toDeg,
+    start=(-1.+1./(n-1.)),increment=(2.-2./(n-1.))/(n-1.) )
+    [ for (j= [0:n-1])let (s=start+j*increment )
+    sphericalcoordinate(   s*x*toDeg,  PI/2.* sign(s)*(1.-sqrt(1.-abs(s)))*toDeg)];
+    function generatepoints(n=70)= NX(n,0.1+1.2*n);
+    
+    a= generatepoints(q);
+    scale(r)hull()polyhedron(a,[[for(i=[0:len(a)-1])i]]);
+      
+HelpTxt("Isosphere",["r",r,"q",q],help);
+}
 
 module KBS(e=2,grad=2,center=true,male=true,rot=0,n=4,top=false,name=$info,help=$helpM){
 d=4.8;		//knobs on top of blocks
@@ -1330,31 +1349,43 @@ if(inside)R(90) cylinder(500,r=r2+spiel,center=true);
 HelpTxt("Abzweig",["r1",r1,"r2",r2,"rad",rad,"inside",inside,"spiel",spiel],help);
 }
 
-module HypKehleD(grad=40,steps=15,l=10,l2,l3,d=3,d3=2.5){
+module HypKehleD(grad=40,steps=15,l=10,l2,l3,d=2.5,d2,fill=false,exp=1,name=$info,help=$helpM){
+    exp=is_num(exp)?[exp,exp]:is_bool(exp)?[1,1]:exp;
+    d3=is_undef(d3)?d:d3;
     l3=is_undef(l3)?l:l3;
     l2=is_undef(l2)?l:l2;
-    HypKehle(grad=90-grad,l=l2,l2=l3,steps=steps,d1=d,d2=d3);
-    R(0,180)HypKehle(grad=90+grad,l=l,l2=l3,d1=d,d2=d3,steps=steps);
+    HypKehle(grad=90-grad,l=l2,l2=l3,steps=steps,d1=d,d2=d2,exp=exp[1],fill=fill);
+    R(0,180)HypKehle(grad=90+grad,l=l,l2=l3,d1=d,d2=d2,steps=steps,exp=exp[0],fill=fill);
+  
+  HelpTxt("HypKehleD",["grad",grad,"steps",steps,"l",l,"l2",l2,"l3",l3,"d",d,"d2",d2,"fn",fn,"fill",fill,"exp",exp,"name",name],help);
 }
 
 
-module HypKehle(l=15,grad=90,d1=3,d2,l2,steps=10,fn=24,fill=true,name=$info,help=$helpM){
+
+module HypKehle(l=15,grad=90,d1=3,d2,l2,steps=20,fn=24,fill=false,exp=1,center=false,name=$info,help=$helpM){
+   
+  rot=1;
     d2=is_undef(d2)?d1:d2;
     l2=is_undef(l2)?l:l2;
     $info=false;
+  
+R(center?-grad/2:0)
 for(i=[0:steps]){
-  hull(){
-      Tz(i*l/steps)R(-grad+grad/steps*i+180){
+  Color(1/(steps*1.5)*i)hull()
+  union(){
+      Tz(pow(i,exp)*l/pow(steps,exp))R((grad +(180-grad)/steps*i)*rot +(rot?0:180))
          if($children)linear_extrude(.1,scale=0)children(0);
-            else cylinder(.1,d1=d1,d2=0,$fn=fn);
-      }
-      if(fill)R(45)sphere(d=is_num(fill)?fill:max(d1,d2),$fn=fn);
-      R(grad) Tz(l2-i*l2/steps)R(grad/steps*i+180)
+         else rotate(180/fn)cylinder(.1,d1=d1,d2=0,$fn=fn);
+      
+      if(fill)Isosphere(d=is_num(fill)?fill:max(d1,d2),$fn=fn);
+        
+     Color() R(grad)Tz(pow(steps-i,exp)*l2/pow(steps,exp)) R( (180-grad)/steps*i*rot +180)
       if($children)linear_extrude(.1,scale=0)children($children>1?1:0);
-      else cylinder(.1,d1=d2,d2=0,$fn=fn);
+      else rotate(180/fn)cylinder(.1,d1=d2,d2=0,$fn=fn);
   }
 }
-HelpTxt("HypKehle",["l",l,"grad",grad,"d1",d1,"d2",d2,"l2",l2,"steps",steps,"fn",fn,"fill",fill,"name",name],help);
+if(!fill)R(0,0,90)Isosphere(d=is_num(fill)?fill:max(d1,d2),$fn=fn);
+HelpTxt("HypKehle",["l",l,"grad",grad,"d1",d1,"d2",d2,"l2",l2,"steps",steps,"fn",fn,"fill",fill,"exp",exp,"center",center,"name",name],help);
 }
 
 
