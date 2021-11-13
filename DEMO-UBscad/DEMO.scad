@@ -6,7 +6,7 @@ nozzle=.2;
 bed=false;
 
 /*[Demo]*/
-show=0;//[modifier,generator,helper,polygons,objects,products,functions]
+show="Select Topic!";//[modifier,generator,helper,polygons,objects,products,functions]
 /*[Hidden]*/
 $textPos=[-2,-3];
 objPos=[12];
