@@ -40,6 +40,7 @@ Changelog (archive at the very bottom)
 325|21 !CHG Kreis rotate 180 for center==true ⇒ CHG Quad ⇒ Egg ⇒ WKreis ⇒ GT ⇒ RSternFill ⇒ Tri CHG LinEx CHG Bezier CHG Ttorus CHG Torus CHG Rundrum CHG Pivot CHG Bogen
 326|21  CHG CyclGetriebe CHG Pivot CHG Kreis CHG Klammer CHG KBS add top
 327|21  CHG HypKehle/HypKehleD ADD Isopshere Add pPos
+327.2|21 FIX  Issue  #2
 
 */
 
@@ -328,7 +329,7 @@ if (help&&!anima)
     echo(PHI=PHI,gw=gw,tw=tw,twF=twF,inch=inch);
 //echo(str("•••••••••• Help is on! (helpsw=1)•• debug=",debug," ••••••••••••••••••••••••"));
 //echo();
-if (show)echo(str("🟣 ••• show=",show,)); 
+if (show)echo(str("🟣 ••• show=",show)); 
     
 
 if(!helpFunc)echo("❌••••• Functions List off — use» helpFunc=true; •••••");
