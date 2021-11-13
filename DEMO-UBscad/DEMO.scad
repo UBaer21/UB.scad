@@ -1,18 +1,26 @@
+
+//THIS IS WIP !!
+
+
 include<ub.scad> 
 /*[Hidden]*/
 useVersion=21.325;//⇒ v.gd/ubaer
 assert(Version>=useVersion,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 nozzle=.2;
 bed=false;
+vp=true;
+vpr=[0,0,0];
+vpt=show=="products"?[100,100]:[35,30];
+vpd=show=="products"?1000:250;
 
 /*[Demo]*/
 show="Select Topic!";//[modifier,generator,helper,polygons,objects,products,functions]
+
+
 /*[Hidden]*/
 $textPos=[-2,-3];
 objPos=[12];
 color2=0;
-
-
 
 T($textPos+[0,-6])Tz(-.1)Text(h=0,text=show,size=3,cy=-1);
 
@@ -531,7 +539,7 @@ objPos=[2,1,0];
     s=4;
     rot=gradS(s=s,r=3.5);
     T(+objPos)rotate(-rot/2){
-      T([0,0,+0.0] )Color(color2)Rand(-.5)Kreis(grad=360-rot,r=3.5,rot=90,center=false);
+      T([0,0,+0.0] )Color(color2)Rand(-.5)Kreis(grad=360-rot,r=3.5,rot=0,center=false);
       T([3.5,0,+0.1] )rotate(rot/2){
         Color(0.6)square(s);
         Caliper(s,center=false,s=4,messpunkt=0,end=3,translate=[8,0],in=2);
