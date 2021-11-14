@@ -43,6 +43,8 @@ Changelog (archive at the very bottom)
 3272|21 FIX  Issue  #2
 328|21  CHG $helpM use  CHG HelpTxt CHG Quad CHG Rundrum  CHG n↦name
 3281|21 CHG KBS CHG CHG $info
+3282|21 CHG Quad Add tangent + Fixes
+
 
 */
 
@@ -4335,7 +4337,6 @@ module Disphenoid(h=15,l=25,b=20,r=1,tx=0,ty=0,tz=0,fn=36,help){
 }
 
 
-
 module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=false,basisX=0,trueX=false,centerX,tangent=true,name,help){
     assert(grad!=0&&grad2!=0);
     basisX=is_bool(basisX)?basisX?1:0:is_undef(centerX)?basisX:is_bool(centerX)?centerX?1:0:centerX;
@@ -4345,10 +4346,10 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=fa
     rundung=runden(min(xNum,y)/PHI/2,2);
     r=is_undef(r)?[rundung,rundung,rundung,rundung]:is_list(r)?r:[r,r,r,r];
 
-    r1=is_num(r[0])?r[0]:is_num(r1)?r1:rundung;
-    r2=is_num(r[1])?r[1]:is_num(r2)?r2:rundung;
-    r3=is_num(r[2])?r[2]:is_num(r3)?r3:rundung;
-    r4=is_num(r[3])?r[3]:is_num(r4)?r4:rundung;
+    r1=is_num(r1)?r1:r[0];
+    r2=is_num(r2)?r2:r[1];
+    r3=is_num(r3)?r3:r[2];
+    r4=is_num(r4)?r4:r[3];
     
        
     rf1=1/sin(grad);
@@ -4379,9 +4380,16 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=fa
     x1=abs(p3)+abs(p4);   
     x2=abs(p1)+abs(p2);
     
-    cTrans=center?
-         [basisX==1?-p3+(p3-p4)/2:basisX==-1?-p1+(p1-p2)/2:0,sign(basisX)*y/2]
-        :[x/2+shiftX3/2-r3*1/tan(grad),y/2];
+    cTrans=center?[basisX==1?tangent?-p3+(p3-p4)/2:
+                                     (bx1L-bx1R)/2:
+                            basisX==-1?tangent?-p1+(p1-p2)/2:
+                                               (bx2L-bx2R)/2:
+                                      0,sign(basisX)*y/2]:
+                  tangent?basisX==1?[x/2+shiftX3/2-r3*1/tan(grad),y/2]:// center= false
+                                    [x/2-shiftX1/2+r1*1/tan(grad),y/2]:
+                          basisX==1?[bx1L+x/2,y/2]:
+                                    basisX==-1?[bx2L+x/2,y/2]:
+                                    [x/2,y/2];
      
         
     k1=Kreis(rand=0,r=r1,t=[-x/2+r1*rf1+shiftX1/2,y/2-r1]+cTrans,grad=180-grad,rot=grad-180,fn=fn/4,center=false);
@@ -4392,10 +4400,10 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=fa
  union(){
      polygon(concat(k1,k2,k4,k3),convexity=5);
      if(messpunkt){
-         Pivot([p1,y/2]+cTrans,active=[1,0,0,1,1],size=messpunkt);
-         Pivot([p2,y/2]+cTrans,active=[1,0,0,1,1],size=messpunkt);
-         Pivot([p3,-y/2]+cTrans,active=[1,0,0,1,1],size=messpunkt);
-         Pivot([p4,-y/2]+cTrans,active=[1,0,0,1,1],size=messpunkt);
+         Pivot([p1,y/2]+cTrans,active=[1,0,0,1,1],messpunkt=messpunkt);
+         Pivot([p2,y/2]+cTrans,active=[1,0,0,1,1],messpunkt=messpunkt);
+         Pivot([p3,-y/2]+cTrans,active=[1,0,0,1,1],messpunkt=messpunkt);
+         Pivot([p4,-y/2]+cTrans,active=[1,0,0,1,1],messpunkt=messpunkt);
      }
      
  }
