@@ -13,6 +13,7 @@ vpr=[0,0,0];
 vpt=show=="products"?[100,100]:[35,30];
 vpd=show=="products"?1000:230;
 
+
 /*[Demo]*/
 show="Select Topic!";//[modifier,generator,helper,polygons,objects,products,functions]
 
@@ -25,7 +26,7 @@ color2=0;
 T($textPos+[0,-6])Tz(-.1)Text(h=0,text=show,size=3,cy=-1);
 
 module P(){
-Pfeil(l=6,b=[1,2.5],shift=-0.5,center=[1,1]);    
+Pfeil(l=6,b=[1,2.5],shift=-0.5,center=[1,1],name=false);    
 }
 module Txt(text,line=0){
 Col(8)T($textPos+[0,line*1.3*1.5])text(str(text),size= 1.3,valign="top");    
@@ -124,12 +125,38 @@ Cross()circle(1.5);T(objPos/2)P();T(objPos){
 }
 
 if(show=="generator")Anordnen(option=3,es=[30,15],e=6,c=undef,loop=false,center=false,inverse=true,name="Generator"){
+  //$info=false;
 objPos=[4,4];
   
   
-union(){ // around
-  T(objPos)Rundrum(10,6,r=[2.5,4,1,0],help=0)rotate(30)circle(1,$fn=6);
-  Txt("Rundrum()circle()"); 
+//union(){ // around
+//  T(objPos)Rundrum(10,6,r=[2.5,4,1,0],help=0)rotate(30)circle(1,$fn=6);
+//  Txt("Rundrum()circle()"); 
+//}
+  
+union(){ // Bow
+  T(objPos){
+    T(-5){
+      Cross();
+      Bogen(l=2,messpunkt=5,grad=65);//circle(1,$fn=5);
+      }
+  T(4){
+    Cross();
+    Bogen(l1=3,l2=1,messpunkt=5,grad=-61,center=+0,2D=true,d=2);
+    }
+  }
+  Txt("Bogen()"); 
+}
+
+
+union(){// rotate extrude
+    T(objPos)R(90)RotEx(cut=true)T(-3)circle(5);
+    T(objPos)T(9,-3){
+      R(90)rotate(-90)RotEx(cut=true,grad=300,center=true)rotate(-145)square(5);
+      %rotate(35)Tz(-1)square(5);
+    }
+  
+    Txt("RotEx(cut=true)T(-3)circle(5)"); 
 }
 
 union(){// linear extrude
@@ -139,10 +166,7 @@ union(){// linear extrude
     Txt("LinEx(8,1,grad=45,$d=5)circle($r)"); 
 }
 
-union(){// rotate extrude
-    T(objPos)R(90)RotEx(cut=true)T(-3)circle(5);
-    Txt("RotEx(cut=true)T(-3)circle(5)"); 
-}
+
 
 union(){// Twisted torus
     T(objPos)Ttorus(r=5)R(90)cylinder(.1,d1=2,d2=0,$fn=6);
@@ -164,19 +188,7 @@ union() { //Bezier
 
 
 
-union(){ // Bow
-  T(objPos){
-    T(-5){
-      Cross();
-      Bogen(l=2,messpunkt=5,grad=65);//circle(1,$fn=5);
-      }
-  T(4){
-    Cross();
-    Bogen(l1=3,l2=1,messpunkt=5,grad=-61,center=+0,2D=true,d=2);
-    }
-  }
-  Txt("Bogen()"); 
-}
+
 union(){ // S-Bow
   T(objPos){
     T(-3)SBogen(l1=4,r1=4,r2=1.5,dist=3,messpunkt=5)circle(1);
@@ -200,9 +212,16 @@ union(){ // RStern
   Txt("RStern()circle()"); 
 }
 
-union(){ // Rundrum
-  T(objPos)Rundrum(4,7,r=1)circle(.5);
-  T(objPos+[9,0])Rundrum(3,7,r=1.5,eck=5,twist=90)square(1,true);
+  union(){ // hyperbolic fillet
+    T(objPos)T(-3,-4)R(0,90,90)HypKehle(l=8,l2=12,d1=1.5,exp=2,fill=true)rotate(30)circle($r,$fn=6);
+    Txt("HypKehle()circle()"); 
+  }
+  
+union(){ // extrude Around
+  T(objPos)Rundrum(4,7,r=[1.5,1,0,2]){
+    circle(.5);
+  }
+  T(objPos+[9,0])Rundrum(3,r=2,eck=5,twist=90)square(1,true);
   Txt("Rundrum()circle()"); 
 }
 
@@ -251,9 +270,13 @@ union(){ // Kontakwinkel
 
 
 
+//•••••••••• helper:   ••••••••••
 
-if(show=="helper")union()//•••••••••• helper:   ••••••••••
-Anordnen(es=[20,15],option=3,c=undef,loop=false,center=false){
+
+
+
+if(show=="helper")union()
+Anordnen(es=[20,15],option=3,c=undef,loop=false,center=false,name="Helper"){
     
     
 union(){ // 3 axis Projection
@@ -269,14 +292,42 @@ union(){// Schnitt cuts objects in preview
     Txt("Schnitt()"); 
 } 
 
-union(){// Color colors (hui)
-    square();T(objPos/2)P();T(objPos)Color(.5)square();
-    Txt("Color(.5)"); 
+union(){// Col colors (pallete)
+  s=.5;ss=.15;
+    T(-.75){
+      square(s);T(ss+s)square(s);T((ss+s)*2)square(s);T((ss+s)*3)square(s);
+      T(0,(s+ss))square(s);T(ss+s,(s+ss))square(s);T((ss+s)*2,(s+ss))square(s);T((ss+s)*3,(s+ss))square(s);
+      T(0,(s+ss)*2)square(s);T(ss+s,(s+ss)*2)square(s);T((ss+s)*2,(s+ss)*2)square(s);T((ss+s)*3,(s+ss)*2)square(s);
+      T(0,(s+ss)*3)square(s);T(ss+s,(s+ss)*3)square(s);T((ss+s)*2,(s+ss)*3)square(s);T((ss+s)*3,(s+ss)*3)square(s);
+      
+      
+      }T(objPos/2)P();T(objPos)T(-2)Col(+0,pal=8,name=false){
+      square(s);T(ss+s)square(s);T((ss+s)*2)square(s);T((ss+s)*3)square(s);
+      T(0,(s+ss))square(s);T(ss+s,(s+ss))square(s);T((ss+s)*2,(s+ss))square(s);T((ss+s)*3,(s+ss))square(s);
+      T(0,(s+ss)*2)square(s);T(ss+s,(s+ss)*2)square(s);T((ss+s)*2,(s+ss)*2)square(s);T((ss+s)*3,(s+ss)*2)square(s);
+      T(0,(s+ss)*3)square(s);T(ss+s,(s+ss)*3)square(s);T((ss+s)*2,(s+ss)*3)square(s);T((ss+s)*3,(s+ss)*3)square(s);
+
+        }
+    Txt("Col(pal=8)"); 
 }
 
 union(){// Color colors (hui)
-    T(-.75){square();T(1.5)square();T(1.5,1.5)square();T(0,1.5)square();}T(objPos/2)P();T(objPos)Color(.5){square();T(1.5)square();T(1.5,1.5)square();T(0,1.5)square();}
-    Txt("Color(.5)"); 
+   s=.5;ss=.15;
+    T(-.75){//square();T(1.5)square();T(1.5,1.5)square();T(0,1.5)square();}
+            square(s);T(ss+s)square(s);T((ss+s)*2)square(s);T((ss+s)*3)square(s);
+      T(0,(s+ss))square(s);T(ss+s,(s+ss))square(s);T((ss+s)*2,(s+ss))square(s);T((ss+s)*3,(s+ss))square(s);
+      T(0,(s+ss)*2)square(s);T(ss+s,(s+ss)*2)square(s);T((ss+s)*2,(s+ss)*2)square(s);T((ss+s)*3,(s+ss)*2)square(s);
+      T(0,(s+ss)*3)square(s);T(ss+s,(s+ss)*3)square(s);T((ss+s)*2,(s+ss)*3)square(s);T((ss+s)*3,(s+ss)*3)square(s);
+    }
+      
+      
+      T(objPos/2)P();
+      
+      T(objPos)T(-1)Color(){      square(s);T(ss+s)square(s);T((ss+s)*2)square(s);T((ss+s)*3)square(s);
+      T(0,(s+ss))square(s);T(ss+s,(s+ss))square(s);T((ss+s)*2,(s+ss))square(s);T((ss+s)*3,(s+ss))square(s);
+      T(0,(s+ss)*2)square(s);T(ss+s,(s+ss)*2)square(s);T((ss+s)*2,(s+ss)*2)square(s);T((ss+s)*3,(s+ss)*2)square(s);
+      T(0,(s+ss)*3)square(s);T(ss+s,(s+ss)*3)square(s);T((ss+s)*2,(s+ss)*3)square(s);T((ss+s)*3,(s+ss)*3)square(s);}
+    Txt("Color()"); 
 }
 
 union(){// Anorden arranges
@@ -397,8 +448,8 @@ if(show=="objects")union()//•••••••••• objects:   •••�
 Anordnen(es=50,option=3,c=undef,loop=false,center=false,name="Objects"){
     objPos=[3,0];
   union(){ // hyperbolic fillet
-    T(objPos)T(-2,0)R(0,90,90)HypKehle(l=8,d1=1,exp=2,fill=true)rotate(30)circle($r,$fn=6);
-    Txt("HypKehle()circle()"); 
+    T(objPos)T(-2,0)R(0,90,90)HypKehle(l=8,d1=1,exp=2,fill=true);
+    Txt("HypKehle()"); 
   }
   
   

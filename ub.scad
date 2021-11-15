@@ -44,6 +44,7 @@ Changelog (archive at the very bottom)
 328|21  CHG $helpM use  CHG HelpTxt CHG Quad CHG Rundrum  CHG n↦name
 3281|21 CHG KBS CHG CHG $info
 3282|21 CHG Quad Add tangent + Fixes
+329|21  CHG Polar Prisma help info CHG Anordnen FIX Bogen(2D) SBogen CHG Kontaktwinkel CHG b(add bool) Add $tab
 
 
 */
@@ -270,11 +271,16 @@ f?str(" F",len(points[pos])==5?points[pos][4]:f):"","\n"):""
 )
 i>+0?str(gcode(i=i-chunksize,chunksize=chunksize,points=points),chunk(i,max(0,i-chunksize))):"";
 
-function b(n)=is_list(n)?[for(i=[0:len(n)-1])b(n[i])]:
-                         is_num(n)?n?true:
-                                     false:
-                                   n?1:
-                                     0;
+function b(n,bool)=is_list(n)?[for(i=[0:len(n)-1])b(n[i],bool)]:
+                         is_num(n)?bool||is_undef(bool)?n?true:
+                                                          false:
+                                                        n?n:
+                                                          0:
+                                   bool?n?true:  // n = bool
+                                          false:
+                                        n?1:
+                                          0;
+
 
 function scaleGrad(grad=45,h=1,r=1)=assert(grad!=0)max(0,(r-(h/tan(grad)))/r);
 
@@ -402,7 +408,7 @@ echo    ("•••• Ttorus(r=20,twist=360,angle=360,fn=fn)3D-Objekt      •�
 //echo    ("•••• GewindeV1(d=20,s=1.5,w=5,g=1,fn=3,r=0,gd=1.75,detail=5,tz=0,n=1) steigung,windung,gänge,gangdurchmesser      ••");
 echo    ("•••• Gewinde(help=1)••");
 echo    ("•••• GewindeV3(dn=5,h=10,kern=0,p=1,w=0,profil=0,gh=0.56,g=1,name,fn=36)••");
-echo    ("•••• Kontaktwinkel(winkel=60,d=d,center=true,2D=0,inv=false,name) Objekt  ••"); 
+echo    ("•••• Kontaktwinkel(help=1) Objekt  ••"); 
 echo    ("•••• Bezier(p0=[+0,+10,0],p1=[15,-5,0],p2=[15,+5,0],p3=[0,-10,0],w=1,max=1.0,min=+0.0,fn=50,ex=0,pabs=false,messpunkt=5,name) Objekt •••••");
 
 echo    ("•••• Laser3D(h=4,layer=10,var=0.002,name,on=-1)3D-Objekt ••");
@@ -590,70 +596,7 @@ if(!$preview) echo("\n\t\t⏳ Rendering…wait! ⌛");
 
 //////////////////////////// Modules  /////////////////////////////
 
-module Isosphere(r=1,d,q=70,help){
-  r=is_undef(d)?r:d/2;
-/* Kogan, Jonathan (2017) "A New Computationally Efficient Method for Spacing n Points on a Sphere," Rose-Hulman Undergraduate Mathematics Journal: Vol. 18 : Iss. 2 , Article 5.
-    Available at: https://scholar.rose-hulman.edu/rhumj/vol18/iss2/5 */
-    function sphericalcoordinate(x,y)=  [cos(x  )*cos(y  ), sin(x  )*cos(y  ), sin(y  )];
-    function NX(n=70,x)= 
-    let(toDeg=57.2958,PI=acos(-1)/toDeg,
-    start=(-1.+1./(n-1.)),increment=(2.-2./(n-1.))/(n-1.) )
-    [ for (j= [0:n-1])let (s=start+j*increment )
-    sphericalcoordinate(   s*x*toDeg,  PI/2.* sign(s)*(1.-sqrt(1.-abs(s)))*toDeg)];
-    function generatepoints(n=70)= NX(n,0.1+1.2*n);
-    
-    a= generatepoints(q);
-    scale(r)hull()polyhedron(a,[[for(i=[0:len(a)-1])i]]);
-      
-HelpTxt("Isosphere",["r",r,"q",q],help);
-}
 
-
-
-module KBS(e=2,grad=2,center=true,male=true,female=false,rot=0,n=4,top=false,knob,knobH,fKnob,fKnobH,dist,bh,name,help){
-male=female?false:male;
-d=is_undef(knob)?4.8:knob;//knobs on top of blocks
-fd=is_undef(fKnob)?d:fKnob;//fknobs on bottom of blocks  
-h=is_undef(knobH)?2:knobH;// knob height
-
-    
-ks=is_undef(dist)?8.0:dist; // spacing
-rand=1.45;
-bh=is_undef(bh)?9.5:bh;// block height
-roof_thickness=1.05;    
-pin_diameter=3;		//pin for bottom blocks with width or length of 1
-post_diameter=6.5;
-reinforcing_width=1.5;
-axle_spline_width=2.0;
-axle_diameter=5;
-  
-fh=is_undef(fKnobH)?bh/3-roof_thickness:fKnobH;  
-  
-e=is_list(e)?e:[e,e];    
-
- if(e.z)linear_extrude(e.z*bh,scale=1,convexity=5)hull()Grid(e=e,es=[ks,ks,0],center=center,name=false)square(d+rand*2,center=center);
- if(male||female)Grid(e=e,es=[ks,ks,0],center=center,name=false){
-    
-   if(male)translate([0,0,e.z?e.z*bh+h:h])rotate(180,[1,0])linear_extrude(h,scale=(d/2-h/tan(90-grad))/(d/2),convexity=5) circle(d=d);
-        // for holes on bottom
-    else {
-      h=fh;
-      d=fd;
-
-        translate([0,0,(e.z?e.z*bh:0)-.001]){
-          linear_extrude(h,scale=(d/2-(h)/tan(90+grad))/(d/2),convexity=5)rotate(180/n+rot)Rund(d/3)circle(d=Umkreis(n,d),$fn=n);//;square(d,center=center);
-      if(top)Tz(h-.001)linear_extrude(is_bool(top)?1:top,scale=0,convexity=5)scale((d/2-(h)/tan(90+grad))/(d/2))rotate(180/n+rot)Rund(d/3)circle(d=Umkreis(n,d),$fn=n);
-      }
-    }
- }
-InfoTxt("KBS",["size",str(
-    str(e.x*d+rand*2,"×",e.y*d+rand*2,e.z?str("×",e.z*bh):"")
-    ,grad?str(" diff ",grad,"° bei h=2mm ",tan(grad)*2):
-       ""
-    )],name);
- 
-HelpTxt("KBS",["e",e,"grad",grad,"center",center,"male",male,"female",female,"rot",rot,"n",n,"top",top,"knob",knob,"knobH",knobH,"fKnob",fKnob,"fKnobH",fKnobH,"dist",dist,"bh",bh,"name",name],help);    
-}
 
 module Example(variable=1,name,help){
  
@@ -667,7 +610,21 @@ module Example(variable=1,name,help){
 }
 
 
-/// Tools / Modificator ///
+
+
+
+
+
+
+
+
+///∇∇ Tools / Modificator ∇∇///
+
+
+
+
+
+
 
 // short for translate[];
 module T(x=0,y=0,z=0,help)
@@ -750,7 +707,7 @@ module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name,n,help){
  
     InfoTxt("Polar",["elements",str(e,
      //"transX= ",x," transY= ",y,
-    "Radius",radius,"mm ",re?str("rotElements=",re,"°"):"",end!=360?str(" End=",end,"°"):""," Element=",winkel,"° Abstand=",2*radius*PI/360*winkel,"mm (Sekante=",2*radius*sin(winkel/2),")")],name);
+    " radius ",radius,"mm ",re?str("rotElements=",re,"°"):"",end!=360?str(" End=",end,"°"):""," Element=",winkel,"° Abstand=",2*radius*PI/360*winkel,"mm (Sekante=",2*radius*sin(winkel/2),")")],name);
     HelpTxt("Polar",["e",e,"x",x,"y",y,"r",r,"re",re,"end",end,"dr",dr,"mitte",mitte,"name",name],help);
 MO(!$children);
            
@@ -880,10 +837,12 @@ module Halb(i=0,x=0,y=0,z=0,2D=0,size=viewportSize)
 
 //short for rotate_extrude(angle,convexity=5) with options
 module RotEx(grad=360,fn=fn,center=false,cut=false,convexity=5,help){
+  fnrotex=$fn;
     rotate(center?sign(grad)*-min(abs(grad)/2,180):grad>=360?180:0)
   rotate_extrude(angle=grad,convexity=convexity, $fa =fn?abs(grad/fn):$fa,$fs=.2,$fn=0)intersection(){
-    $fn=fn;
+    $fn=fnrotex;
     $fa=fa;
+    $fs=fs;
            children();
            if(cut)translate([cut==-1?-1000:0,-500])square(1000);
     }
@@ -957,7 +916,17 @@ module HexGrid(e=[11,4],es=5,center=true){
 
 
 
-/// Helper /// (not for creating geometry or objects)
+
+///ΔΔ Modificatoren ΔΔ///
+
+///∇∇ Helper ∇∇/// (not for creating geometry or objects)
+
+
+
+
+
+
+
 
 
 // Cutaway children for preview
@@ -1016,36 +985,44 @@ optiE= function(e=[0,0,1])
        is_undef(e)?$children:e;
 
 InfoTxt("Anordnung",["e",e,"children",$children],name);    
-$info=false;
+
 
     
  if(option==1){
      r=is_undef(r)?(es/2)/sin(180/e):r;
-     Polar(e,x=r,re=rot)if(is_undef(c)&&(loop?true:$idx<$children))
-         children((inverse?$children-$idx-1:$idx)%$children);//
-     else Color(c+1/$children*$idx,l=cl)
-         if(loop?true:$idx<$children)children((inverse?$children-$idx-1:$idx)%$children);
+     Polar(e,x=r,re=rot,name=false){
+       idx=$idx;
+       $tab=true;
+       $idx=0;
+       $info=name;
+       if(is_undef(c)&&(loop?true:idx<$children))
+         children((inverse?$children-idx-1:idx)%$children);//
+     else Color(c+1/$children*idx,l=cl)
+         if(loop?true:idx<$children)children((inverse?$children-idx-1:idx)%$children);
+         }
      }
      
- if(option==2){
-    if(axis==1) Linear(e=e,es=es,re=rot,center=center,x=1)
-        if(is_undef(c))children($idx%$children);
-            else Color(c+1/$children*$idx,l=cl)children($idx%$children);
-    
-    if(axis==2) Linear(e=e,es=es,re=rot,center=center,x=0,y=1)
-        if(is_undef(c))children($idx%$children);
-            else Color(c+1/$children*$idx,l=cl)children($idx%$children);
-    if(axis==3) Linear(e=e,es=es,re=rot,center=center,x=0,z=1)
-        if(is_undef(c))children($idx%$children);
-            else Color(c+1/$children*$idx,l=cl)children($idx%$children);    
- }
- 
- if(option==3) Grid(e=e,es=es,center=center){
+  if(option==2)
+      Linear(e=e,es=es,re=rot,center=center,x=axis==1?1:0,y=axis==2?1:0,z=axis==3?1:0,name=false){
+        $info=name;
+        $tab=true;
+        idx=$idx;
+        $idx=0;
+        if(is_undef(c))children(idx%$children);
+        else Color(c+1/$children*idx,l=cl)children(idx%$children);
+      }
+
+ if(option==3) Grid(e=e,es=es,center=center,name=false){
+     $info=name;
+     $tab=true;
      childINDX=inverse?(loop?e.x*e.y*e.z:$children -1)-($idx[0]+e.x*$idx[1]):($idx[0]+e.x*$idx[1]);
+     idx=$idx;
+     $idx=0;
+     
      rotate(rot)
-     if(is_undef(c)&&(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children))children(childINDX%$children);
-     else Color(([$idx.x/(e.x -1),$idx.y/(e.y -1),$idx.z/e.z]+[ 0,0,cl])){
-     if(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children)children(childINDX%$children);
+     if(is_undef(c)&&(loop?true:idx.x+e.x*idx.y+e.x*e.y*idx.z<$children))children(childINDX%$children);
+     else Color(([idx.x/(e.x -1),idx.y/(e.y -1),idx.z/e.z]+[ 0,0,cl])){
+     if(loop?true:idx.x+e.x*idx.y+e.x*e.y*idx.z<$children)children(childINDX%$children);
      //text(str([$idx.x/(e.x-1), $idx.y/(e.y-1), $idx.z/e.z]+[ 0,0,cl]),size=2);
  }
  }  
@@ -1075,16 +1052,19 @@ co=[
 ];
 
 // color by color lists
-module Col(no=0,alpha=1,pal=0,n=0)
+module Col(no=0,alpha=1,pal=0,name=0,help)
 {
    palette=["std","VGA","grey","pink","red","orange","yellow","brown","green","cyan","blue","violett","white","rainbow"]; 
     
-
+HelpTxt("Col",["no",no,"alpha",alpha,"pal",pal,"name",name],help);
 
     for(i=[0:1:$children-1]){
     $idx=i;
     color(co[pal][(no+i)%len(co[pal])],alpha)children(i);
-    if(n)echo(str("<font color=",co[pal][(no+i)%len(co[pal])]," size=5> ███  <font color=black>Color children ($idx) ",i," »»» ",no+i,"/",co[pal][(no+i)%len(co[pal])]," von ",len(co[pal])-1," — Palette ",pal,"/",palette[pal],(no+i>len(co[pal])-1)?" —<font color=red> Out of Range":"","</font>"));
+    union(){
+      $idx=0; 
+    InfoTxt("Col",["Color children ($idx)",str(i," Farb№: ",no+i,"- ",co[pal][(no+i)%len(co[pal])])," von ",len(co[pal])-1,"Palette",str(pal,"/",palette[pal],(no+i>len(co[pal])-1)?" — Out of Range":"")],name);
+    }
     }
     MO(!$children);
 }
@@ -1134,7 +1114,7 @@ module Echo(title,color="#FF0000",size=2,condition=true,help){
      if(version()[0]<2021)echo(str("<H",size,"><font color=",color,">",title)); 
      else if (color=="#FF0000"||color=="red")echo(str("\n⭕\t»»» ",title));
      else if (color=="#FFA500"||color=="orange")echo(str("\n🟠\t»»» ",title));    
-     else if (color=="#00FF00"||color=="green")echo(str("🟢\t ",title));
+     else if (color=="#00FF00"||color=="green"||color=="info")echo(str("🟢\t ",title));
      else if (color=="#0000FF"||color=="blue") echo(str("🔵\t ",title));
      else if (color=="#FF00FF"||color=="purple") echo(str("🟣\t ",title));    
      else if (color=="#000000"||color=="black") echo(str("⬤\t ",title));
@@ -1146,6 +1126,7 @@ module Echo(title,color="#FF0000",size=2,condition=true,help){
 
 /// display variable values
 module InfoTxt(name,string,info,help){
+  $tab=is_undef($tab)?0:$tab;
   info=is_undef(info)?is_undef($info)?false:
                                 $info:
   info;
@@ -1177,7 +1158,7 @@ else { // current version info
   infoText=[for(i=[0:2:len(string)-1])str(string[i],"=",string[i+1],i<len(string)-2?", ":"")];
       
 if(info&&!idx)if(is_list(string))echo( 
- str(is_bool(info)?"":"🟩\t•• ",info," ",name," ",
+ str(is_string(info)?"🟩\t••":"",$tab?"•»":"",b($tab,false)>1?"•»    ":" ",info," ",name," ",
 joinArray(infoText)));
 
 else HelpTxt(titel="InfoTxt",string=["name",name,"string","[text,variable]","info",info],help=1);
@@ -1251,7 +1232,385 @@ else HelpTxt("Help",["titel",titel,"string",string,"help",help],help=1);
 
 
 
-/// Basic Objects ///
+
+
+
+
+
+///ΔΔ Helper ΔΔ///
+
+///∇∇ Generator ∇∇///
+
+
+
+
+
+
+module Rundrum(x=+40,y,r=10,eck=4,twist=0,grad=90,grad2=90,spiel=0.005,fn=fn,name,help){
+    
+$info=name;
+$tab=is_undef($tab)?0:$tab;
+  
+  // WIP
+    r1=is_list(r)?r[0]:r;
+    r2=is_list(r)?r[1]:r;
+    r3=is_list(r)?r[2]:r;
+    r4=is_list(r)?r[3]:r;
+    r=is_list(r)?r[0]:r;
+    y=is_list(x)?x[1]:is_undef(y)?x:y;
+    x=is_list(x)?x[0]:x;
+        
+    //grad2=grad-20;// WIP
+    shift=tan(grad-90)*y;
+    grad=grad?grad:shift>0?atan(shift/y):-atan(-shift/y);
+    shiftx=shift-r*2*tan(grad-90);
+    shiftx2=tan(grad2-90)*y-r*2*tan(grad2-90);
+    shiftYLang=Hypotenuse(shiftx,y-2*r);
+    shiftYLang2=Hypotenuse(shiftx2,y-2*r);
+    if(eck==4&&grad!=90&&name)echo(str(name," Rundrum grad=",grad,"° ShiftX=",shiftx,"mm (+-",shiftx/2,"mm) Lot(x)=",x*sin(grad),"mm"));
+    //rx=r?r*(r/(sin(grad)*r)):0;
+    function rx(r=r,grad=grad)=r*1/sin(grad);
+    
+
+if(eck==4&&twist==0)
+    if(grad==90&&grad2==90){
+        $tab=b($tab,false)+1;
+        $info=is_undef(name)?$info:name;
+        //Ecken
+        T(-x/2+r1,y/2-r1)rotate(90)RotEx(90,fn=fn/4,cut=true)T(r1)children();// R1
+        union(){
+        $info=false;
+        $helpM=false;
+        $idx=true; // disable help
+        T(x/2-r2,y/2-r2)RotEx(90,fn=fn/4,cut=true)T(r2)children();// R2
+        T(-x/2+r3,-y/2+r3)rotate(180)RotEx(90,fn=fn/4,cut=true)T(r3)children();// R3
+        T(x/2-r4,-y/2+r4)rotate(-90)RotEx(90,fn=fn/4,cut=true)T(r4)children();// R4
+        //Graden
+        //X
+        T((r1-r2)/2,y/2)R(90,0,90)linear_extrude(x-r1-r2+spiel,center=true,convexity=5)children();
+        T((r3-r4)/2,-y/2)R(90,0,-90)linear_extrude(x-r3-r4+spiel,center=true,convexity=5)children();
+        //Y
+        T(-x/2,(r3-r1)/2)R(90,0,180)linear_extrude(y-r1-r3+spiel,center=true,convexity=5)children();
+        T(x/2,(r4-r2)/2)R(90,0,+0)linear_extrude(y-r2-r4+spiel,center=true,convexity=5)children();        
+        }
+        
+    }
+else T(-shiftx/2*0){
+      $tab=b($tab,false)+1;
+      $info=is_undef(name)?$info:name;
+    //plus x    
+    T(x/2-rx(r2,grad2)+shiftx2/2,y/2-r2)rotate(90-grad2)rotate_extrude(angle=grad2,convexity=5,$fn=0,$fa = grad2/(fn/4), $fs = 0.1)Ecke(r2)children();
+    union(){
+      $idx=true; // disable help
+      $helpM=0;
+      $info=0;
+    T(x/2-rx(r4,grad2)-shiftx2/2,-y/2+r4)rotate(-90)rotate_extrude(angle=180-grad2,convexity=5,$fn=0,$fa = (180-grad2)/(fn/4), $fs = 0.1)Ecke(r4)children(); 
+    //minus x   
+    T(-x/2+rx(r1)+shiftx/2,y/2-r1)rotate(90)rotate_extrude(angle=180-grad,convexity=5,$fn=0,$fa = (180-grad)/(fn/4), $fs = 0.1)Ecke(r1)children();
+    T(-x/2+rx(r3)-shiftx/2,-y/2+r3)rotate(-90)rotate_extrude(angle=-grad,convexity=5,$fn=0,$fa = grad/(fn/4), $fs = 0.1)Ecke(r3)children();  
+
+
+    //linear x -+   
+    T(+x/2-rx((r2+r4)/2,grad2)+shiftx2/2,y/2-r)rotate(90-grad2)T(+r)R(90,0,0)Tz(-spiel/2)linear_extrude(shiftYLang2+spiel,convexity=5,center=false,$fn=fn)children();
+    T(-x/2+rx(r1/2+r3/2)-shiftx/2,-y/2+r)rotate(90-grad)T(-r)R(90,0,180)Tz(-spiel/2)linear_extrude(shiftYLang+spiel,convexity=5,center=false,$fn=fn)children();
+ 
+    //linear y -+    
+    T(-x/2+rx()+shiftx/2-spiel/2,y/2+0)R(90,0,90)linear_extrude(x-rx(r1)-rx(r2,grad=grad2)+spiel+shiftx2/2-shiftx/2,convexity=5,center=false,$fn=fn)children();
+    T(+x/2-rx(grad=grad2)+spiel/2-shiftx2/2,-y/2)R(90,0,-90)linear_extrude(x-rx()-rx(grad=grad2)+spiel-shiftx2/2+shiftx/2,convexity=5,center=false,$fn=fn)children(); 
+    }   
+    if(2*r>x||2*r>y){
+        echo();
+            Echo(str("››»!!!«‹‹ ",name," Rundrum WARNUNG !!! Radius zu groß !!!"),color="red");
+        echo();
+        
+    }
+
+    if(name) if((2*r==x||2*r==y)&&x!=y)echo(str(name," Rundrum Halbkreis"));
+    if(name)  if(2*r==x&&2*r==y)echo(str(name," Rundrum Vollkreis"));
+       
+    }
+  else{
+    for(i=[0:eck-1]){
+        $tab=b($tab,false)+1;
+        $info=is_undef(name)?$info:name;
+        $idx=i*2;
+        stepDeg=360/eck;
+        rotate(i*stepDeg)T(Umkreis(eck,x-r))rotate(-180/eck)rotate_extrude(angle=stepDeg,$fn=fn,convexity=5)intersection(){
+            T(r)rotate(i*(twist/eck))children();
+            translate([0,-150])square(300);
+        }
+        union(){
+            $helpM=0;
+            $info=0;
+            $idx=i*2+1;
+            rotate(i*stepDeg+180/eck)T(x) R(90)linear_extrude(2*Kathete(Umkreis(eck,x-r),x-r)+spiel,center=true,twist=twist/eck,$fn=fn,convexity=5)rotate(+twist/eck+i*(twist/eck))children();
+        }
+    }
+    
+  }
+MO(!$children);
+
+    module Ecke(r=r){
+        render()intersection(){
+            T(r)children();
+            translate([0,-150])square(300);
+        }
+    }
+  
+HelpTxt("Rundrum",["x",x,"y",y,"r",r,"eck",eck,"twist",twist,"grad",grad,"spiel",spiel,"fn",fn,"name",name],help);    
+}
+
+
+
+
+
+
+
+module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gradEnd=90,trxEnd=0,endRot=0,endspiel=+0,name,help)
+    rotate(grad?0:-a/2){
+    $tab=is_undef($tab)?0:$tab;
+    end=is_undef(spheres)?is_bool(end)?end?-1:0:end:spheres;//compatibility
+    $d=d;
+    $r=d/2;   
+    endRot=is_list(endRot)?endRot:[endRot,endRot];
+    trx=dia?dia/2-d/2:trx;    
+    a=grad?end==-1&&!$children?grad-(asin($r/trx)*2)*sign(grad):grad:end==-1&&!$children?a-(asin($r/trx)*2)*sign(a):a;
+    grad=grad?grad:a;    
+    
+    InfoTxt("Torus",["Innen∅",2*trx-d,"Mitten∅",2*trx,"Aussen∅",2*trx+d],info=name);
+    HelpTxt("Torus",["trx",trx,"d",d,"a",a,"fn",fn,"fn2",fn2,",r=",r,", grad=",grad,"dia",dia,"center",center,"end",end,"gradEnd",gradEnd,"trxEnd",trxEnd,"endRot",endRot,"endspiel",endspiel,"name",name,"$d",$d],help);
+  
+      
+rotate(end==-1&&!$children?(asin($r/trx))*sign(grad):0){
+   $idx=true;
+   $info=is_undef(name)?is_undef($info)?false:$info:name;
+   translate([0,0,center?0:d/2]) RotEx(grad=a,fn=fn,cut=1,help=false){
+                $idx=0;
+                $tab=b($tab,false)+1;
+                if($children)T(x=trx)R(0,0,r)children();
+                else T(x=trx)R(0,0,r)circle(d=d,$fn=fn2);
+                }
+
+    if(end&&a!=360&&!trxEnd){
+        if($children){
+            rotate(a+endspiel*sign(grad))translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=fn/2,help=false)rotate(endRot[1])children();
+            rotate(+0)translate([trx,0,center?0:d/2])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=fn/2,help=false)rotate(endRot[0])children();  
+        }
+        else{
+        rotate(a-sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?1:0)sphere(d=d,$fn=fn2);
+        rotate(sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?0:1)sphere(d=d,$fn=fn2);
+        }
+    }
+    
+    if(trxEnd)translate([0,0,center?0:d/2]){ // End Ringstück
+        if($children){
+        T(trx-trxEnd)rotate(gradEnd*sign(-trxEnd)){
+            RotEx(grad=gradEnd*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
+            if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/4,help=false)rotate(endRot[0])children();
+            }
+       rotate(180+grad)T(-trx+trxEnd)rotate(180){
+            RotEx(grad=gradEnd*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
+            if(end)rotate(gradEnd*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/4,help=false)rotate(endRot[1])children();
+            } 
+        }
+        else{
+            T(trx-trxEnd)rotate(gradEnd*sign(-trxEnd)){
+            RotEx(grad=gradEnd*sign(trxEnd),fn=fn/360*gradEnd,cut=+0)T(trxEnd)circle(d=d,$fn=fn2);
+            if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,help=false)circle(d=d,$fn=fn2);
+            }
+       rotate(180+grad)T(-trx+trxEnd)rotate(180){
+            RotEx(grad=gradEnd*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)circle(d=d,$fn=fn2);
+            if(end)rotate(gradEnd*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,help=false)circle(d=d,$fn=fn2);
+            }  
+        }    
+    }
+}
+
+
+}
+
+
+
+
+module LinEx(h=5,h2=0,h22,scale=0.85,scale2,twist,twistcap=1,slices,$d,$r=5,grad,grad2,mantelwinkel=0,center=false,rotCenter=false,end=0,fn=12,name,help,n,$tab){
+
+
+$info=is_undef(name)?is_undef($info)?false:$info:name;
+$helpM=0;
+
+end=is_bool(end)?end?[1,1]:[0,0]:is_list(end)?end:[end,end];   
+name=is_undef(n)?name:n;
+twistcap=is_list(twistcap)?twistcap:[twistcap,twistcap];    
+$r=is_undef($d)?$r:$d/2;
+$d=2*$r;
+h22=abs(is_undef(h22)?is_list(h2)?h2[1]:h2:h22);
+h2=abs(is_list(h2)?h2[0]:h2);    
+hc=h-h2-h22;      
+
+scale2=is_undef(grad2)?
+    is_undef(grad)?
+    is_undef(scale2)?h22?scale:1:scale2
+    :is_list(grad)?is_list($r)?[($r[0]-(h22/tan(grad[0])))/($r[0]),($r[1]-(h22/tan(grad[1])))/($r[1])]:[($r-(h22/tan(grad[0])))/($r),($r-(h22/tan(grad[1])))/($r)]:($r-(h22/tan(grad)))/($r)
+    :is_list(grad2)?
+        is_list($r)?[($r[0]-(h22/tan(grad2[0])))/($r[0]),($r[1]-(h22/tan(grad2[1])))/($r[1])]:[($r-(h22/tan(grad2[0])))/($r),($r-(h22/tan(grad2[1])))/($r)]:($r-(h22/tan(grad2)))/($r);
+scale=h2?is_undef(grad)?scale:
+    is_list(grad)?
+        is_list($r)?[($r[0]-(h2/tan(grad[0])))/($r[0]),($r[1]-(h2/tan(grad[1])))/($r[1])]:[($r-(h2/tan(grad[0])))/($r),($r-(h2/tan(grad[1])))/($r)]:($r-(h2/tan(grad)))/($r):1;    
+    
+
+
+grad=h2?is_list(scale)?
+        is_list($r)?[atan(h2/($r[0]-$r[0]*scale[0])),atan(h2/($r[1]-$r[1]*scale[1]))]:[atan(h2/($r-$r*scale[0])),atan(h2/($r-$r*scale[1]))]
+    :atan(h2/($r-$r*scale)):0;
+    
+grad2=h22?is_list(scale2)?is_list($r)?[atan(h22/($r[0]-$r[0]*scale2[0])),atan(h22/($r[1]-$r[1]*scale2[1]))]:[atan(h22/($r-$r*scale2[0])),atan(h22/($r-$r*scale2[1]))]:atan(h22/($r-$r*scale2)):0;
+
+mantelwinkel=is_undef(twist)?mantelwinkel:atan(twist*PI*$d/360/hc);    
+twist=is_undef(twist)?mantelwinkel?360*tan(mantelwinkel)*hc/(2*PI*$r):0:twist;   
+slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2))):slices;
+    
+
+    
+    InfoTxt("LinEx",["core h",str(hc,"mm - twist per mm=",twist/(hc),"°, Fase für $d= ",$d,"mm ist ",grad,"°/",grad2,"° d=",$d*scale,"/",$d*scale2,"mm - r=",$r*scale,"/",$r*scale2,"mm Mantelwinkel für $d/$r=",$d,"/",$r,"mm⇒ ",mantelwinkel,"° twist=",twist,"° slices=",slices)],name); 
+    
+    Echo(str(name," LinEx Höhe center=",hc,"mm"),color="red",condition=hc<0);
+    
+    if(is_list(grad2)?$r*tan(min(grad2[0],grad2[1]))<(is_list($r)?[h22,h22]:h22)&&min(grad2[0],grad2[1])<90&&min(grad2[0],grad2[1])>0:$r*tan(grad2)<(is_list($r)?[h22,h22]:h22)&&grad2<90&&grad2>0)Echo(str(name," LinEx Höhe h22=",h22," mm zu groß oder winkel/$r zu klein min=",atan(h22/$r),"° max=",is_list(grad2)?$r*tan(min(grad2[0],grad2[1])):$r*tan(grad2),"mm"),color="red");
+        
+    if(is_list(grad)?$r*tan(min(grad[0],grad[1]))<(is_list($r)?[h2,h2]:h2)&&min(grad[0],grad[1])<90&&min(grad[0],grad[1])>0:$r*tan(grad)<h2&&grad<90&&grad>0)Echo(str(name," LinEx Höhe h2=",h2," mm zu groß oder winkel/$r zu klein min=",atan(h2/$r),"° max=",$r*tan(grad),"mm"),color="red");    
+    
+    HelpTxt("LinEx",["h",h,"h2",h2,"h22",h22,"scale",scale,"scale2",scale2,"twist",twist,"twistcap",twistcap,"slices",slices,"$d",$d,"grad",grad,"grad2",grad2,", mantelwinkel",mantelwinkel,"center",center,"rotCenter",rotCenter,"end",end,"fn",fn,"name",name],help);  
+    
+
+
+rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
+    T(z=center?-h/2:0){
+    
+    $idx=true;
+    union(){
+
+    //capoben
+    if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22,scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=5,slices=slices/hc*h22)children();
+    
+    //capunten
+    if(h2)Tz(h2)rotate(twist/2)mirror([0,0,1])linear_extrude(h2,scale=scale,twist=twistcap[0]?-twist/(hc)*h2:0,convexity=5,slices=slices/hc*h2)children();
+    }
+
+    //center
+    Tz(h2){
+      $idx=0;
+      $tab=b($tab,false)+1;
+      rotate(twist/2)linear_extrude(hc,scale=1,convexity=5,twist=twist,slices=slices,center=false)children();
+    }
+  
+    
+    
+    if(end[0]){
+
+     rotate(twist/2+(twistcap[0]?twist/(hc)*h2:0))rotate(sign(end[0])>+0?[-90,0,-90]:[-90,0,0]) RotEx(cut=true,grad=180,fn=fn)scale(scale)rotate(sign(end[0])>0?90:0)children();
+        }
+     if(end[1]){
+
+         Tz(h)rotate(-twist/2-(twistcap[1]?twist/(hc)*h22:0))rotate(sign(end[1])>+0?[-90,0,-90]:[-90,0,0])RotEx(cut=true,grad=-180,fn=fn)
+        scale(scale2)rotate(sign(end[1])>0?90:0)children();
+     }
+
+    }
+    MO(!$children);
+
+}
+
+
+
+
+
+
+
+
+///ΔΔ Generator ΔΔ///
+
+///∇∇ Basic Objects ∇∇///
+
+
+
+
+
+
+
+module Isosphere(r=1,d,q=70,help){
+  r=is_undef(d)?r:d/2;
+/* Kogan, Jonathan (2017) "A New Computationally Efficient Method for Spacing n Points on a Sphere," Rose-Hulman Undergraduate Mathematics Journal: Vol. 18 : Iss. 2 , Article 5.
+    Available at: https://scholar.rose-hulman.edu/rhumj/vol18/iss2/5 */
+    function sphericalcoordinate(x,y)=  [cos(x  )*cos(y  ), sin(x  )*cos(y  ), sin(y  )];
+    function NX(n=70,x)= 
+    let(toDeg=57.2958,PI=acos(-1)/toDeg,
+    start=(-1.+1./(n-1.)),increment=(2.-2./(n-1.))/(n-1.) )
+    [ for (j= [0:n-1])let (s=start+j*increment )
+    sphericalcoordinate(   s*x*toDeg,  PI/2.* sign(s)*(1.-sqrt(1.-abs(s)))*toDeg)];
+    function generatepoints(n=70)= NX(n,0.1+1.2*n);
+    
+    a= generatepoints(q);
+    scale(r)hull()polyhedron(a,[[for(i=[0:len(a)-1])i]]);
+      
+HelpTxt("Isosphere",["r",r,"q",q],help);
+}
+
+
+
+module KBS(e=2,grad=2,center=true,male=true,female=false,rot=0,n=4,top=false,knob,knobH,fKnob,fKnobH,dist,bh,name,help){
+male=female?false:male;
+d=is_undef(knob)?4.8:knob;//knobs on top of blocks
+fd=is_undef(fKnob)?d:fKnob;//fknobs on bottom of blocks  
+h=is_undef(knobH)?2:knobH;// knob height
+
+    
+ks=is_undef(dist)?8.0:dist; // spacing
+rand=1.45;
+bh=is_undef(bh)?9.5:bh;// block height
+roof_thickness=1.05;    
+pin_diameter=3;		//pin for bottom blocks with width or length of 1
+post_diameter=6.5;
+reinforcing_width=1.5;
+axle_spline_width=2.0;
+axle_diameter=5;
+  
+fh=is_undef(fKnobH)?bh/3-roof_thickness:fKnobH;  
+  
+e=is_list(e)?e:[e,e];    
+
+ if(e.z)linear_extrude(e.z*bh,scale=1,convexity=5)hull()Grid(e=e,es=[ks,ks,0],center=center,name=false)square(d+rand*2,center=center);
+ if(male||female)Grid(e=e,es=[ks,ks,0],center=center,name=false){
+    
+   if(male)translate([0,0,e.z?e.z*bh+h:h])rotate(180,[1,0])linear_extrude(h,scale=(d/2-h/tan(90-grad))/(d/2),convexity=5) circle(d=d);
+        // for holes on bottom
+    else {
+      h=fh;
+      d=fd;
+
+        translate([0,0,(e.z?e.z*bh:0)-.001]){
+          linear_extrude(h,scale=(d/2-(h)/tan(90+grad))/(d/2),convexity=5)rotate(180/n+rot)Rund(d/3)circle(d=Umkreis(n,d),$fn=n);//;square(d,center=center);
+      if(top)Tz(h-.001)linear_extrude(is_bool(top)?1:top,scale=0,convexity=5)scale((d/2-(h)/tan(90+grad))/(d/2))rotate(180/n+rot)Rund(d/3)circle(d=Umkreis(n,d),$fn=n);
+      }
+    }
+ }
+InfoTxt("KBS",["size",str(
+    str(e.x*d+rand*2,"×",e.y*d+rand*2,e.z?str("×",e.z*bh):"")
+    ,grad?str(" diff ",grad,"° bei h=2mm ",tan(grad)*2):
+       ""
+    )],name);
+ 
+HelpTxt("KBS",["e",e,"grad",grad,"center",center,"male",male,"female",female,"rot",rot,"n",n,"top",top,"knob",knob,"knobH",knobH,"fKnob",fKnob,"fKnobH",fKnobH,"dist",dist,"bh",bh,"name",name],help);    
+}
+
+
+
+
+
+
+
+
+
+
 
 
 module GT2Pulley(
@@ -1389,11 +1748,12 @@ module HypKehleD(grad=40,steps=15,l=10,l2,l3,d=2.5,d2,fill=false,exp=1,name,help
 }
 
 
-
 module HypKehle(l=15,grad=90,d1=3,d2,l2,steps=20,fn=24,fill=false,exp=1,center=false,name,help){
    
   rot=1;
     d2=is_undef(d2)?d1:d2;
+  $d=d1;
+  $r=d1/2;
     l2=is_undef(l2)?l:l2;
     $info=false;
   
@@ -1405,14 +1765,17 @@ for(i=[0:steps]){
          if($children)linear_extrude(.1,scale=0)children(0);
          else rotate(180/fn)cylinder(.1,d1=d1,d2=0,$fn=fn);
       
-      if(fill)Isosphere(d=is_num(fill)?fill:max(d1,d2),$fn=fn);
+      if(fill){
+        if($children)R(0,90)RotEx(cut=true,fn=fn)rotate(90)children();
+         else Isosphere(d=is_num(fill)?fill:max(d1,d2),$fn=fn);
+      }
         
      Color() R(grad)Tz(pow(steps-i,exp)*l2/pow(steps,exp)) R( (180-grad)/steps*i*rot +180)
-      if($children)linear_extrude(.1,scale=0)children($children>1?1:0);
+      if($children)linear_extrude(.1,scale=0)mirror([0,1])children($children>1?1:0);
       else rotate(180/fn)cylinder(.1,d1=d2,d2=0,$fn=fn);
   }
 }
-if(!fill)R(0,0,90)Isosphere(d=is_num(fill)?fill:max(d1,d2),$fn=fn);
+if(!fill&&!$children)R(0,0,90)Isosphere(d=is_num(fill)?fill:max(d1,d2),$fn=fn);
 HelpTxt("HypKehle",["l",l,"grad",grad,"d1",d1,"d2",d2,"l2",l2,"steps",steps,"fn",fn,"fill",fill,"exp",exp,"center",center,"name",name],help);
 }
 
@@ -3071,18 +3434,19 @@ module Row(e=15,dist=2,step=.1,d=+1,cut=.25,dir=+1,center=true,name,help){
     
     $d=d;
     $r=d/2;
-    $info=e>1?0:$info;
-    $helpM=e>1?0:$helpM;
+    $info=is_undef(name)?is_undef($info)?true:$info:name;
+    $helpM=is_undef(help)?is_undef($helpM)?false:$helpM:help;
     $idx=e-1;
     cut=is_num(cut)?cut:cut==true?0.02:false;
     if(e>1)T(d+dist+step/2) 
-    if($children)Row(e=e-1,d=d+step,dist=dist,step=step,cut=cut,dir=dir<2?sign(dir*-1):dir,center=center,name=name)children();
-     else Row(e=e-1,d=d+step,dist=dist,step=step,cut=cut,dir=dir<2?sign(dir*-1):dir,center=center,name=name);  
+    if($children)Row(e=e-1,d=d+step,dist=dist,step=step,cut=cut,dir=dir<2?sign(dir*-1):dir,center=center,name=$info,help=$helpM)children();
+     else Row(e=e-1,d=d+step,dist=dist,step=step,cut=cut,dir=dir<2?sign(dir*-1):dir,center=center,name=$info,help=$helpM);  
     
     if(!$children)cylinder(100,d=$d,$fn=24,center=center);
     if($children)children();
-    if(cut) T(-cut/2,dir>0?dir>1?0:0:-1000,center?-500:0)color(alpha=0.0)cube([cut,1000,1000]);
-    if(e==1&&name)echo(str(is_string(name)?"<H3>":"",name," Row's last d=",$d,(cut?str(" Cut is ",cut):""))); 
+    if(cut) T(-cut/2,dir>0?dir>1?0:0:-viewportSize,center?-viewportSize/2:0)color(alpha=0.0)cube([cut,viewportSize,viewportSize]);
+    if(e==1)InfoTxt("Row",["last d",str($d,cut?str(" Cut is ",cut):"")],name); 
+
         
     HelpTxt("Row",[
     "e",e," 
@@ -3092,10 +3456,10 @@ module Row(e=15,dist=2,step=.1,d=+1,cut=.25,dir=+1,center=true,name,help){
     cut",cut," 
     dir",dir," 
     center",center," 
-    name",name], 
-    help);
+    name",$info], 
+    $helpM);
     
-    if(help)echo("Row will recursivly create a Row of objects with changing size $d=(d+e*step) by keeping the gap (dist) equal");
+    if($helpM&&!$idx)echo("Row will recursivly create a Row of objects with changing size $d=(d+e*step) by keeping the gap (dist) equal");
 }
 
 
@@ -3636,7 +4000,7 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
 
     //Warnings    
    Echo(str(name," SBogen has no 2D-Object"),color=Hexstring([1,0.5,0]),size=4,condition=!$children&&!2D&&!extrudeTrue);
-   Echo(str(name," SBogen width is determined by var 2D=",2D,"mm"),color=Hexstring([1,0.5,0]),size=4,condition=2D&&!extrudeTrue);       
+   Echo(str(name," SBogen width is determined by var 2D=",2D,"mm"),color="info",size=4,condition=2D==1&&!extrudeTrue);       
    
    Echo(str(name," SBogen r1/r2 to big  middle <0"),condition=l2m<0);
    Echo(str(name," SBogen radius 1 negative"),condition=r1<0);
@@ -3808,7 +4172,7 @@ module Caliper(l=20,in=1,s=$vpd/15,center=true,messpunkt=true,translate=[0,0,0],
             //End lines
         rotate(in?in==2?90:in==3?-90:180:0){MKlon(tx=l/2){
            T(+line/2) square([line,l2],center=true);
-            Pfeil([0,min(l/3,s/2)],b=[line,s],center=[-1,1]);
+            Pfeil([0,min(l/3,s/2)],b=[line,s],center=[-1,1],name=false);
         }    
          translate([l<textl+s?l/2+textl/2+1:0,0])rotate(in>1?-90:180) Text(h=0,text=txt,center=true,size=s/4);
         // verbindung text ausserhalb
@@ -4086,7 +4450,8 @@ module LinEx2(bh=5,h=1,slices=10,s=1,ds=+0.010,dh=+0,fs=1,fh=0.780,twist=0,hsum=
   hsum=hsum?hsum:h;
     startSlices=startSlices?startSlices:slices;
     if(slices-1)rotate(-twist*h)Tz(h)scale([s[0],s[1],1])LinEx2(bh=bh,slices=slices-1,s=s*fs-[ds,ds],h=h*fh-dh,ds=ds,dh=dh,hsum=hsum+h*fh-dh,fs=fs,fh=fh,name=name,startSlices=startSlices,twist=twist,fn=fn,help=help)children();
-  rotate(-twist*bh)Tz(bh)linear_extrude(h+minVal,twist=twist*(h+minVal),scale=s,convexity=5,$fn=fn)children();
+  
+    Color(1/startSlices*slices)rotate(-twist*bh)Tz(bh)linear_extrude(h+minVal,twist=twist*(h+minVal),scale=s,convexity=5,$fn=fn)children();
   if(slices==startSlices){
       linear_extrude(bh+minVal,twist=twist*bh,convexity=5,$fn=fn)children();
   MO(!$children);
@@ -4277,7 +4642,8 @@ HelpTxt("Cring",[
 
 
 module Stern(e=5,r1=10,r2=5,mod=2,delta=+0,center=1,name,help){
-    
+    name=is_undef(name)?is_undef($info)?false:$info:name;
+  
     star=
     let(schritt=360/(e*mod))
     [for(i=[0:e*mod])i%mod<mod/2+round(delta)?[sin(i*schritt)*r1,cos(i*schritt)*r1]:[sin(i*schritt)*r2,cos(i*schritt)*r2]];
@@ -4294,9 +4660,12 @@ module Stern(e=5,r1=10,r2=5,mod=2,delta=+0,center=1,name,help){
     
     rotate((center==-1?180/e:0)-90+(center?sWinkel/4*(mod-(mod%2?1:2))+delta*sWinkel/2:+0))polygon(points=star,convexity=5);
     
-    if(name&&delta!=-deltaSoll)Echo(str("Delta für Spitze r1=",-deltaSoll),color="green");
-    if(name&&mod==2&&delta==0)echo(str(name," Stern Spitzenabstand r1=",abstandR1," Abstand r2=",abstandR2," Flanke=",hypR1," Winkel r1 =",delta==-deltaSoll?gradR1:gradR1-(sWinkel*(deltaSoll+delta)),"° Winkel r2 =",mod==2?gradR2:undef,"° Schrittwinkel=",sWinkel,"°"));   
-    else if (name)echo(str(name," Stern Flanke=",hypR1," Winkel r1 =",delta==-deltaSoll?gradR1:gradR1-(sWinkel*(deltaSoll+delta)),"° Schrittwinkel=",sWinkel,"°"));
+    if(name&&delta!=-deltaSoll&&!$idx)Echo(str("Delta für Spitze r1=",-deltaSoll),color="green");
+    
+    if(mod==2&&delta==0)InfoTxt("Stern",["Spitzenabstand r1",abstandR1,"Abstand r2",abstandR2,"Flanke",hypR1,"Winkel r1",str(delta==-deltaSoll?gradR1:gradR1-(sWinkel*(deltaSoll+delta)),"°"),"Winkel r2",str(mod==2?gradR2:undef,"°"),"Schrittwinkel",str(sWinkel,"°")],name);   
+    
+    else InfoTxt("Stern",["Flanke",hypR1,"Winkel r1",str(delta==-deltaSoll?gradR1:gradR1-(sWinkel*(deltaSoll+delta)),"°"),"Schrittwinkel=",str(sWinkel,"°")],name);
+      
     HelpTxt("Stern",["e",e,"r1",r1,"r2",r2,"mod",mod,"delta",delta,"center",center,"name",name],help);
   
 }
@@ -4617,11 +4986,16 @@ module Laser3D(h=4,layer=10,var=0.002,name,on=-1){
 
 module Ellipse(x=2,y=2,z=0,fn=36,help){
     
-   for (i=[0:360/fn:359]){
+   for (n=[0:fn-1]){
+     $idx=n;
+     i=360/fn*n;
     j=i+360/fn;   
-    if($children)  hull(){
+    if($children)  Color(1/fn*n)hull(){
            T(sin(i)*x,cos(i)*y,cos(i)*z)rotate(-i)children();   
-           T(sin(j)*x,cos(j)*y,cos(j)*z)rotate(-j)children();   
+           union(){
+             $idx=$idx+1;
+             T(sin(j)*x,cos(j)*y,cos(j)*z)rotate(-j)children();   
+           }
        }
      if(!$children)hull(){
            T(sin(i)*x,cos(i)*y,cos(i)*z)rotate(-i)circle($fn=36);   
@@ -4630,7 +5004,7 @@ module Ellipse(x=2,y=2,z=0,fn=36,help){
        
    }
   MO(!$children);
-  if(help)echo(str("<H3><font color='",helpMColor,"'>Help Ellipse(x=",x,",y=",y,",z=",z,",fn=",fn,",help);"));
+  HelpTxt("Ellipse",["x",x,"y",y,"z",z,"fn",fn],help);
 }
 
 
@@ -4738,14 +5112,14 @@ help
 
     if($children){
         $helpM=0;
-        $info=0; 
+        $info=is_undef(name)?$info:name; 
         step=((max-min)/fn);
         for (t=[min:step:max-step]){
             
             $rot=vektorWinkel(Bezier(t,p0,p1,p2,p3),Bezier(t+step,p0,p1,p2,p3))+twist/max*t;
-            
+            $tab=true;
             $idx=t;
-             hull(){
+             Color(1/max*t)hull(){
                 translate(Bezier(t,p0,p1,p2,p3))rotate($rot)children();
                 union(){
                     $idx=t+step;
@@ -4886,83 +5260,6 @@ if(messpunkt&&$preview)translate(p0)%union(){
 }
 
 
-module LinEx(h=5,h2=0,h22,scale=0.85,scale2,twist,twistcap=1,slices,$d,$r=5,grad,grad2,mantelwinkel=0,center=false,rotCenter=false,end=0,fn=12,name,help,n){
-
-
-$info=0;
-$helpM=0;
-end=is_bool(end)?end?[1,1]:[0,0]:is_list(end)?end:[end,end];   
-name=is_undef(n)?name:n;
-twistcap=is_list(twistcap)?twistcap:[twistcap,twistcap];    
-$r=is_undef($d)?$r:$d/2;
-$d=2*$r;
-h22=abs(is_undef(h22)?is_list(h2)?h2[1]:h2:h22);
-h2=abs(is_list(h2)?h2[0]:h2);    
-hc=h-h2-h22;      
-
-scale2=is_undef(grad2)?
-    is_undef(grad)?
-    is_undef(scale2)?h22?scale:1:scale2
-    :is_list(grad)?is_list($r)?[($r[0]-(h22/tan(grad[0])))/($r[0]),($r[1]-(h22/tan(grad[1])))/($r[1])]:[($r-(h22/tan(grad[0])))/($r),($r-(h22/tan(grad[1])))/($r)]:($r-(h22/tan(grad)))/($r)
-    :is_list(grad2)?
-        is_list($r)?[($r[0]-(h22/tan(grad2[0])))/($r[0]),($r[1]-(h22/tan(grad2[1])))/($r[1])]:[($r-(h22/tan(grad2[0])))/($r),($r-(h22/tan(grad2[1])))/($r)]:($r-(h22/tan(grad2)))/($r);
-scale=h2?is_undef(grad)?scale:
-    is_list(grad)?
-        is_list($r)?[($r[0]-(h2/tan(grad[0])))/($r[0]),($r[1]-(h2/tan(grad[1])))/($r[1])]:[($r-(h2/tan(grad[0])))/($r),($r-(h2/tan(grad[1])))/($r)]:($r-(h2/tan(grad)))/($r):1;    
-    
-
-
-grad=h2?is_list(scale)?
-        is_list($r)?[atan(h2/($r[0]-$r[0]*scale[0])),atan(h2/($r[1]-$r[1]*scale[1]))]:[atan(h2/($r-$r*scale[0])),atan(h2/($r-$r*scale[1]))]
-    :atan(h2/($r-$r*scale)):0;
-    
-grad2=h22?is_list(scale2)?is_list($r)?[atan(h22/($r[0]-$r[0]*scale2[0])),atan(h22/($r[1]-$r[1]*scale2[1]))]:[atan(h22/($r-$r*scale2[0])),atan(h22/($r-$r*scale2[1]))]:atan(h22/($r-$r*scale2)):0;
-
-mantelwinkel=is_undef(twist)?mantelwinkel:atan(twist*PI*$d/360/hc);    
-twist=is_undef(twist)?mantelwinkel?360*tan(mantelwinkel)*hc/(2*PI*$r):0:twist;   
-slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2))):slices;
-    
-
-rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
-    T(z=center?-h/2:0){
-    //Mklon(tz=h/2-h2,rz=-twist/2)linear_extrude(h2,scale=scale,twist=twistcap?twist/(h-h2*2)*h2:0,convexity=5)children();
-    union(){
-
-    //capoben
-    if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22,scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=5,slices=slices/hc*h22)children();
-    
-    //capunten
-    if(h2)Tz(h2)rotate(twist/2)mirror([0,0,1])linear_extrude(h2,scale=scale,twist=twistcap[0]?-twist/(hc)*h2:0,convexity=5,slices=slices/hc*h2)children();
-    }
-
-    //center
-    Tz(h2)rotate(twist/2)linear_extrude(hc,scale=1,convexity=5,twist=twist,slices=slices,center=false)children();
-    
-    
-    if(end[0]){
-
-     rotate(twist/2+(twistcap[0]?twist/(hc)*h2:0))rotate(sign(end[0])>+0?[-90,0,-90]:[-90,0,0]) RotEx(cut=true,grad=180,fn=fn)scale(scale)rotate(sign(end[0])>0?90:0)children();
-        }
-     if(end[1]){
-
-         Tz(h)rotate(-twist/2-(twistcap[1]?twist/(hc)*h22:0))rotate(sign(end[1])>+0?[-90,0,-90]:[-90,0,0])RotEx(cut=true,grad=-180,fn=fn)
-        scale(scale2)rotate(sign(end[1])>0?90:0)children();
-     }
-
-    }
-    MO(!$children);
-    
-    InfoTxt("LinEx",["core h",str(hc,"mm - twist per mm=",twist/(hc),"°, Fase für $d= ",$d,"mm ist ",grad,"°/",grad2,"° d=",$d*scale,"/",$d*scale2,"mm - r=",$r*scale,"/",$r*scale2,"mm Mantelwinkel für $d/$r=",$d,"/",$r,"mm⇒ ",mantelwinkel,"° twist=",twist,"° slices=",slices)],name); 
-    
-    Echo(str(name," LinEx Höhe center=",hc,"mm"),color="red",condition=hc<0);
-    
-    if(is_list(grad2)?$r*tan(min(grad2[0],grad2[1]))<(is_list($r)?[h22,h22]:h22)&&min(grad2[0],grad2[1])<90&&min(grad2[0],grad2[1])>0:$r*tan(grad2)<(is_list($r)?[h22,h22]:h22)&&grad2<90&&grad2>0)Echo(str(name," LinEx Höhe h22=",h22," mm zu groß oder winkel/$r zu klein min=",atan(h22/$r),"° max=",is_list(grad2)?$r*tan(min(grad2[0],grad2[1])):$r*tan(grad2),"mm"),color="red");
-        
-    if(is_list(grad)?$r*tan(min(grad[0],grad[1]))<(is_list($r)?[h2,h2]:h2)&&min(grad[0],grad[1])<90&&min(grad[0],grad[1])>0:$r*tan(grad)<h2&&grad<90&&grad>0)Echo(str(name," LinEx Höhe h2=",h2," mm zu groß oder winkel/$r zu klein min=",atan(h2/$r),"° max=",$r*tan(grad),"mm"),color="red");    
-    
-    HelpTxt("LinEx",["h",h,"h2",h2,"h22",h22,"scale",scale,"scale2",scale2,"twist",twist,"twistcap",twistcap,"slices",slices,"$d",$d,"grad",grad,"grad2",grad2,", mantelwinkel",mantelwinkel,"center",center,"rotCenter",rotCenter,"end",end,"fn",fn,"name",name],help);  
-    
-}
 
 
 module Achsenklammer(abst=10,achse=3.5,einschnitt=1,h=3,rand=n(2),achsenh=0,fn=fn,help){
@@ -5045,156 +5342,54 @@ HelpTxt("Ttorus",[
 }
 
 
-
-module Kontaktwinkel(winkel=60,d=10,center=true,2D=0,inv=false,name){
+module Kontaktwinkel(winkel=60,d=10,center=true,2D=0,inv=false,centerBase=0,name,help){
 grad=-winkel+90;
 h=sin(grad)*d/2;
 b=sqrt(pow(d/2,2)-pow(h,2));    
-
+viewportsize=is_undef(viewportsize)?1000:viewportsize;
+centerBase=b(centerBase,false);
+$d=d;
+$r=d/2;
   if(!2D){
-      if(!inv) intersection(){
+      if(!inv) Tz(centerBase==1?d/2-h:
+                             centerBase==-1?-d/2+h:
+                                            0)intersection(){
             children();
-            T(z=center?0:-h)cylinder(center?h*2:1000,d=1000,center=center,$fn=6);
+            T(z=center?0:-h)cylinder(center?h*2:viewportSize,d=viewportSize,center=b(center,true),$fn=6);
             }
-      if(inv) intersection(){
+      if(inv)Tz(centerBase==1?-d/2+h:centerBase==-1?d/2-h:0) intersection(){
             children();
             difference(){
-               cube(1000,center=true);
-               T(z=center?0:-h)cylinder(center?h*2:1000,d=1000,center=center,$fn=6);
+               cube(viewportSize,center=true);
+               T(z=center?0:h-viewportSize)cylinder(center?h*2:viewportSize,d=viewportSize,center=b(center,true),$fn=6);
             }
         } 
     }
   if(2D){
-      if(!inv)intersection(){
+      if(!inv)T(y=centerBase==1?d/2-h:centerBase==-1?-d/2+h:0)intersection(){
           children();
-          T(center?0:-500,center?0:-h)square([1000,center?h*2:1000],center=center);
+          T(center?0:-viewportSize/2,center?0:-h)square([viewportSize,center?h*2:viewportSize],center=b(center,true));
           }
-      if(inv)intersection(){
+      if(inv)T(y=centerBase==1?-d/2+h:centerBase==-1?d/2-h:0) intersection(){
           children();
           difference(){
-              square(1000);
-              T(center?0:-500,center?0:-h)square([1000,center?h*2:1000],center=center);
+              square(viewportSize,center=true);
+              T(center?0:-viewportSize/2,center?0:h-viewportSize)square([viewportSize,center?h*2:viewportSize],center=b(center,true));
           }
       }         
           
     }   
     
 MO(!$children);
-if(name)echo(str("Kontaktwinkel ",n," ∅=",d,"-",winkel,"°- Höhe= ",h," Breite= ",b*2));
+InfoTxt("Kontaktwinkel",["∅",d,"winkel",str(winkel,"°"),"Höhe",h,"Breite",b*2],name);
+HelpTxt("Kontaktwinkel",["winkel",winkel,"d",d,"center",center,"2D",2D,"inv",inv,"centerBase",centerBase,"name",name],help);
 }
 
 
 
-module Rundrum(x=+40,y,r=10,eck=4,twist=0,grad=90,grad2=90,spiel=0.005,fn=fn,name,help){
-    
-
+module Tring(spiel=+0,angle=153,r=5.0,xd=+0.0,h=1.75,top=n(2.5),base=n(4),name=0,help){
   
-  // WIP
-    r1=is_list(r)?r[0]:r;
-    r2=is_list(r)?r[1]:r;
-    r3=is_list(r)?r[2]:r;
-    r4=is_list(r)?r[3]:r;
-    r=is_list(r)?r[0]:r;
-    y=is_list(x)?x[1]:is_undef(y)?x:y;
-    x=is_list(x)?x[0]:x;
-        
-    //grad2=grad-20;// WIP
-    shift=tan(grad-90)*y;
-    grad=grad?grad:shift>0?atan(shift/y):-atan(-shift/y);
-    shiftx=shift-r*2*tan(grad-90);
-    shiftx2=tan(grad2-90)*y-r*2*tan(grad2-90);
-    shiftYLang=Hypotenuse(shiftx,y-2*r);
-    shiftYLang2=Hypotenuse(shiftx2,y-2*r);
-    if(eck==4&&grad!=90&&name)echo(str(name," Rundrum grad=",grad,"° ShiftX=",shiftx,"mm (+-",shiftx/2,"mm) Lot(x)=",x*sin(grad),"mm"));
-    //rx=r?r*(r/(sin(grad)*r)):0;
-    function rx(r=r,grad=grad)=r*1/sin(grad);
-    
-
-if(eck==4&&twist==0)
-    if(grad==90&&grad2==90){
-        //Ecken
-        T(-x/2+r1,y/2-r1)rotate(90)RotEx(90,fn=fn/4,cut=true)T(r1)children();// R1
-        union(){
-        $info=false;
-        $helpM=false;
-        $idx=true; // disable help
-        T(x/2-r2,y/2-r2)RotEx(90,fn=fn/4,cut=true)T(r2)children();// R2
-        T(-x/2+r3,-y/2+r3)rotate(180)RotEx(90,fn=fn/4,cut=true)T(r3)children();// R3
-        T(x/2-r4,-y/2+r4)rotate(-90)RotEx(90,fn=fn/4,cut=true)T(r4)children();// R4
-        //Graden
-        //X
-        T((r1-r2)/2,y/2)R(90,0,90)linear_extrude(x-r1-r2+spiel,center=true,convexity=5)children();
-        T((r3-r4)/2,-y/2)R(90,0,-90)linear_extrude(x-r3-r4+spiel,center=true,convexity=5)children();
-        //Y
-        T(-x/2,(r3-r1)/2)R(90,0,180)linear_extrude(y-r1-r3+spiel,center=true,convexity=5)children();
-        T(x/2,(r4-r2)/2)R(90,0,+0)linear_extrude(y-r2-r4+spiel,center=true,convexity=5)children();        
-        }
-        
-    }
-else T(-shiftx/2*0){
-    //plus x    
-    T(x/2-rx(r2,grad2)+shiftx2/2,y/2-r2)rotate(90-grad2)rotate_extrude(angle=grad2,convexity=5,$fn=0,$fa = grad2/(fn/4), $fs = 0.1)Ecke(r2)children();
-    union(){
-        $helpM=0;
-    $info=0;
-    T(x/2-rx(r4,grad2)-shiftx2/2,-y/2+r4)rotate(-90)rotate_extrude(angle=180-grad2,convexity=5,$fn=0,$fa = (180-grad2)/(fn/4), $fs = 0.1)Ecke(r4)children(); 
-    //minus x   
-    T(-x/2+rx(r1)+shiftx/2,y/2-r1)rotate(90)rotate_extrude(angle=180-grad,convexity=5,$fn=0,$fa = (180-grad)/(fn/4), $fs = 0.1)Ecke(r1)children();
-    T(-x/2+rx(r3)-shiftx/2,-y/2+r3)rotate(-90)rotate_extrude(angle=-grad,convexity=5,$fn=0,$fa = grad/(fn/4), $fs = 0.1)Ecke(r3)children();  
-
-
-    //linear x -+   
-    T(+x/2-rx((r2+r4)/2,grad2)+shiftx2/2,y/2-r)rotate(90-grad2)T(+r)R(90,0,0)Tz(-spiel/2)linear_extrude(shiftYLang2+spiel,convexity=5,center=false,$fn=fn)children();
-    T(-x/2+rx(r1/2+r3/2)-shiftx/2,-y/2+r)rotate(90-grad)T(-r)R(90,0,180)Tz(-spiel/2)linear_extrude(shiftYLang+spiel,convexity=5,center=false,$fn=fn)children();
- 
-    //linear y -+    
-    T(-x/2+rx()+shiftx/2-spiel/2,y/2+0)R(90,0,90)linear_extrude(x-rx(r1)-rx(r2,grad=grad2)+spiel+shiftx2/2-shiftx/2,convexity=5,center=false,$fn=fn)children();
-    T(+x/2-rx(grad=grad2)+spiel/2-shiftx2/2,-y/2)R(90,0,-90)linear_extrude(x-rx()-rx(grad=grad2)+spiel-shiftx2/2+shiftx/2,convexity=5,center=false,$fn=fn)children(); 
-    }   
-    if(2*r>x||2*r>y){
-        echo();
-            Echo(str("››»!!!«‹‹ ",name," Rundrum WARNUNG !!! Radius zu groß !!!"),color="red");
-        echo();
-        
-    }
-
-    if(name) if((2*r==x||2*r==y)&&x!=y)echo(str(name," Rundrum Halbkreis"));
-    if(name)  if(2*r==x&&2*r==y)echo(str(name," Rundrum Vollkreis"));
-       
-    }
-  else{
-    for(i=[0:eck-1]){
-        
-        $info=i?0:$info;
-        $idx=i*2;
-        stepDeg=360/eck;
-        rotate(i*stepDeg)T(Umkreis(eck,x-r))rotate(-180/eck)rotate_extrude(angle=stepDeg,$fn=fn,convexity=5)intersection(){
-            T(r)rotate(i*(twist/eck))children();
-            translate([0,-150])square(300);
-        }
-        union(){
-            $helpM=0;
-            $info=0;
-            $idx=i*2+1;
-            rotate(i*stepDeg+180/eck)T(x) R(90)linear_extrude(2*Kathete(Umkreis(eck,x-r),x-r)+spiel,center=true,twist=twist/eck,$fn=fn,convexity=5)rotate(+twist/eck+i*(twist/eck))children();
-        }
-    }
-    
-  }
-MO(!$children);
-
-    module Ecke(r=r){
-        render()intersection(){
-            T(r)children();
-            translate([0,-150])square(300);
-        }
-    }
-  
-HelpTxt("Rundrum",["x",x,"y",y,"r",r,"eck",eck,"twist",twist,"grad",grad,"spiel",spiel,"fn",fn,"name",name],help);    
-}
-
-
-module Tring(spiel=+0,angle=153,r=5.0,xd=+0.0,h=1.75,top=n(2.5),base=n(4),name=0){
+  HelpTxt("Tring",["spiel",spiel,"angle",angle,"r",r,"xd",xd,"h",h,"top",top,"base",base,"name",name],help);
     
    T(0,0,-spiel/2) scale([1.005,1,1]){rotate(-angle/2-180)rotate_extrude(angle=angle)T(r)Trapez(h=h+spiel,x1=base+spiel,x2=top+spiel,x2d=xd,d=+1+spiel,name=name);
    T(0,0,1.25)rotate((360-angle)/2)T(r)R(90)linear_extrude(1,scale=0.7)T(0,-1.25)Trapez(h=h+spiel,x1=base+spiel,x2=top+spiel,x2d=xd,d=+1+spiel,name=name);
@@ -5225,7 +5420,7 @@ module Trapez (h=2.5,x1=6,x2=3.0,d=1,x2d=0,fn=36,rad,name,help){
 }
 
 
-module Prisma(x1=12,y1,z=6,c1=5,s=1,x2,y2,x2d=0,y2d=0,c2=0,vC=[0,0,1],cRot=0,fnC=fn,fnS=36,name,center=false,help){
+module Prisma(x1=12,y1,z=6,c1=5,s=1,x2,y2,x2d=0,y2d=0,c2=0,vC=[0,0,1],cRot=0,fnC=fn,fnS=36,center=false,name,help){
    s=abs(s); 
     helpX1=x1;
     helpY1=y1;
@@ -5277,14 +5472,12 @@ CubeFaces = [
     }
    vx=((x1+s)-(x2+s))/2/(z-s);
    vy=((y1+s)-(y2+s))/2/(z-s); 
-   if(name)echo(str(name," Prisma SteigungX/Y= ",vx*100,"/",vy*100,"% – grad=",atan(vx),"/",atan(vy),"°")); 
-    if(s>z){echo(" <H1><font color='red'>  »»» ",name," Prisma s>z!««« </font> ");
-    echo(); }
-    if(s>c1&&c1){echo(str(" <b><font color='red'>  »»» ",name," Prisma s>c1! ⇒ C-Rundung = s ««« </font></b> "));
-    echo(); } 
-    
-    if(help)
-        echo(str("<H3><font color=",helpMColor,"> HelpPrisma(x1=",helpX1,",y1=",helpY1,",z=",z,", c1=",c1,",s=",s,", x2=",helpX2,",y2=",helpY2,", x2d=",x2d,",y2d=",y2d,",c2=",c2,", vC=",vC,", cRot=",cRot,", fnC=",fnC,",fnS=",fnS,",name=",name," ,center=",center,",help);"));
+   InfoTxt("Prisma",["SteigungX/Y",str(vx*100,"/",vy*100,"%"),"grad",str(atan(vx),"/",atan(vy),"°")],name); 
+    if(s>z)Echo(str("  »»» ",name," Prisma s>z!«««"),color="red");
+
+    if(s>c1&&c1)Echo(str("»»» ",name," Prisma s>c1! ⇒ C-Rundung = s ««« "),color="warning");
+
+HelpTxt("Prisma",["x1",helpX1,",y1",helpY1,",z",z,"c1",c1,"s",s,"x2",helpX2,"y2",helpY2,"x2d",x2d,"y2d",y2d,"c2",c2,"vC",vC,"cRot",cRot,"fnC",fnC,",fnS",fnS,"center",center,"name",name],help);
 }
 
 module Sichel(h=1,start=55,max=270,dia=33,radius=30,delta=-1,step=5,2D=false,fn=36,help){
@@ -5319,7 +5512,9 @@ module Sichel(h=1,start=55,max=270,dia=33,radius=30,delta=-1,step=5,2D=false,fn=
 }
 
 
-module Balg(sizex=16,sizey=16,z=10.0,kerb=6.9,rand=-0.5){
+module Balg(sizex=16,sizey=16,z=10.0,kerb=6.9,rand=-0.5,help){
+  
+  HelpTxt("Balg",["sizex",sizex,"sizey",sizey,"z",z,"kerb",kerb,"rand",rand],help);
    //Y Falz
    T(z=z+z/2)difference(){
        cube([sizex,sizey,z],true);
@@ -5428,7 +5623,9 @@ if ($children)    for(i=[center?-grad/2:0:advance:(center?grad/2:grad)-minVal]){
 
 
 
-module ReuleauxIntersect(h=2,rU=5,2D=false){
+module ReuleauxIntersect(h=2,rU=5,2D=false,help){
+  
+  HelpTxt("ReuleauxIntersect",["h",h,"rU",rU,"2D",2D],help);
         
 teilradius=rU/(sqrt(3)/3);
 rI=teilradius-rU;
@@ -5528,7 +5725,7 @@ help
 
 
 
-module Vorterantrotor(h=40,twist=360,scale=1,zahn=0,rU=10,achsloch=4,ripple=0,caps=2,caps2=0,capdia=6.5,capdia2=0,screw=1.40,screw2=0,screwrot=60,n=1)
+module Vorterantrotor(h=40,twist=360,scale=1,zahn=0,rU=10,achsloch=4,ripple=0,caps=2,caps2=0,capdia=6.5,capdia2=0,screw=1.40,screw2=0,screwrot=60,name,help)
 {
     
  capdia2=capdia2?capdia2:capdia;
@@ -5537,7 +5734,9 @@ module Vorterantrotor(h=40,twist=360,scale=1,zahn=0,rU=10,achsloch=4,ripple=0,ca
  r=rU/(sqrt(3)/3);  
 s= h/(rU*PI*2*(twist/360));
     rI=r-rU;
- if(n)echo(str("»»» »»» ",n," Vorterantkreis ∅= ",2*rU,"mm - Teilradius= ",r,"mm Innen∅=",rI*2,"mm  Steigung= ",s*100,"%"," Winkel= ",atan(s),"°" ));  
+ InfoTxt("Vorterantrotor",["Umkreis ∅",2*rU,"Teilradius",r,"Innen∅",rI*2,"Steigung",str(s*100,"%")," Winkel",str(atan(s),"°")],name);  
+  HelpTxt("Vorterantrotor",["h","40,twist=360,scale=1,zahn=0,rU=10,achsloch=4,ripple=0,caps=2,caps2=0,capdia=6.5,capdia2=0,screw=1.40,screw2=0,screwrot=60"],help);
+  
  if(zahn)
  {
      
@@ -5920,9 +6119,10 @@ schraube=3,
 mutter=5.5,
 schraubenabstand=15,
 hoehe=8,
-fn=fn
-)
-
+fn=fn,
+help
+){
+HelpTxt("Achshalter",["laenge",laenge,"achse",achse,"schraube",schraube,"mutter",mutter,"schraubenabstand",schraubenabstand,"hoehe",hoehe,"fn",fn],help);
 difference()
 {
     union()
@@ -5940,7 +6140,7 @@ difference()
     T(-(schraubenabstand+achse)/2,-achse/2)Linear(s=schraubenabstand+achse)R(90)cylinder(5,d=Umkreis(6,mutter+spiel*2),$fn=6);
     //Inkreis(d=mutter+spiel*2);} depreciated
 }
-
+}
 
 module Dreieck(h=10,ha=10,ha2=0,s=1,name,c=0,2D=0,grad=0)
 {
@@ -5985,7 +6185,6 @@ module GewindeV1(d=20,s=1.5,w=5,g=1,fn=3,r=0,gd=1.75,detail=5,tz=0,name)//deprec
 }
 
 
-
 module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=3,fn2=fn,ueberlapp=0,help,messpunkt=messpunkt,2D=false)
 {
     $helpM=0;
@@ -6015,7 +6214,7 @@ module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=
                 else circle(d=d,$fn=fn2); 
                 translate([0,-500])square(1000);
             }
-        else rotate(-90) Kreis(rand=d,grad=abs(grad),center=false,r=rad+d/2,fn=fn,name=0,help=0); 
+        else Kreis(rand=d,grad=abs(grad),center=false,r=rad+d/2,fn=fn,name=0,help=0); 
         
      if (!2D)R(z=-abs(grad)-180) T(-rad,ueberlapp)R(-90,180,0){
          color("darkorange")linear_extrude(l2,convexity=5)
@@ -6349,9 +6548,10 @@ module Luer(male=true,lock=true,slip=true,rand=n(2),help)
 
 
 
-module Knochen(l=+15,d=3,d2=5,b=0,fn=fn)
+module Knochen(l=+15,d=3,d2=5,b=0,fn=fn,help)
 
 {
+  HelpTxt("Knochen",["l",l,"d",d,"d2",d2,"b",b,"fn",fn],help);
     f=50/fn*0.3;
     function m(x)=d+pow(1.5,x);
     for(i=[-l:f:+5])
@@ -6365,31 +6565,7 @@ module Knochen(l=+15,d=3,d2=5,b=0,fn=fn)
 
 }
 
-            module Aussenkreis(h=5,d=5.5,eck=6,kreis=0,fn=150,n=1)//misleading depreciated
-            {
-                echo("!!!!!!!!!!!!!!!!!! Renamed Inkreis");
-                Inkreis(h=h,d=d,eck=eck,kreis=kreis,fn=fn,n=n);
-                echo("!!!!!!!!!!!!!!!!!! Renamed USE Inkreis");
-            }
 
-
-
-            module Inkreis(h=5,d=5.5,eck=6,kreis=0,fn=fn,name)//depreciated
-            {
-                 echo("<font color='red'size=10>!!!!!!!!!!!!!!!!!! Don't use — depreciated!!<font color='blue'size=7> - use functions Inkreis or Umkreis </font></font>");
-                if(eck==8){
-                    a=d*(sqrt(2)-1);
-
-                    R(z=180/8)cylinder(h,r=a*sqrt(1+(1/sqrt(2))),$fn=kreis?fn:eck);  
-                }  
-                
-                if(eck==6)cylinder(h,d=Umkreis(6,d),$fn=kreis?fn:eck);
-                
-                if(eck==4)R(z=45)cylinder(h,r=sqrt(2*pow(d/2,2)),$fn=kreis?fn:eck);
-                if(eck==3)R(z=0)cylinder(h,r=d,$fn=kreis?fn:eck);
-                
-                if(name)echo(str("»»» »»» ",name," ",eck,"-eck Inkreis∅= ",d));
-            }
 
 module DGlied0(l1=12,l2=12,la=0,d=3,spiel=.5,rand=n(1.5),freiwinkel=20)
 {
@@ -6546,61 +6722,7 @@ module Freiwinkel(w=60,h=1)
  }
 
 
-module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gradEnd=90,trxEnd=0,endRot=0,endspiel=+0,name,help)
-    rotate(grad?0:-a/2){
-    end=is_undef(spheres)?is_bool(end)?end?-1:0:end:spheres;//compatibility
-    $d=d;
-    $r=d/2;   
-    endRot=is_list(endRot)?endRot:[endRot,endRot];
-    trx=dia?dia/2-d/2:trx;    
-    a=grad?end==-1&&!$children?grad-(asin($r/trx)*2)*sign(grad):grad:end==-1&&!$children?a-(asin($r/trx)*2)*sign(a):a;
-    grad=grad?grad:a;    
-rotate(end==-1&&!$children?(asin($r/trx))*sign(grad):0){
-   translate([0,0,center?0:d/2]) RotEx(grad=a,fn=fn,cut=1,help=false)
-                if($children)T(x=trx)R(0,0,r)children();
-                else T(x=trx)R(0,0,r)circle(d=d,$fn=fn2);
 
-    if(end&&a!=360&&!trxEnd){
-        if($children){
-            rotate(a+endspiel*sign(grad))translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=fn/2,help=false)rotate(endRot[1])children();
-            rotate(+0)translate([trx,0,center?0:d/2])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=fn/2,help=false)rotate(endRot[0])children();  
-        }
-        else{
-        rotate(a-sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?1:0)sphere(d=d,$fn=fn2);
-        rotate(sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?0:1)sphere(d=d,$fn=fn2);
-        }
-    }
-    
-    if(trxEnd)translate([0,0,center?0:d/2]){ // End Ringstück
-        if($children){
-        T(trx-trxEnd)rotate(gradEnd*sign(-trxEnd)){
-            RotEx(grad=gradEnd*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
-            if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/4,help=false)rotate(endRot[0])children();
-            }
-       rotate(180+grad)T(-trx+trxEnd)rotate(180){
-            RotEx(grad=gradEnd*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
-            if(end)rotate(gradEnd*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/4,help=false)rotate(endRot[1])children();
-            } 
-        }
-        else{
-            T(trx-trxEnd)rotate(gradEnd*sign(-trxEnd)){
-            RotEx(grad=gradEnd*sign(trxEnd),fn=fn/360*gradEnd,cut=+0)T(trxEnd)circle(d=d,$fn=fn2);
-            if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,help=false)circle(d=d,$fn=fn2);
-            }
-       rotate(180+grad)T(-trx+trxEnd)rotate(180){
-            RotEx(grad=gradEnd*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)circle(d=d,$fn=fn2);
-            if(end)rotate(gradEnd*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,help=false)circle(d=d,$fn=fn2);
-            }  
-        }    
-    }
-}
-    InfoTxt("Torus",["Innen∅",2*trx-d,"Mitten∅",2*trx,"Aussen∅",2*trx+d],info=name);
-    //if(n)echo(str("»»» »»» ",n," Torus Innen∅= ",2*trx-d," Mitten∅= ",2*trx," Aussen∅= ",2*trx+d));
- 
-    HelpTxt("Torus",["trx",trx,"d",d,"a",a,"fn",fn,"fn2",fn2,",r=",r,", grad=",grad,"dia",dia,"center",center,"end",end,"gradEnd",gradEnd,"trxEnd",trxEnd,"endRot",endRot,"endspiel",endspiel,"name",name,"$d",$d],help);
-         
-    
-}
 
 
 module Torus2(m=5,trx=10,a=1,rq=1,d=5,w=2,name,new=true)//m=feinheit,trx = abstand mitte,rq = sin verschiebung , a=amplitude, w wellen
@@ -6802,7 +6924,7 @@ module Servokopf(rot=0,spiel=0,schraube=true,help)
 }
 
     
-module Servo(r=0,narbe=1)
+module Servo(r=0,narbe=1,help)
  {
 
      cube([12.5,22.5+1.5,23],true);
@@ -6826,14 +6948,17 @@ module Servo(r=0,narbe=1)
      color([.8,0.5,.2,1])translate([+0,-11.8,-3.4])scale([1,0.15,1])cylinder(16,d=12.5,$fn=36,center=true);//cut für kabel
         translate([+0,14,6]) cylinder(10.0,d=1.8,$fn=6,center=true);    //Schraubenlöcher 
          translate([+0,-14,6]) cylinder(10.0,d=1.8,$fn=6,center=true);    //Schraubenlöcher     
+         
+  HelpTxt("Servo",["r",r,"narbe",narbe],help);
  } 
 
 
-module Glied3(x=15,layer=.15)
+module Glied3(x=15,layer=.15,help)
 
 {
+  HelpTxt("Glied3",["x",x,"layer",layer],help);
    function l(x)=layer*x; 
-   echo(Glied3Layer=l(1)); 
+   echo(Glied3_uses_layer=l(1)); 
     difference()
     {
         union()
@@ -6871,8 +6996,9 @@ module Glied3(x=15,layer=.15)
    
 } 
 
-module Gelenk(l=20,w=0)//ausschnittlänge, winkel
+module Gelenk(l=20,w=0,help)//ausschnittlänge, winkel
 {
+  HelpTxt("Gelenk",["l",l,"w",w],help);
     
     scale([1.2,1.2,1.3])rotate([0,0,180])intersection()
     {
@@ -6923,8 +7049,9 @@ HelpTxt("Ring",["h",h,
 
 
 
-module Servotraeger(SON=1,top=0)
+module Servotraeger(SON=1,top=0,help)
  {
+   HelpTxt("Servotraeger",["SON",SON,"top",top],help);
     if(!top)translate([0,+0,+35.4]) difference()
      {
          minkowski()
@@ -7037,7 +7164,34 @@ module PilleOLD(l=10,d=5,fn=fn,fn2=36,center=true,name,s=0,rad,rad2,loch=false,h
    
 /*/////////////////////////////////////////////////////////////////////////////////////////////
     Depreciated / for Deletion
-   
+
+module Aussenkreis(h=5,d=5.5,eck=6,kreis=0,fn=150,n=1)//misleading depreciated
+{
+    echo("!!!!!!!!!!!!!!!!!! Renamed Inkreis");
+    Inkreis(h=h,d=d,eck=eck,kreis=kreis,fn=fn,n=n);
+    echo("!!!!!!!!!!!!!!!!!! Renamed USE Inkreis");
+}
+
+
+
+module Inkreis(h=5,d=5.5,eck=6,kreis=0,fn=fn,name)//depreciated
+{
+     echo("<font color='red'size=10>!!!!!!!!!!!!!!!!!! Don't use — depreciated!!<font color='blue'size=7> - use functions Inkreis or Umkreis </font></font>");
+    if(eck==8){
+        a=d*(sqrt(2)-1);
+
+        R(z=180/8)cylinder(h,r=a*sqrt(1+(1/sqrt(2))),$fn=kreis?fn:eck);  
+    }  
+    
+    if(eck==6)cylinder(h,d=Umkreis(6,d),$fn=kreis?fn:eck);
+    
+    if(eck==4)R(z=45)cylinder(h,r=sqrt(2*pow(d/2,2)),$fn=kreis?fn:eck);
+    if(eck==3)R(z=0)cylinder(h,r=d,$fn=kreis?fn:eck);
+    
+    if(name)echo(str("»»» »»» ",name," ",eck,"-eck Inkreis∅= ",d));
+}
+
+
    
 DEL module RingOLD(h=5,rand=2,d=10,cd=1,center=false,fn=fn,name,2D=0)// marked for deletion
 {
