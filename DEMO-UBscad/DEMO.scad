@@ -11,7 +11,7 @@ bed=false;
 vp=true;
 vpr=[0,0,0];
 vpt=show=="products"?[100,100]:[35,30];
-vpd=show=="products"?1000:250;
+vpd=show=="products"?1000:230;
 
 /*[Demo]*/
 show="Select Topic!";//[modifier,generator,helper,polygons,objects,products,functions]
@@ -93,14 +93,23 @@ union(){// MKlon mirror clones
     Txt("MKlon(tx=1)"); 
 }
 
+union(){// Row ensure same distance between Objects
+    Row(cut=false,d=1,e=4,dist=.5,step=1)circle(d=$d);
+    Txt("Row(e=4,dist=.5,step=1)"); 
+}
+
 union(){// Rand makes rand
     circle(1,$fn=6);T(objPos/2)P();T(objPos)Color(color2)Rand(.5)circle(1,$fn=6);
     Txt("Rand(.5)"); 
 }
+
+
+
 union(){// Halb cut half away
     Cross()circle(2);T(objPos/2)P();T(objPos)Cross()Color(color2)Halb(x=true,2D=true)circle(2);
     Txt("Halb(x=true)"); 
 }
+
 
 union(){//Drehpunkt move fulcrum
 Cross()circle(1.5);T(objPos/2)P();T(objPos){
@@ -108,36 +117,31 @@ Cross()circle(1.5);T(objPos/2)P();T(objPos){
     Cross()Drehpunkt(rz=-45,x=2)Color(color2)circle(1.5);
     }
     Txt("Drehpunkt(rz=-45,x=2)");
-
 }
 
 
+
 }
 
-if(show=="generator")Anordnen(option=3,es=[30,15],c=undef,loop=false,center=false,inverse=true){
+if(show=="generator")Anordnen(option=3,es=[30,15],e=6,c=undef,loop=false,center=false,inverse=true,name="Generator"){
 objPos=[4,4];
+  
+  
+union(){ // around
+  T(objPos)Rundrum(10,6,r=[2.5,4,1,0],help=0)rotate(30)circle(1,$fn=6);
+  Txt("Rundrum()circle()"); 
+}
 
 union(){// linear extrude
-    T(objPos)R(90)LinEx(5,1,end=true,fn=36)circle();
-    T(objPos)T(10)R(90)LinEx(5,1,scale=1.5,end=true,twist=45,twistcap=true,fn=10)Stern(r1=1,r2=1.5);
-    Txt("LinEx(5,1,end=true)circle()"); 
+    T(objPos)T(-3)R(-90)LinEx(8,1,grad=45,fn=36,$d=5,center=true)circle($r);
+    T(objPos)T(5)R(90)LinEx(5,1,end=true,fn=36,center=true)circle(2);
+    T(objPos)T(13)R(-90)LinEx(5,1,scale=1.5,end=true,twist=45,twistcap=true,fn=10,center=true)Stern(r1=1,r2=1.5);
+    Txt("LinEx(8,1,grad=45,$d=5)circle($r)"); 
 }
 
 union(){// rotate extrude
     T(objPos)R(90)RotEx(cut=true)T(-3)circle(5);
     Txt("RotEx(cut=true)T(-3)circle(5)"); 
-}
-
-union(){// linear extrude2
-    T(objPos)R(-90)Tz(-5)LinEx2(2,1.3,twist=15,s=1,fs=1.02)circle(3,$fn=3);
-    T(objPos+[10,0])R(-90)Tz(-5)LinEx2(1,1.0,twist=-15,s=1.1,fs=0.98)circle(3,$fn=6);
-    Txt("LinEx2(2,1.3,twist=15)circle(3)"); 
-}
-
-union(){//  torus
-    T(objPos)Torus(dia=8,d=1.5)circle(d=$d);
-    T(objPos+[10,0])rotate(-110)Torus(dia=8,d=2,grad=220,end=+1,gradEnd=90,trxEnd=-2,endRot=90/5,fn=60)Stern(5,1,.5);
-    Txt("Torus(dia=8,d=1.5)circle(d=$d)"); 
 }
 
 union(){// Twisted torus
@@ -146,25 +150,47 @@ union(){// Twisted torus
     Txt("Ttorus()R(90)cylinder()"); 
 }
 
+union(){// linear extrude2
+    T(objPos)R(-90)Tz(-5)LinEx2(2,1.3,twist=15,s=1,fs=1.02)circle(3,$fn=3);
+    T(objPos+[10,0])R(-90)Tz(-5)LinEx2(1,1.0,twist=-15,s=1.1,fs=0.98)circle(3,$fn=6);
+    Txt("LinEx2(2,1.3,twist=15)circle(3)"); 
+}
+
+
 union() { //Bezier
     T(objPos)Bezier(p0=[0,+5],p1=[10,+0],p2=[-9,+3],p3=[10,-5],messpunkt=3)R(90)cylinder(.1,d1=1,d2=0);
     Txt("Bezier()R(90)cylinder()"); 
 }
 
-union(){ // around
-  T(objPos)Rundrum(10,6,r=[2.5,4,1,0],help=0)rotate(30)circle(1,$fn=6);
-  Txt("Rundrum()circle()"); 
-}
+
 
 union(){ // Bow
-  T(objPos)Bogen(l=2,messpunkt=5,grad=65)circle(1);
-  Txt("Bogen()circle()"); 
+  T(objPos){
+    T(-5){
+      Cross();
+      Bogen(l=2,messpunkt=5,grad=65);//circle(1,$fn=5);
+      }
+  T(4){
+    Cross();
+    Bogen(l1=3,l2=1,messpunkt=5,grad=-61,center=+0,2D=true,d=2);
+    }
+  }
+  Txt("Bogen()"); 
 }
 union(){ // S-Bow
-  T(objPos)SBogen(l1=4,r1=4,r2=1.5,dist=3,messpunkt=5)circle(1);
+  T(objPos){
+    T(-3)SBogen(l1=4,r1=4,r2=1.5,dist=3,messpunkt=5)circle(1);
+    T(2)SBogen(l1=4,r1=4,r2=1.5,dist=3,messpunkt=5,2D=1.5);
+    T(6)SBogen(l1=4,r1=4,r2=1.5,dist=3,messpunkt=5,extrude=4);
+  }
+  
   Txt("SBogen()circle()"); 
 }
-
+union(){//  torus
+    T(objPos)Torus(dia=8,d=1.5)circle(d=$d);
+    T(objPos+[10,0])rotate(-110)Torus(dia=8,d=2,grad=220,end=+1,gradEnd=90,trxEnd=-2,endRot=90/5,fn=60)Stern(5,1,.5);
+    Txt("Torus(dia=8,d=1.5)circle(d=$d)"); 
+}
 union(){ // Bevel
   T(objPos)Bevel(5,on=true)cube(5);
   Txt("Bevel(5)(cube(5)"); 
@@ -174,30 +200,51 @@ union(){ // RStern
   Txt("RStern()circle()"); 
 }
 
+union(){ // Rundrum
+  T(objPos)Rundrum(4,7,r=1)circle(.5);
+  T(objPos+[9,0])Rundrum(3,7,r=1.5,eck=5,twist=90)square(1,true);
+  Txt("Rundrum()circle()"); 
+}
 
-/*
-ECHO: "•••• Rundrum(x=+40,y=30,r=10,eck=4,twist=0,grad=0,spiel=0.005,fn=fn,n=$info) polygon 
+union(){ // Kextrude
+  T(objPos)Kextrude(1.5,4,rad=0.75,grad=120)circle(.5,$fn=4);
+  
+  Txt("Kextrude()circle()"); 
+}
+union(){ // Ellipse
+  T(objPos)Ellipse(2,4,fn=24)sphere(.5,$fn=12);
+  Txt("Ellipse()sphere()"); 
+}
 
-RStern(help=$helpM)polygon ••"
-ECHO: "••••  Kextrude(help=$helpM); ••"
-ECHO: "•••• LinEx(help=$helpM) polygon  ••"
-ECHO: "•••• LinEx2(bh=5,h=1,slices=10,s=1.00,ds=0.01,dh=0.7,fs=1,fh=1,twist=0,n=$info,fn=fn) ••"
-ECHO: "•••• RotEx(grad=360,fn=fn,center=false)  ••"
+union(){ // Kontakwinkel
+  T(objPos)T(y=-5){
+    R(-90)Kontaktwinkel(60,d=10,center=0,centerBase=1,inv=false)sphere(d=$d);
+    T(4.3,0)Pivot(rot=60,messpunkt=6,active=[1,1,0,0,1]);
+  }
+  
+  Txt("Kontaktwinkel(60,d=10)"); 
+}
 
-ECHO: "•••• Elipse(x=2,y=2,z=0,fn=36)Object••"
-ECHO: "•••• Ttorus(r=20,twist=360,angle=360,fn=fn)3D-Objekt      ••"
-ECHO: "•••• Gewinde(help=$helpM)••"
-ECHO: "•••• GewindeV3(dn=5,h=10,kern=0,p=1,w=0,profil=0,gh=0.56,g=1,n=$info,fn=36)••"
-ECHO: "•••• Kontaktwinkel(winkel=60,d=d,center=true,2D=0,inv=false,n=$info) Objekt  ••"
-ECHO: "•••• Bezier(p0=[+0,+10,0],p1=[15,-5,0],p2=[15,+5,0],p3=[0,-10,0],w=1,max=1.0,min=+0.0,fn=50,ex=0,pabs=false,messpunkt=5,n=$info) Objekt •••••"
-ECHO: "•••• Laser3D(h=4,layer=10,var=0.002,n=$info,on=-1)3D-Objekt ••"
-ECHO: "
-•••• Bogen(help=$helpM) opt Polygon   ••
-•••• SBogen(help=$helpM) opt Polygon   ••
-•••• Row(help=$helpM) opt. Objekt ••
-•••• Anordnung(help=$helpM) Objekte ••
-•••• Bevel(help=$helpM) Objekt ••
-*/
+
+//Rundrum(x=+40,y=30,r=10,eck=4,twist=0,grad=0,spiel=0.005,fn=fn,n=$info) polygon  •• 
+//RStern(help=$helpM)polygon ••
+//Kextrude(help=$helpM) polygon  •• 
+//LinEx(help=$helpM) polygon  ••
+//LinEx2(bh=5,h=1,slices=10,s=1.00,ds=0.01,dh=0.7,fs=1,fh=1,twist=0,n=$info,fn=fn);
+//RotEx(grad=360,fn=fn,center=false)polygon ••
+//Elipse(x=2,y=2,z=0,fn=36)Object••"
+//Ttorus(r=20,twist=360,angle=360,fn=fn)3D-Objekt ••
+//Gewinde(help=$helpM)••"
+//GewindeV3(dn=5,h=10,kern=0,p=1,w=0,profil=0,gh=0.56,g=1,n=$info,fn=36)••"
+//Kontaktwinkel(winkel=60,d=d,center=true,2D=0,inv=false,n=$info) Objekt  ••"
+//Bezier(p0=[+0,+10,0],p1=[15,-5,0],p2=[15,+5,0],p3=[0,-10,0],w=1,max=1.0,min=+0.0,fn=50,ex=0,pabs=false,messpunkt=5,n=$info) Objekt •••••"
+//Laser3D(h=4,layer=10,var=0.002,n=$info,on=-1)3D-Objekt ••"
+//Bogen(help=$helpM) opt Polygon   ••
+//SBogen(help=$helpM) opt Polygon   ••
+//Row(help=$helpM) opt. Objekt ••
+//Anordnung(help=$helpM) Objekte ••
+//Bevel(help=$helpM) 3D Objekt ••
+
 }
 
 
@@ -347,9 +394,15 @@ ECHO: "
 
 
 if(show=="objects")union()//•••••••••• objects:   ••••••••••
-Anordnen(es=50,option=3,c=undef,loop=false,center=false){
-    
-    
+Anordnen(es=50,option=3,c=undef,loop=false,center=false,name="Objects"){
+    objPos=[3,0];
+  union(){ // hyperbolic fillet
+    T(objPos)T(-2,0)R(0,90,90)HypKehle(l=8,d1=1,exp=2,fill=true)rotate(30)circle($r,$fn=6);
+    Txt("HypKehle()circle()"); 
+  }
+  
+  
+  
  /* 
   •••••••••• BasisObjekte:   •••••••••••••
 
@@ -605,7 +658,7 @@ objPos=[2,1,0];
 ••• parentList() list with all modules •••\n
 ••• teiler(n,div=2) least divisior •••\n
 ••• gcode(points,f) generates gcode in output •••\n
-••• b(n); switches bool in num and vica versa (works on vectors) •••\n
+••• b(n,bool); switches bool in num and vica versa (works on vectors) also always bool never bool •••\n
 ••• scaleGrad(grad=45,h=1,r=1) scale factor for extrusions•••\n
 */
 }
