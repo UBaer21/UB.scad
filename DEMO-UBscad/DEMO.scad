@@ -10,10 +10,10 @@ nozzle=.2;
 bed=false;
 vp=true;
 vpr=[0,0,0];
-vpt=show=="products"?[100,100]:[35,30];
-vpd=show=="products"?1000:230;
-
-
+vpt=show=="products"?[100,100]:show=="polygons"?[56,52]:[35,30];
+vpd=show=="products"?1000:show=="polygons"?350:230;
+$textSize=1.3;
+$crossLine=.1;
 /*[Demo]*/
 show="Select Topic!";//[modifier,generator,helper,polygons,objects,products,functions]
 
@@ -28,10 +28,10 @@ T($textPos+[0,-6])Tz(-.1)Text(h=0,text=show,size=3,cy=-1);
 module P(){
 Pfeil(l=6,b=[1,2.5],shift=-0.5,center=[1,1],name=false);    
 }
-module Txt(text,line=0){
-Col(8)T($textPos+[0,line*1.3*1.5])text(str(text),size= 1.3,valign="top");    
+module Txt(text,line=0,size=$textSize){
+Col(8)T($textPos+[0,line*1.3*1.5])text(str(text),size= size,valign="top");    
 }
-module Cross(s=5,line=0.1){
+module Cross(s=5,line=$crossLine){
    %Tz(.1)union(){
        square([line,s],true);
        square([s,line],true);
@@ -357,18 +357,21 @@ union(){// Line line between P0 P1
 }
 
 if(show=="polygons")union()//•••••••••• polygons:   ••••••••••
-T(0,5)Anordnen(es=[35,20],option=3,c=undef,loop=false,center=false){
+T(0,5)Anordnen(es=[36,24],option=3,e=6,c=undef,loop=false,center=false,name="Polygons"){
 $textPos=[-8,-8];
+  $textSize=2;
+  $crossLine=0.2;
+  
     union(){// Triangle
         Cross();
         linear_extrude(.1)Tri(h=10,r=[1,.5],top=true,messpunkt=5);
-        Txt("Tri(h=10,r=[1,.5],top=1);");
+        Txt("Tri");
     }
     union(){// Quad
         Cross();
-        Quad(12,10,grad=135,messpunkt=5);
+        Quad(12,10,grad=135,r3=1.5,messpunkt=5);
         //T(0,-2.5)Rand(.1)square([10,5],true);
-        Txt("Quad(10,5,grad=135);");
+        Txt("Quad");
     }    
     union(){// Kreis
         Cross();
@@ -378,7 +381,7 @@ $textPos=[-8,-8];
     union(){// Tri90
         Cross();
         Tri90(grad=20,r=[1,2],messpunkt=5);
-        Txt("Tri90(grad=20,r=[1,2]);");
+        Txt("Tri90");
     }    
     union(){// Lens
         Cross();
@@ -393,7 +396,7 @@ $textPos=[-8,-8];
     union(){// Wave Star
         Cross();
         WStern(f=5,r=5,a=1,fn=5*10);
-        Txt("WStern(f=5,r=5,a=1);");
+        Txt("WStern");
     }     
   
     union(){// Super Ellipse
@@ -404,13 +407,103 @@ $textPos=[-8,-8];
         Tz($idx/10)Superellipse(0.5,r=5,fn=4*10);
             
         }
-        Txt("Superellipse(n=3,r=5);");
+        Txt("Superellipse");
     }    
     union(){// 7-Segment
         Cross();
         Seg7(8);
-        Txt("Seg7(8);");
-    }      
+        T(8){
+          Seg7(6,h=undef,2.2,0.7,l=5,rund=1.0);
+        }
+        Txt("Seg7");
+    } 
+    
+    union(){// VarioFill
+        T(0,-5){Cross();
+        VarioFill(exp=2.5,l=[12,20],grad=120);}
+        Txt("VarioFill");
+    }
+    
+    union(){// Vollwelle FullWave
+        T(0,0){
+          Cross();
+          Vollwelle(r=3,xCenter=+1,extrude=+0,x0=-5);
+          T(8,0){
+            Cross();
+            Vollwelle(r=2,mitte=0.7,grad=50,r2=4,xCenter=-1,h=4,l=20,extrude=0,x0=5); 
+          }
+        }
+        Txt("Vollwelle");
+    }
+    
+    union(){//circle with circles
+        T(0,0){Cross();
+        WKreis(e=5,d1=3);}
+        Txt("WKreis");
+    }
+    
+    union(){// grooves
+        T(0,0){Cross();
+        Nut();
+        T(0,4)Nut(3,grad=70,h=3,a=2,s=20); 
+          }
+        Txt("Nut");
+    }
+    
+    union(){// Cycloide
+        T(0,0){
+          Cross();
+        Cycloid(modul=2,d=5);
+          union(){
+            $info=false;
+        T(-1,0)offset(-0.2)Cycloid(modul=2,z=6,d=16);  
+        T(13,4)Cycloid(z=3,modul=2.6,d=5,option=1);
+        T(13,-4)Cycloid(z=3,modul=2.6,d=3,option=-1);
+        T(-5,+11)Cycloid(z=5,modul=1.3,d=3,option=+0,linear=true);    
+          }
+          }
+        Txt("Cycloid");
+    }
+    
+        union(){// Cycloid tooth
+        T(0,0){Cross();
+        CycloidZahn(z=4,modul=3);}
+        Txt("CycloidZahn");
+    }   
+        union(){// GT 
+        T(0,0){Cross();
+        GT(z=20,evolute=false);
+          union(){$info=false;
+        T(-1.3)GT(z=24,evolute=false,linear=false,pulley=false);
+        T(9,6)rotate(-90)GT(z=7,evolute=false,linear=true,pulley=false);  
+          }}
+        Txt("GT");
+    }   
+    union(){// Flower
+        T(0,2){Cross();
+        for(i=[1:3:12])Color(i/10)Tz(-i/100)Flower(e=5,r=8,n=i,min=2,name=2);}
+        Txt("Flower");
+    }
+    
+    union(){// Egg
+        T(0,0){Cross();
+        Egg();
+         T(11)Egg(r1=23,r2=2,breit=7,r3=undef); 
+          }
+        Txt("Egg");
+    }
+    
+    union(){// DBogen
+        T(0,0){Cross();
+        DBogen(x=15);}
+        Txt("DBogen");
+    }
+    union(){// Rosette
+        T(0,0){Cross();
+        Rosette(r1=2,r2=3,ratio=3);}
+        Txt("Rosette");
+    }    
+    
     
     
   /* 
