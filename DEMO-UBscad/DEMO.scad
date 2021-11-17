@@ -4,14 +4,16 @@
 
 include<ub.scad> 
 /*[Hidden]*/
-useVersion=21.325;//⇒ v.gd/ubaer
+useVersion=21.330;//⇒ v.gd/ubaer
 assert(Version>=useVersion,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 nozzle=.2;
 bed=false;
 vp=true;
 vpr=[0,0,0];
-vpt=show=="products"?[100,100]:show=="polygons"?[56,52]:[35,30];
+
 vpd=show=="products"?1000:show=="polygons"?350:230;
+vpt=show=="products"?[100,100]:[viewportSize*0.43,viewportSize*0.35];//[35,30];show=="polygons"?[56,52]:
+
 $textSize=1.3;
 $crossLine=.1;
 /*[Demo]*/
@@ -357,8 +359,8 @@ union(){// Line line between P0 P1
 }
 
 if(show=="polygons")union()//•••••••••• polygons:   ••••••••••
-T(0,5)Anordnen(es=[36,24],option=3,e=6,c=undef,loop=false,center=false,name="Polygons"){
-$textPos=[-8,-8];
+T(5,7)Anordnen(es=[36,24],option=3,e=6,c=undef,loop=false,center=false,name="Polygons"){
+$textPos=[-7,-8.5];
   $textSize=2;
   $crossLine=0.2;
   
@@ -504,7 +506,14 @@ $textPos=[-8,-8];
         Txt("Rosette");
     }    
     
-    
+    union(){// SBoW
+        T(0,0){Cross();
+        SBogen(extrude=2,dist=2,r1=3,l1=5);
+        T(5)SBogen(extrude=0,2D=0.8,dist=2,r1=3,l1=5);  
+        T(11)SBogen(grad=170,extrude=-2.2,2D=0.6,dist=3.3,r1=0.6,r2=1,l1=5);    
+          }
+        Txt("SBogen");
+    }        
     
   /* 
     •••••• 2D ••••••
