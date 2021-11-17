@@ -16,13 +16,14 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 🌐**But why would you need it? Best to judge from what you can accomplish - i build this lib to make these [Prints](https://www.prusaprinters.org/social/167780)**
 
-- the console (text output) give you some feedback from the lib and modules
+🔥 the console (text output) give you some feedback from the lib and modules.<br> The idea is that you can use this without ever looking at the libraries code (modules) itself.
 
-  use `helpsw=true;` (1-5 or `true` for all) to get an overview <br>
-  On the top you see some variables like nozzle or clearance aswell fragments (these change automatically when rendering), switches or for animation
+  use `helpsw=true;` (1-5 or `true` for all) to get a list of available modules <br>
+  On the top you see some variables like nozzle or clearance aswell fragments (which will change automatically when rendering like some other variables).
   
-  Also every module Example() has an internal help, use: `Example(help=true);`<br>Additional there are informations displayed on the console window. When giving a name to module `Example(name="Test");` they are emphasized.
-  ![](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/consoleTXT.png)
+  Also every `module Example()` has an internal help, use: `Example(help=true);`<br>Additional there are informations displayed on the console window. When giving a name to module `Example(name="Test");` they are emphasized.
+  
+![](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/consoleTXT.png)
   
   and switches to show the status
   ![](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/consoleSchalter.png)
