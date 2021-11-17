@@ -3,7 +3,7 @@ use<ub.scad>
 $fn=72;
 
 
-Anordnen(es=50,cl=0.85,c=0.1){
+Anordnen(es=50,option=2,cl=0.85,c=0.1){
   PipeBlock();
   Hourglas();
   Knob();
@@ -60,7 +60,7 @@ Tz(30){
 } 
 }
 
-module Knob()R(-30)Halb(1,y=1)union(){
+module Knob()T(-10)rotate(-150)R(0)Halb(1,y=1)union(){
  Pille(l=3,d=30,center=false,rad=[0,2]);
  Tz(3){
    Strebe(grad=-20,h=15,d=10,rad=[7,2]);
