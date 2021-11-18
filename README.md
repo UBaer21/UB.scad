@@ -21,7 +21,7 @@ There are a lot of settings available but most is using  pre configuration - so 
   use `helpsw=true;` (1-5 or `true` for all) to get a list of available modules <br>
   On the top you see some variables like nozzle or clearance aswell fragments (which will change automatically when rendering like some other variables).
   
-  Also every `module Example()` has an internal help, use: `Example(help=true);`<br>Additional there are informations displayed on the console window. When giving a name to module `Example(name="Test");` they are emphasized.
+  Also every `module Example()` has an internal help, use: `Example(help=true);`<br>Additional there are informations displayed on the console window. When giving a name to module `Example(name="Test");` they are emphasized. For a little suprise put in your name.
   
 ![](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/consoleTXT.png)
   
