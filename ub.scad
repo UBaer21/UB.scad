@@ -49,6 +49,7 @@ Changelog (archive at the very bottom)
 331|21  CHG Abzweig CHG Kontaktwinkel
 332|21  CHG Linear CHG Surface help Scale 2D
 333|21  ADD easterEgg
+334|21  FIX Bezier FIX Line
 
 
 */
@@ -79,8 +80,8 @@ layer=0.08;// one step = 0.04 (8mm/200steps)
 //Print Bed
 printBed=[220,220];
 //Printposition;
-pPos=printBed/2;
-printPos=bed?pPos:[0,0,0];
+pPos=[0,0];
+printPos=bed?printBed/2+pPos:[0,0,0];
 //global fragment size
 hires=false;
 fn=$fn?$fn:$preview?36:
@@ -114,7 +115,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.333;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.334;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -622,10 +623,33 @@ if(name=="Test"||name=="test"||is_bool(name)||name==undef||is_num(name)) {
                                                     "none"],name);
  HelpTxt("Example",["variable",variable,"name",name],help);  
  }
-   
+
 /////////////////////////////////////// END Example /////////////////////////
-else{rand=rands(0,1,1)[0];n=floor(rands(2,4,1)[0]);room=floor(rands(0,10,1)[0]);$info=false;echo("\n\n");if(name=="yes"||name=="Yes"||name=="YES"){Echo(str("You are in a Cave room with ",n," doors pick “left“ ",n==3?", “right“or “middle“":"or “right“"," (name=”answer”)\n\n) "),color="black");Linear(n,es=15,center=true){R(90)Color("burlywood",l=.8)LinEx(2)Rand(-1)DBogen(x=12,base=-20);R(90)Color("goldenrod")LinEx(1)offset(-.1)DBogen(x=12,base=-20);T(3+$idx%2*-6,-1,-9)color("black")sphere(0.6);}Tz(14)cube([150,1,70],true);}else if(name=="no"||name=="NO"||name=="No")  Echo("Ok have fun with this library and oSCAD",color="info");else if(name=="right"||name=="left"||name=="middle"||name=="run"||name=="sneak"||name=="climb"||name=="jump"||name=="swim"||name=="red"||name=="green"||name=="blue"||name=="balance"){if(room==0){end=floor(rands(1,4,1)[0]);if(end==1)scale(.5){Echo("That didn't went well  you died\n\t—that was faster than expected!\n\t try again (name=“yes“)?",color="red");Linear(5,es=25,center=true)difference(){union(){color("brown") R(90)LinEx(50,2,scale=0)DBogen(x=23,rad=1);if($idx!=2)T(0,4) color("lightgrey") Prisma(12,9,5,x2=10,s=3,y2=7);}color([.2,.1,.1])if($idx==2)T(0,-24)linear_extrude(50,true)Quad(18,40,r=2);}color([.2,.1,.1])T(0,-24)linear_extrude(2,true)Quad(18,40,r=2);Tz(20)cube([2,2,40],true);Tz(30)cube([20,2,2],true);T(y=-2.5,z=30)R(50)color("darkgrey")text("The End",halign="center",size=3);color("darkgreen") square(150,true);Tz(4.1)T(0,-17){color("wheat")Scale([1,1,4,1.5,1.0,0.8])MKlon(mz=1)cylinder(4,d1=13,d2=8,$fn=6);color("black")Tz(3){square([1,9],true);T(0,+2)square([4,1],true);}}}if(end==2){Echo("You see daylight, you made it out \n\t —that was faster than expected!\n\t play again? (“yes“or“no“)",color="white");rotate($vpr)Tz(-50)R(-45,-45)color("lightblue")square(500,true);rotate($vpr) Color("gold")linear_extrude(2,scale=0)Stern(50,r1=10,r2=5);rotate($vpr) Color("orange")linear_extrude(2,scale=0)Stern(37,r1=10,r2=4);T(0,-30)text("The END",halign="center",size=3);}if(end==3){Echo("…there You found a partner \n\tand You lived happily ever after! —that was faster than expected!\n\t\n\t play again? (“yes“or“no“)",color="white");R(40){Color(0.03)hull(){Halb(1,y=1)linear_extrude(.1)Rund(1)polygon( [ for (t=[0:3:360]) [13*pow(sin(t),3),16*cos(t)-7*cos(2*t)-1.3*cos(3*t)-cos(4*t)]]);T(-7,7)scale([1,1,.75]) sphere(7);T(2)R(90)cylinder(12,d1=5,d2=0);}Color(0.05)hull(){Halb(y=1)linear_extrude(.1)Rund(1)polygon([for(t=[0:3:360])[13*pow(sin(t),3), 16*cos(t) - 7*cos(2*t)-1.3*cos(3*t)-cos(4*t)]]);T(+7,7)scale([1,1,.75]) sphere(7);T(-2)R(90)cylinder(12,d1=5,d2=0);}}T(0,-30)text("Happy END ♥",halign="center",size=3);}}if(room==1){Echo(str("you coming into a big chamber with ",n," corridors pick “left“ ",n==3?", “right“or “middle“":"or “right“"),color="black");color("lightgrey")Tz(-6.6)Surface(150,150,seed=rand,freqX=10,ampX=5,rand=1,waves=0,res=0.5,randsize=1.0,exp=2,abs=0,mult=0,deltaZ=.5,zBase=5,name=false,help=0);R(110)color("lightgrey")Tz(-2.4)Surface(150,80,seed=rand,freqX=10,ampX=5,rand=1,waves=1,res=0.5,randsize=1.0,exp=2,abs=0,mult=0,deltaZ=1.5,zBase=50,name=false,help=0);Linear(n,es=14,center=true)Color($idx*0.6/(n-1),l=.8)T(y=-20)R(-90,0,20+$idx*(-60/n))linear_extrude(50)Rand(1.5)Quad([10,20]);}if(room==2){Echo("right in front of you is a stream of lava\n\t what now? try to ”jump” or ”run” ?",color="orange");MKlon(ty=50)cube([150,50,6],true);color("orange")Surface(150,50,seed=rand,freqX=10,ampX=5,rand=1,waves=1,res=0.5,randsize=2,exp=2,abs=0,mult=0,deltaZ=3,name=false);color("red")Surface(150,50,seed=rand*2,freqX=10,ampX=1,rand=1,waves=1,res=.5,randsize=2,exp=1,abs=0,mult=0,deltaZ=3,name=false);}if(room==3){Echo("Now a moat with water blocking your way \n\t maybe you could “swim“ or better “climb“ the walls \n\t but who knows what is in there or if you are fast enough maybe you could “run“",color="blue");MKlon(ty=50)cube([150,50,6],true);color("blue")Surface(150,50,seed=rand,freqX=10,ampX=2,rand=1,waves=1,res=0.5,randsize=1,exp=2,abs=1,mult=0,deltaZ=1,name=false);color("darkblue")Surface(150,50,seed=rand*2,freqX=5,ampX=1,rand=1,waves=1,res=.5,randsize=1,exp=1,abs=1,mult=0,deltaZ=1,name=false);for(i=[0:3])T(rands(-20,20,2))rotate(rands(-180,180,1)[0]) color("lightgrey")R(90)difference(){cylinder(1,d=10);T(4)cylinder(10,d=10,center=true);}}if(room==4){Echo("There is a trench with a rotten rope brige \n\ttry to “jump“, “climb“ “sneak“ or “balance“ the rope ?",color="white");difference(){Tz(-75)color("brown")cube(150,true);color("maroon")R(90,0,90)linear_extrude(170,center=true)Quad(70,25,r=3,grad=35,grad2=125);}color("sienna")Tz(-1){Klon(tx=3)R(90)linear_extrude(twist=3500,height=110,center=true)circle(d=1,$fn=7);
-  color("saddlebrown")T(-3)Linear(14,y=1,es=5,center=true)R(0,floor(rands(0,2,1)[0])?90:0)T(-1,0,-.5)cube([8,3,1],false);}}if(room==5){Echo(" Oh oh danger this looks spiky… ”jump” or ”climb”",color="warning");Tz(-45){Color("peru")Surface(80,70,seed=rand,freqX=+6.0,ampX=15,rand=1,waves=1,res=1.4,randsize=1,exp=1.2,abs=1,mult=0,deltaZ=1,zBase=+1,name=false,help=0);cube([100,100,85],true);}MKlon(ty=60)cube([100,50,15],true);for(i=[0:35])T(rands(-50,50,2))cube([5,5,13],true);}if(room==6){Echo(" Oh oh danger seems we are not alone in the dark… ”run” or ”sneak”",color="warning");for (i=[0:35])T(rands(-50,40,2))rotate(rands(-65,65,1)[0]){color("black") linear_extrude(.11)MKlon(tx=1.2)circle(0.4);linear_extrude(.1)MKlon(tx=1.2)Scale(rands(.5,1.5,4))circle(1);color("black") linear_extrude(.05)circle(13);}}if(room==7){Echo(" … in this room a corpse is in the corner holding a part of a Map\n\t choose next (“red“,“blue“ or “green“)",color="black");rotate(90)T(-4)Pfeil();T(-6,-9)text("you are here",size=2);Laby();}if(room==8){  Echo(str("… Again a strange room with A Desk in the middle with ",n," Buttons and some weird mechanism that could open a passage \n\t choose next (“red“",n==3?", “blue“ or “green“)":" or “blue“)"),color="black");Linear(n,es=8,center=true)Color($idx*0.6/(n-1),l=.8) Pille(l=4,d=5,rad=[0,1],center=false);Tz(-8) Prisma(25,35,10);}if(room==9){Echo(str("You are in a Cave room with ",n," doors pick “left“ ",n==3?", “right“or “middle“":"or “right“"," (name=”answer”)\n\n) "),color="black");Linear(n,es=15,center=true){R(90)Color("burlywood",l=.8)LinEx(2)Rand(-1)DBogen(x=12,base=-20);R(90)Color($idx*0.6/(n-1),l=.8)LinEx(1)offset(-.1)DBogen(x=12,base=-20);T(3+$idx%2*-6,-1,-9)color("black")sphere(0.6);}Tz(14)color("tan")cube([150,1,70],true);}}else{Echo("Thanks for checking out UB.scad \n— seems you like to try things out, nice!\n\t I like that!  Wanna play a game ⇒ Example(name=”yes”);\n\n",color="purple");rotate($vpr)Tz(10){Color(l=.8){T(y=-15)text(str("instructions and text are on the console window"),size=1.5,halign="center");T(y=15)text(str("Hi ",name,", Wanna play a Game ?"),size=2,halign="center");T(y=-5)text(str("Example(name=“yes“);"),size=3,halign="center"); }}RotEx(cut=true)Egg(r1=20,breit=15);for(i=[0:202]) Color(i/50)intersection(){ rotate(rands(-100,70,2))cylinder(50,d=rands(.5,3,1)[0],center=true,$fn=12);RotEx(cut=true)offset(0.1+i/1000)Egg(r1=20,breit=15);}}echo("\n\n\n\n");}module Laby(rec=8,l=10,b=1){rand=min(floor(rands(1,13,1)[0]),rec>6?7:100);T(0,l-b/2)if(rec){if(rand==1||rand==4||rand==5||rand==6)Laby(rec=rec-1,l=rands(1,5,1)[0]);if(rand==2||rand==4||rand==6||rand==7)rotate(rands(45,90,1)[0])Laby(rec=rec-1,l=rands(5,25,1)[0]);if(rand==3||rand==4||rand==5||rand==7)rotate(rands(-45,-90,1)[0])Laby(rec=rec-1,l=rands(1,5,1)[0]);}Tz(rand/20+.1)T(0,l){for(i=[0:10])if(rand==i+4)Color(1/6*i%6)circle(b/2);if(rand<4) Color(rand/4,l=.2){circle(b/3*2,$fn=rand+3);}}T(-b/2)square([b,l]);}
+
+
+module Laby(rec=8,l=10,b=1,p){
+   rand=min(floor(rands(1,13,1)[0]),rec>6?7:100);
+   
+   T(0,l-b/2)
+   if(rec){
+     if(rand==1||rand==4||rand==5||rand==6)Laby(rec=rec-1,l=rands(1,5,1)[0],p=true);
+     if(rand==2||rand==4||rand==6||rand==7)rotate(rands(45,90,1)[0])Laby(rec=rec-1,l=rands(5,25,1)[0],p=false);
+     if(rand==3||rand==4||rand==5||rand==7)rotate(rands(-45,-90,1)[0])Laby(rec=rec-1,l=rands(1,5,1)[0],p=false);
+   }
+   Tz(rand/20+.1)T(0,l){
+     for(i=[0:10])if(rand==i+4)Color(1/6*i%6)circle(b/2);
+       if(rand<4) Color(rand/4,l=.2)circle(b/3*2,$fn=rand+3);
+       }
+       T(-b/2)square([b,l]);
+       union(){s=rands(b,4,2);
+         color("darkgrey")Quad(s,name=false);
+        color("grey")Tz(.1)Rand(.25) Quad(s,name=false);
+         Tz(.2)if(rec==4&&p==true)color("hotpink")T(2,-5)rotate(115)Pfeil();
+         }
+}
+   
+   
+if(is_string(name)&&name!="test"&&name!="Test"){rand=rands(0,1,1)[0];n=floor(rands(2,4,1)[0]);room=floor(rands(0,10,1)[0]);$info=false;echo("\n\n");if(name=="yes"||name=="Yes"||name=="YES"){Echo(str("You are in a Cave room with ",n," doors pick “left“ ",n==3?", “right“or “middle“":"or “right“"," (name=”answer”)\n\n) "),color="black");Linear(n,es=15,center=true){R(90)Color("burlywood",l=.8)LinEx(2)Rand(-1)DBogen(x=12,base=-20);R(90)Color("goldenrod")LinEx(1)offset(-.1)DBogen(x=12,base=-20);T(3+$idx%2*-6,-1,-9)color("black")sphere(0.6);}Tz(14)cube([150,1,70],true);}else if(name=="no"||name=="NO"||name=="No")  Echo("Ok have fun with this library and oSCAD",color="info");else if(name=="right"||name=="left"||name=="middle"||name=="run"||name=="sneak"||name=="climb"||name=="jump"||name=="swim"||name=="red"||name=="green"||name=="blue"||name=="balance"){if(room==0){end=floor(rands(1,4,1)[0]);if(end==1)scale(.5){Echo("That didn't went well  you died\n\t—that was faster than expected!\n\t try again (name=“yes“)?",color="red");Linear(5,es=25,center=true)difference(){union(){color("brown") R(90)LinEx(50,2,scale=0)DBogen(x=23,rad=1);if($idx!=2)T(0,4) color("lightgrey") Prisma(12,9,5,x2=10,s=3,y2=7);}color([.2,.1,.1])if($idx==2)T(0,-24)linear_extrude(50,true)Quad(18,40,r=2);}color([.2,.1,.1])T(0,-24)linear_extrude(2,true)Quad(18,40,r=2);Tz(20)cube([2,2,40],true);Tz(30)cube([20,2,2],true);T(y=-2.5,z=30)R(50)color("darkgrey")text("The End",halign="center",size=3);color("darkgreen") square(150,true);Tz(4.1)T(0,-17){color("wheat")Scale([1,1,4,1.5,1.0,0.8])MKlon(mz=1)cylinder(4,d1=13,d2=8,$fn=6);color("black")Tz(3){square([1,9],true);T(0,+2)square([4,1],true);}}}if(end==2){Echo("You see daylight, you made it out \n\t —that was faster than expected!\n\t play again? (“yes“or“no“)",color="white");rotate($vpr)Tz(-50)R(-45,-45)color("lightblue")square(500,true);rotate($vpr) Color("gold",alpha=.35)linear_extrude(2,scale=0)Stern(50,r1=10,r2=5);rotate($vpr){Color("orange",alpha=.35)linear_extrude(2,scale=0)Stern(37,r1=10,r2=4);Tz(5)for(i=[8:.2:12])color([i/12,.95,.85,.5/i])circle(i);}T(0,-30)text("The END",halign="center",size=3);}if(end==3){Echo("…there You found a partner \n\tand You lived happily ever after! —that was faster than expected!\n\t\n\t play again? (“yes“or“no“)",color="white");R(40){Color(0.03)hull(){Halb(1,y=1)linear_extrude(.1)Rund(1)polygon( [ for (t=[0:3:360]) [13*pow(sin(t),3),16*cos(t)-7*cos(2*t)-1.3*cos(3*t)-cos(4*t)]]);T(-7,7)scale([1,1,.75]) sphere(7);T(2)R(90)cylinder(12,d1=5,d2=0);}Color(0.05)hull(){Halb(y=1)linear_extrude(.1)Rund(1)polygon([for(t=[0:3:360])[13*pow(sin(t),3), 16*cos(t) - 7*cos(2*t)-1.3*cos(3*t)-cos(4*t)]]);T(+7,7)scale([1,1,.75]) sphere(7);T(-2)R(90)cylinder(12,d1=5,d2=0);}}T(0,-30)text("Happy END ♥",halign="center",size=3);}}if(room==1){Echo(str("you coming into a big chamber with ",n," corridors pick “left“ ",n==3?", “right“or “middle“":"or “right“"),color="black");color("lightgrey")Tz(-6.6)Surface(150,150,seed=rand,freqX=10,ampX=5,rand=1,waves=0,res=0.5,randsize=1.0,exp=2,abs=0,mult=0,deltaZ=.5,zBase=5,name=false,help=0);R(110)color("lightgrey")Tz(-2.4)Surface(150,80,seed=rand,freqX=10,ampX=5,rand=1,waves=1,res=0.5,randsize=1.0,exp=2,abs=0,mult=0,deltaZ=1.5,zBase=50,name=false,help=0);Linear(n,es=14,center=true)Color($idx*0.6/(n-1),l=.8)T(y=-20)R(-90,0,20+$idx*(-60/n))linear_extrude(50,convexity=5)Rand(1.5)Quad([10,20]);}if(room==2){Echo("right in front of you is a stream of lava\n\t what now? try to ”jump” or ”run” ?",color="orange");color("gainsboro")difference(){cube([150,150,6],true);linear_extrude(50,center=true,convexity=5)rotate(90)SBogen(spiel=-.1,dist=25,r1=35,l1=150,2D=rands(15,55,1)[0],grad2=rands(-30,30,2));}color("orange")Surface(150,100,seed=rand,freqX=10,ampX=5,rand=1,waves=1,res=0.5,randsize=2,exp=2,abs=0,mult=0,deltaZ=3,name=false);color("red")Surface(150,50,seed=rand*2,freqX=10,ampX=1,rand=1,waves=1,res=.5,randsize=2,exp=1,abs=0,mult=0,deltaZ=3,name=false);}if(room==3){Echo("Now a moat with water blocking your way \n\t maybe you could “swim“ or better “climb“ the walls \n\t but who knows what is in there or if you are fast enough maybe you could “run“",color="blue");MKlon(ty=50)cube([150,50,6],true);color("blue")Surface(150,50,seed=rand,freqX=10,ampX=2,rand=1,waves=1,res=0.5,randsize=1,exp=2,abs=1,mult=0,deltaZ=1,name=false);color("darkblue")Surface(150,50,seed=rand*2,freqX=5,ampX=1,rand=1,waves=1,res=.5,randsize=1,exp=1,abs=1,mult=0,deltaZ=1,name=false);for(i=[0:3])T(rands(-20,20,2))rotate(rands(-180,180,1)[0]) color("lightgrey")R(90)difference(){cylinder(1,d=10);T(4)cylinder(10,d=10,center=true);}}if(room==4){Echo("There is a trench with a rotten rope brige \n\ttry to “jump“, “climb“ “sneak“ or “balance“ the rope ?",color="white");difference(){Tz(-75)color("brown")cube(150,true);color("maroon")R(90,0,90)linear_extrude(170,center=true)Quad(70,25,r=3,grad=35,grad2=125);}color("sienna")Tz(-1){Klon(tx=3)R(90)linear_extrude(twist=3500,height=110,center=true)circle(d=1,$fn=7);color("saddlebrown")T(-3)Linear(14,y=1,es=5,center=true)R(0,floor(rands(0,2,1)[0])?90:0)T(-1,0,-.5)cube([8,3,1],false);}}if(room==5){Echo(" Oh oh danger this looks spiky… ”jump” or ”climb”",color="warning");Tz(-45){Color("peru")Surface(80,70,seed=rand,freqX=+6.0,ampX=15,rand=1,waves=1,res=1.4,randsize=1,exp=1.2,abs=1,mult=0,deltaZ=1,zBase=+1,name=false,help=0);cube([100,100,85],true);}MKlon(ty=60)cube([100,50,15],true);for(i=[0:35])Tz(i)T(rands(-50,50,2))cube([5,5,13],true);}if(room==6){Echo(" Oh oh danger seems we are not alone in the dark… ”run” or ”sneak”",color="warning");Tz(-15)for (i=[0:35])T(rands(-50,40,3))rotate(rands(-15,15,3)){color("black") linear_extrude(.11)MKlon(tx=1.2)circle(0.4);linear_extrude(.1)MKlon(tx=1.2)Scale(rands(.5,1.5,4))circle(1);Tz(-.5)for(i=[5:.25:12])color([.1/i,.1/i,.5/i,4/i])linear_extrude(1/i)circle(i);}Tz(-150)color([0.075,0.075,0.15])square(1500,true);}if(room==7){Echo(" … in this room a corpse is in the corner holding a part of a Map\n\t choose next (“red“,“blue“ or “green“)",color="black");rotate(90)T(-4)Pfeil();T(-6,-9)text("you entered here",size=2);Laby();}if(room==8){Echo(str("… Again a strange room with A Desk in the middle with ",n," Buttons and some weird mechanism that could open a passage \n\t choose next (“red“",n==3?", “blue“ or “green“)":" or “blue“)"),color="black");if(round(rand))Linear(n,es=8,center=true)Color($idx*0.6/(n-1),l=.8) Pille(l=4,d=5,rad=[0,1],center=false);else Polar(n,x=8,end=rands(120,300,1)[0])Color($idx*0.6/(n-1),l=.8) Pille(l=4,d=5,rad=[0,1],center=false);Tz(-8) Prisma(25,35,10);}if(room==9){Echo(str("You are in a Cave room with ",n," doors pick “left“ ",n==3?", “right“or “middle“":"or “right“"," (name=”answer”)\n\n) "),color="black");Linear(n,es=15,center=true){R(90)Color("burlywood",l=.8)LinEx(2)Rand(-1)DBogen(x=12,base=-20);R(90)Color($idx*0.6/(n-1),l=.8)LinEx(1)offset(-.1)DBogen(x=12,base=-20);T(3+$idx%2*-6,-1,-9)color("black")sphere(0.6);}Tz(14)color("tan")cube([150,1,70],true);}}else{Echo("Thanks for checking out UB.scad \n\t— seems you like to try things out, nice!\n\t I like that!  Wanna play a game ⇒ Example(name=”yes”);\n",color="purple");rotate($vpr)Tz(10){Color(l=.8){T(y=-15)text(str("instructions and text are on the console window"),size=1.5,halign="center");T(y=15)text(str("Hi ",name,", Wanna play a Game ?"),size=2,halign="center");T(y=-5)text(str("Example(name=“yes“);"),size=3,halign="center"); }}RotEx(cut=true)Egg(r1=20,breit=15);for(i=[0:102]) Color(i/50)intersection(){ rotate(rands(-100,70,2))cylinder(50,d=rands(.5,3,1)[0],center=true,$fn=12);RotEx(cut=true)offset(0.1+i/1000)Egg(r1=20,breit=15);}}echo("\n");}
 } // end example
 
 
@@ -1274,15 +1298,15 @@ else HelpTxt("Help",["titel",titel,"string",string,"help",help],help=1);
 ///∇∇ Polygons ∇∇///
 
 module VarioFill(
-dia=0,
-spiel=spiel,
 l=15,
-chamfer=1,
-fn=36,
-deg=45,
 exp=+2,
+dia=0,
+chamfer=1,
+deg=45,
 extrude=0,
 grad=90,//[0,90]
+spiel=spiel,
+fn=fn,
 name,
 help
 ){
@@ -1293,7 +1317,8 @@ spiel=is_undef(spiel)?[0,0]:is_list(spiel)?
   [spiel.x*max(1,(1/(sin(grad.y)*cos(grad.x)))),spiel.y*max(1,(1/(cos(grad.x)*sin(grad.y))))]:
   [spiel*max(1,(1/(sin(grad.y)*cos(grad.x)))),spiel*max(1,(1/(cos(grad.x)*sin(grad.y))))];
   //[spiel*(1/sin(grad.y)),spiel*(1/cos(grad.x))];   
-l=is_list(l)?l:deg?[l,tan(deg)*l]:[l,l];  
+l=is_list(l)?l:deg?[l,tan(deg)*l]:[l,l]; 
+  fn=is_undef(fn)?$fn==0?fs2fn(r=norm(l),grad=90,fs=$fs):$fn:fn;
 //extrude=is_undef(extrude)?dia/2:extrude;  
 rot=-180;
 points=[
@@ -1337,15 +1362,15 @@ if(grad.y>=90)
     
 //%multmatrix(m)translate([-spiel.y,-spiel.x])square([l.x+spiel.y,l.y+spiel.x]);
 HelpTxt("VarioFill",[
-  "dia",dia,
-  "spiel",spiel,
   "l",l,
-  "chamfer",chamfer,
-  "fn",fn,
-  "deg",deg,
   "exp",exp,
+  "dia",dia,
+  "chamfer",chamfer,
+  "deg",deg,
   "extrude",extrude,
   "grad",grad,//[0,90]
+  "spiel",spiel,
+  "fn",fn,
   "name",name
   ],help);
 
@@ -5265,6 +5290,7 @@ HelpTxt("Strebe",["h",h,"d",d,"d2",d2,"rad",rad,"rad2",rad2,"sc",sc,"grad",grad,
 }
 
 
+
 module Bezier(
 p0=[+0,+10,0],
 p1=[15,-5,0],
@@ -5317,29 +5343,33 @@ help
     
 }
     if(!$children){
-    if (is_undef(ex)) polygon([for (t=[min:((max-min)/fn):(max+(max-min)/fn)])Bezier(t,
+    if (is_undef(ex)) polygon([for (t=[min:((max-min)/fn):(max+(max-min)/fn)-((max-min)/fn)])Bezier(t,
             [p0[0],p0[1]],
             [p1[0],p1[1]],        
             [p2[0],p2[1]],       
             [p3[0],p3[1]]        
         )]);
         
-    else polygon(concat([[0,p0[1]]],[for (t=[min:((max-min)/fn):(max+(max-min)/fn)])Bezier(t,
-            [p0[0]+ex,p0[1]],
-            [p1[0]+ex,p1[1]],        
-            [p2[0]+ex,p2[1]], 
-            [p3[0]+ex,p3[1]]        
-        )],[[0,p3[1]]]));        
+    else polygon(concat([
+      [0,p0[1]]],
+      [for (t=[min:((max-min)/fn):(max+(max-min)/fn)-((max-min)/fn)])Bezier(t,
+        [p0[0]+ex,p0[1]],
+        [p1[0]+ex,p1[1]],        
+        [p2[0]+ex,p2[1]], 
+        [p3[0]+ex,p3[1]] )],
+      [[0,p3[1]]])
+      );        
         
  
     }
     
     if(messpunkt){
         ex=is_undef(ex)?0:ex;
-        Pivot(mpRot?[p0[0]+ex,0,p0[1]]:p0+[ex,0,0],messpunkt,txt="p0");
-        Pivot(mpRot?[p1[0]+ex,0,p1[1]]:p1+[ex,0,0],messpunkt/2,txt="p1");
-        Pivot(mpRot?[p2[0]+ex,0,p2[1]]:p2+[ex,0,0],messpunkt/2,txt="p2");
-        Pivot(mpRot?[p3[0]+ex,0,p3[1]]:p3+[ex,0,0],messpunkt,txt="p3");
+         vpr=mpRot?[90,0,0]:$vpr;
+        Pivot(mpRot?[p0[0]+ex,0,p0[1]]:p0+[ex,0,0],messpunkt,txt="p0",vpr=vpr);
+        Pivot(mpRot?[p1[0]+ex,0,p1[1]]:p1+[ex,0,0],messpunkt/2,txt="p1",vpr=vpr);
+        Pivot(mpRot?[p2[0]+ex,0,p2[1]]:p2+[ex,0,0],messpunkt/2,txt="p2",vpr=vpr);
+        Pivot(mpRot?[p3[0]+ex,0,p3[1]]:p3+[ex,0,0],messpunkt,txt="p3",vpr=vpr);
         %Line(mpRot?[p0[0]+ex,0,p0[1]]:p0+[ex,0,0],mpRot?[p1[0]+ex,0,p1[1]]:p1+[ex,0,0],d=0.15,center=true);
         %Line(mpRot?[p3[0]+ex,0,p3[1]]:p3+[ex,0,0],mpRot?[p2[0]+ex,0,p2[1]]:p2+[ex,0,0],d=.15,center=true);
         
@@ -5375,7 +5405,7 @@ p1t=p1-p0;
 x= p1t[0]; y = p1t[1]; z = p1t[2]; // point coordinates of end of cylinder
  
 length = norm([x,y,z]);  // radial distance
-b = acos(z/length); // inclination angle
+b = length?acos(z/length):0; // inclination angle
 c = atan2(y,x);     // azimuthal angle
 
 if(2D)translate(p0)rotate([0,b-90,c])translate([0,center?0:-d/2,0]) square([center?length*2:length,d],center=center?true:false);
@@ -5415,8 +5445,8 @@ function rotate_from_to(a,b) =
 }
 
 
-module Pivot(p0=[0,0,0],size,active=[1,1,1,1,1,1],messpunkt,txt,rot=0,help=false){
-  messpunkt=is_undef(messpunkt)?is_undef($messpunkt)?true:$messpunkttrue:messpunkt;
+module Pivot(p0=[0,0,0],size,active=[1,1,1,1,1,1],messpunkt,txt,rot=0,vpr=$vpr,help=false){
+  messpunkt=is_undef(messpunkt)?is_undef($messpunkt)?true:$messpunkt:messpunkt;
     p0=is_num(p0)?[p0,0]:p0;
     size=is_undef(size)?is_bool(messpunkt)?pivotSize:messpunkt:size;
     size2=size/+5;
@@ -5427,11 +5457,11 @@ if(messpunkt&&$preview)translate(p0)%union(){
       if(active[1])rotate(rot)  color("red")rotate([0,90,0])cylinder(size,d1=.5*size2,d2=0,center=false,$fn=4);   
        if(active[0]) color("yellow")sphere(d=size2*.6,$fn=12);
        //Text
-       if(active[4]) color("grey")rotate($vpr)
+       if(active[4]) %color("grey")rotate(vpr)
           //linear_extrude(.1,$fn=1)
        text(text=str(norm(p0)?p0:""," ",rot?str(rot,"°"):"","   "),size=size2,halign="right",valign="top",font="Bahnschrift:style=light",$fn=1);    
        
-       if(txt&&active[5])%color("lightgrey")rotate($vpr)translate([0,size/15])//linear_extrude(.1,$fn=1)
+       if(txt&&active[5])%color("lightgrey")rotate(vpr)translate([0,size/15])//linear_extrude(.1,$fn=1)
          Tz(0.1) text(text=str(txt,"   "),size=size2,font="Bahnschrift:style=light",halign="right",valign="bottom",$fn=1);
      
      HelpTxt("Pivot",[
@@ -5440,7 +5470,8 @@ if(messpunkt&&$preview)translate(p0)%union(){
         "active",active,
         "messpunkt",messpunkt,
         "txt",txt,
-        "rot",rot]
+        "rot",rot,
+        "vpr",vpr]
         ,help); 
     }
 }
