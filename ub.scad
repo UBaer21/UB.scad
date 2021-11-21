@@ -50,6 +50,7 @@ Changelog (archive at the very bottom)
 332|21  CHG Linear CHG Surface help Scale 2D
 333|21  ADD easterEgg
 334|21  FIX Bezier FIX Line
+335|21  FIX Strebe FIX Rundrum ADD is_parent( needs2D )CHG VarioFill
 
 
 */
@@ -115,7 +116,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.334;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.335;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -125,6 +126,7 @@ twF=acos(1/3);// tetraeder winkel face edge face;
 inch=25.4; // inch/Zoll
 minVal=0.0000001; // minimum für nicht 0
 
+needs2D=["Rand","WKreis","Welle","Rund","Rundrum", "LinEx", "RotEx"]; // modules needing 2D children
 //echo(tw,twF);
 //PHI=(1+sqrt(5))/2;
 
@@ -261,7 +263,7 @@ v3= function(v)is_num(v.y)?is_num(v.z)?len(v)==3?v:  // make everything to a vec
                   concat(v,[0,0]);
 
 // list of parent modules [["name",id]]
-parentList= function(n=-1) [for(i=[0:$parent_modules +n])[parent_module(i),i]];
+parentList= function(n=-1) is_undef($parent_modules)?undef:[for(i=[0:$parent_modules +n])[parent_module(i),i]];
 
 // kleinster teiler
 teiler = function (n,div=2) (n%div)?div>n?n:
@@ -294,6 +296,11 @@ function b(n,bool)=is_list(n)?[for(i=[0:len(n)-1])b(n[i],bool)]:
 
 function scaleGrad(grad=45,h=1,r=1)=assert(grad!=0)max(0,(r-(h/tan(grad)))/r);
 
+function is_parent(parent= needs2D, i= 0)=
+is_list(parent)?is_num(search(parent,parentList())[i])?true:
+                                                      i<len(parent)-1?is_parent(parent=parent,i=i+1):
+                                                                      false:
+                is_num(search([parent],parentList())[0]);
 
 ///////////////////////////////////////////////////////
 
@@ -385,6 +392,7 @@ echo    ("••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
 ••• gcode(points,f) generates gcode in output •••\n
 ••• b(n); switches bool in num and vica versa (works on vectors) •••\n
 ••• scaleGrad(grad=45,h=1,r=1) scale factor for extrusions•••\n
+••• is_parent(needs2D); search parentlist for string or list of strings (parent module needing polygon children) \n
 ");
     
 }
@@ -1297,10 +1305,12 @@ else HelpTxt("Help",["titel",titel,"string",string,"help",help],help=1);
 ///ΔΔ Helper   ΔΔ\\\
 ///∇∇ Polygons ∇∇///
 
+
+
 module VarioFill(
 l=15,
 exp=+2,
-dia=0,
+dia,
 chamfer=1,
 deg=45,
 extrude=0,
@@ -1312,53 +1322,71 @@ help
 ){
 
 grad=is_list(grad)?grad:[+0,grad];
- padding=is_undef(spiel)?[0,0]:is_list(spiel)?spiel:[spiel,spiel]; 
+  
+padding=is_undef(spiel)?[0,0]:
+                        is_list(spiel)?[spiel.x,spiel.y]:
+                                       [spiel,spiel]; 
+  
 spiel=is_undef(spiel)?[0,0]:is_list(spiel)?
   [spiel.x*max(1,(1/(sin(grad.y)*cos(grad.x)))),spiel.y*max(1,(1/(cos(grad.x)*sin(grad.y))))]:
   [spiel*max(1,(1/(sin(grad.y)*cos(grad.x)))),spiel*max(1,(1/(cos(grad.x)*sin(grad.y))))];
   //[spiel*(1/sin(grad.y)),spiel*(1/cos(grad.x))];   
-l=is_list(l)?l:deg?[l,tan(deg)*l]:[l,l]; 
-  fn=is_undef(fn)?$fn==0?fs2fn(r=norm(l),grad=90,fs=$fs):$fn:fn;
-//extrude=is_undef(extrude)?dia/2:extrude;  
-rot=-180;
-points=[
-[-spiel.y+extrude*0,-spiel.x],
-[-spiel.y+extrude*0,l.y+sin(grad.x)*spiel.y],
-[+extrude,l.y],
-for(i=[fn-1:-1:0])let(seg=90/fn*i)
-  !chamfer?([sin(seg+rot)*l.x+extrude+l.x,cos(seg+rot)*l.y+l.y]):
-         [pow(((fn-1)-i)/(fn-1),abs(exp))*l.x+extrude,pow(i/(fn-1),abs(exp))*l.y],
 
-[extrude+l.x,0],
-[extrude+l.x-cos(grad.y)*spiel.x,-spiel.x],
+l=is_list(l)?l:deg?[l,tan(deg)*l]:[l,l]; 
+
+fn=is_undef(fn)?$fn==0?fs2fn(r=norm(l),grad=90,fs=$fs):$fn:fn;
+
+diaw=dia; // if undef ⇒ 2D
+
+dia=is_num(dia)?dia:0;
+  
+extrude=extrude*sign(l.x);
+rot=-180;
+p1=[
+[-spiel.y*sign(l.x) +dia/2, -spiel.x*sign(l.y)],
+[-spiel.y*sign(l.x) +dia/2, l.y+sin(grad.x)*spiel.y*sign(l.y)],
+[+extrude+dia/2,l.y],
+for(i=[fn-1:-1:0])let(seg=90/fn*i)
+  !chamfer?([sin(seg+rot)*l.x+extrude+l.x+dia/2, cos(seg+rot)*l.y+l.y]):
+         [pow(((fn-1)-i)/(fn-1),abs(exp))*l.x+extrude+dia/2,pow(i/(fn-1),abs(exp))*l.y],
+
+[extrude+l.x+dia/2,0],
+[extrude+l.x-cos(grad.y)*spiel.x*sign(l.x) +dia/2,-spiel.x*sign(l.y)],
 ];
 
+
+m=[
+[cos(grad.x),sin(grad.y-90),0,0],// scale x, skew x, trans x
+[sin(grad.x),cos(grad.y-90),0,0],       // skew y, scale y, trans y
+[0,0,1,0],
+];
+
+points=grad==[0,90]?p1:
+                   [for(i=[0:len(p1)-1])let(p=m*concat(p1[i],[1,0]))[p.x,p.y]];
 
 gK=sin(grad.y)*l.y-sin(grad.x)*l.x;
 aK=cos(grad.x)*l.x+cos(grad.y)*l.y;
 
 ///color("red")square([aK,gK]);
-
 //polygon(points,convexity=5);
+//p2=[for(i=[0:len(points)-1])let(p=m*concat(points[i],[1,0]))[p.x,p.y]];
 
 InfoTxt("VarioFill",["sekantenWinkel",atan(gK/aK)],name);
 
 
-m=[
-[cos(grad.x),sin(grad.y-90),dia/2,0],// scale x, skew x, trans x
-[sin(grad.x),cos(grad.y-90),0,0],       // skew y, scale y, trans y
-[0,0,1,0],
-];
+cut=spiel.x>abs(dia/2) || 
+    sign(dia)*sign(l.x)==1?false :  // both pos or neg
+                           sign(dia)*l.x<sign(l.x)*dia/2;
 
-p2=[for(i=[0:len(points)-1])let(p=m*concat(points[i],[1,0]))[p.x,p.y]];
- 
 
-if(grad.y>=90)
-  intersection(){
-    polygon(p2);
-    translate([-padding.y+dia/2-(extrude<0?-extrude:0),grad.x<0?-l.y:-padding.x])square([abs(extrude)+l.x+padding.y,grad.x<0?2*l.y:l.y+padding.x]);
-  }
-  else polygon(p2);
+if(is_num(diaw) && !is_parent(needs2D)) RotEx(cut=cut) polygon(points);
+  else if( l.x>0?grad.y>90:grad.y<90 || (l.y>0?grad.x<0:grad.x>0) )
+    intersection(){
+      polygon(points);
+      mirror([sign(l.x)==1?0:1,sign(l.y)==1?0:1])translate([-padding.y+dia/2-(extrude*sign(l.x)<0?-extrude*sign(l.x):0),grad.x<0?-l.y:-padding.x])
+        square([abs(extrude)+abs(l.x)+padding.y,grad.x<0?2*l.y:abs(l.y)+padding.x]);
+    }
+    else polygon(points);
     
 //%multmatrix(m)translate([-spiel.y,-spiel.x])square([l.x+spiel.y,l.y+spiel.x]);
 HelpTxt("VarioFill",[
@@ -1426,7 +1454,9 @@ module Rundrum(x=+40,y,r=10,eck=4,twist=0,grad=90,grad2=90,spiel=0.005,fn=fn,nam
     
 $info=name;
 $tab=is_undef($tab)?0:$tab;
-  
+$fa=fa;
+$fs=fs;
+$fn=fn;
   // WIP
     r1=is_list(r)?r[0]:r;
     r2=is_list(r)?r[1]:r;
@@ -4123,7 +4153,7 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
     center=is_bool(center)?center?1:0:sign(center);
     r2=!is_undef(r2)?r2:r1;
     l2=!is_undef(l2)?l2:l1;
-    2D=2D==true?1:2D;
+    2D=is_parent(needs2D)?1:b(2D,false);
     grad2=is_list(grad2)?grad2:[grad2,grad2];
     extrudeTrue=extrude;
     extrude=is_bool(extrude)?0:extrude;
@@ -5243,7 +5273,6 @@ module WStrebe(grad=45,grad2,h=20,d=2,d2=0,rad=3,rad2=0,sc=0,angle=360,spiel=spi
 }
 
 
-
 module Strebe(h=20,d=5,d2,rad=4,rad2,sc=0,grad=0,skew=0,single=false,angle=360,spiel=spiel,fn=fn,fn2=fn/4,center=false,name,2D=false,help){
     
     rad2=is_undef(rad2)?is_list(rad)?rad[1]:
@@ -5259,17 +5288,25 @@ module Strebe(h=20,d=5,d2,rad=4,rad2,sc=0,grad=0,skew=0,single=false,angle=360,s
     grad2=180-grad1;//VerbindugsWinkel oben    
     assert(h>(rad+rad2),"Strebe too short for rad"); 
 
-   if(!2D&&parent_module($parent_modules-1)!="Rundrum")  M(skew,0)Tz(center?-h/2:0)scale([sc,1,1]){
-      rotate(-angle/2)rotate_extrude(angle=angle,convexity=5,$fn=fn)Strebe(skew=0,h=h,d=d,d2=d2,rad=rad,rad2=rad2,sc=1,grad=0,single=single,spiel=spiel,fn2=fn2,name=0,2D=2,help=false);
-      
 
-    }
-    if(name)echo(str("Strebe ",name," Neigungs ∡=",atan(skew),"° center∡",single||rad!=rad2?"~":"=",winkel,"° Scale=",sc," dSkew=",d,"/",d*sc*cos(grad),"-",d2,"/",d2*sc*cos(grad),"mm Parent=",parentList())); 
-    
-       
- 
-if (2D||parent_module($parent_modules-1)=="Rundrum")M(skewyx=skew)T(0,center?-h/2:0){
-       if(grad1>90) Echo(str("Strebe ∅",d,"mm is d=",(d/2-rad+sin(grad1)*rad)*2),color="warning");
+  if (!2D && !is_parent(needs2D))//search(["Rundrum"], parentList())[0] )
+    M(skewzx=skew) Tz(center ? -h/2 : 0) scale([sc, 1, 1])
+      rotate(-angle/2) rotate_extrude(angle=angle, convexity=5, $fn=fn)
+        Strebe(skew=0, h=h, d=d, d2=d2, rad=rad, rad2=rad2, sc=1, grad=0, single=single, spiel=spiel, fn2=fn2, name=0, 2D=2, help=false);
+
+
+  InfoTxt("Strebe",[
+    "Neigungs ∡",str(atan(skew),"°"),
+    "center ∡",str(single||rad!=rad2?"~":"=",winkel,"°"),
+    "Scale",sc,
+    " dSkew",str(d,"/",d*sc*cos(grad),"-",d2,"/",d2*sc*cos(grad),"mm"),
+    "Parent",parentList()
+  ],name); 
+
+
+if (2D || is_parent(needs2D))//search(["Rundrum"], parentList())[0] )
+  M(skewyx=skew)T(0,center?-h/2:0){
+    if(grad1>90) Echo(str("Strebe ∅",d,"mm is d=",(d/2-rad+sin(grad1)*rad)*2),color="warning");
     if(grad2>90) Echo(str("Strebe ∅",d2,"mm is d2=",(d2/2-rad2+sin(grad2)*rad2)*2),color="warning");
    
     scale([sc,1])polygon(concat(
@@ -5284,9 +5321,10 @@ if (2D||parent_module($parent_modules-1)=="Rundrum")M(skewyx=skew)T(0,center?-h/
     ,convexity=5)
     ; 
 }
+
 HelpTxt("Strebe",["h",h,"d",d,"d2",d2,"rad",rad,"rad2",rad2,"sc",sc,"grad",grad,"skew",skew,"single",single,"angle",angle,"spiel",spiel,"fn",fn,"fn2",fn2,"name",name,"2D",str(2D,"/*2 for halb*/")],help); 
-    
-        
+
+
 }
 
 
@@ -5350,15 +5388,15 @@ help
             [p3[0],p3[1]]        
         )]);
         
-    else polygon(concat([
-      [0,p0[1]]],
+    else polygon(concat(
+      [[0,p0[1]]],
       [for (t=[min:((max-min)/fn):(max+(max-min)/fn)-((max-min)/fn)])Bezier(t,
         [p0[0]+ex,p0[1]],
         [p1[0]+ex,p1[1]],        
         [p2[0]+ex,p2[1]], 
         [p3[0]+ex,p3[1]] )],
-      [[0,p3[1]]])
-      );        
+      [[0,p3[1]]]
+      ));        
         
  
     }
