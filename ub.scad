@@ -51,6 +51,7 @@ Changelog (archive at the very bottom)
 333|21  ADD easterEgg
 334|21  FIX Bezier FIX Line
 335|21  FIX Strebe FIX Rundrum ADD is_parent( needs2D )CHG VarioFill
+336|21  FIX Vollwelle grad2=90 FIX Strebe assert CHG Nut CHG negRed CHG Quad CHG Tri add c
 
 
 */
@@ -65,7 +66,9 @@ helpsw=false;//activates help in console window
 anima=false;
 // use print Bed as center and show boarder
 bed=false; 
-debug=$preview?anima?false:true:false;
+
+info=true; // switch for customizer
+debug=$preview?anima?false:info:false;
 $info=debug;//activates module information (name)
 //viewpoint
 //vp=false;
@@ -116,7 +119,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.335;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.336;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -126,7 +129,7 @@ twF=acos(1/3);// tetraeder winkel face edge face;
 inch=25.4; // inch/Zoll
 minVal=0.0000001; // minimum für nicht 0
 
-needs2D=["Rand","WKreis","Welle","Rund","Rundrum", "LinEx", "RotEx"]; // modules needing 2D children
+needs2D=["Rand","WKreis","Welle","Rund","Rundrum", "LinEx", "RotEx","SBogen"]; // modules needing 2D children
 //echo(tw,twF);
 //PHI=(1+sqrt(5))/2;
 
@@ -238,7 +241,7 @@ function Hexstring(c)=str("#",Hex(c[0]*255),Hex(c[1]*255),Hex(c[2]*255));
 function RotPoints(grad,points)=[for(i=[0:len(points)-1])RotLang(rot=atan2(points[i][0],points[i][1])+grad,l=norm([points[i][0],points[i][1]]),z=points[i][2])];
 
 
-function negRed(num)=num<0?str("🔻",num):num; // display console text
+function negRed(num)=num<0?str("🔻",num):num==0?str("⚠",num):num; // display console text
 function gradB(b,r)=360/(PI*r*2)*b; // winkel zur Bogen strecke b des Kreisradiuses r
 function gradS(s,r)=asin(s/(2*r))*2;// winkel zur Sehne s des Kreisradiuses r
 function radiusS(n,s,a)=(s/2)/(sin((is_undef(n)?a:360/n)/2));// Radius  zur Sehne
@@ -2791,11 +2794,20 @@ HelpTxt("DRing",[
 }
 
 
+
 module Nut(e=2,es=10,a=6,b=6,base=1,h=1,s,center=true,shift=0,winkel,grad,name,help){
-  grad=is_undef(winkel)?grad:winkel;
-  s=is_undef(s)?e*es:s;
-  es=is_undef(s)?es:s/e;
-  b=is_undef(grad)?b:2*(h*tan(90+grad))+es-a;  
+  grad=is_undef(winkel)?assert(grad!=0)grad:assert(winkel!=0)winkel;
+  s=is_undef(s)?is_num(grad)&&is_num(b)?e*(a+b-2*h*tan(90+grad)):
+                                       is_undef(es)?assert( is_num(b) && is_num(a),"define a + b")a+b:
+                                                    e * es:
+                s;
+  
+  es=is_num(grad)&&is_num(b)?a+b-2*h*tan(90+grad):
+                  s/e;
+
+  b=is_undef(grad)?is_undef(b)?es-a:
+                               b:
+                  2*(h*tan(90+grad))+es-a;
     
     
     points=[[s,base],[s,0],[0,0],[0,base],
@@ -2813,8 +2825,14 @@ for(i=[0:e-1])each[
     winkel1=atan(h/(es/2-a/2-b/2+shift));
     winkel2=atan(h/(es/2-a/2-b/2-shift));
     
-   InfoTxt("Nut",concat(["winkel",str(winkel1,shift?str(" /",winkel2):"","°"), "Länge",s,"Abstand",es],grad?["b",b]:[]),name); 
-     //  b<0?str("<font color=red ><b>",b,"</font>"):b
+   InfoTxt("Nut",concat(["winkel",str(winkel1,shift?str(" /",winkel2):"","°"),
+    "Länge",s,
+    "Abstand",es],
+    "Abstand a",negRed(es-a),
+    "Abstand b",negRed(es-b),
+    grad?["b",negRed(b)]:[])
+    ,name); 
+
    HelpTxt("Nut",[
    "e",e,
    "es",es,
@@ -3115,6 +3133,7 @@ module Anschluss(h=10,d1=10,d2=15,rad=5,rad2,grad=30,r1,r2,center=true,fn=fn,fn2
 //}
 
 
+
 function vollwelle(r=1,r2,grad=+60,grad2=+0,h=0,l,extrude=+5,center=true,xCenter=1,fn=12,x0=0,mitte=0,g2End=[1,1])=
 let(
     fn=is_list(fn)?fn:[fn,fn],
@@ -3150,10 +3169,14 @@ let(
    
     trans=[+0,center?0:l1],// all points translation
     g2End=is_list(g2End)?g2End:[g2End,g2End],
-    yKL1=l2-(yOben/2+y2Oben/2+mitte/2+sin(grad2[1])*r2),// Abstand Kreisende bis l2
-    yKL0=l1+(-y/2-y2/2-mitte/2-sin(grad2[0])*r2),// Abstand Kreisende bis l1
-    g2EndX0=g2End[0]?+yKL0*tan(grad2[0]):0,// End Punkt unten winkel verlängerung
-    g2EndX1=g2End[1]?yKL1*tan(grad2[1]):0// End Punkt oben winkel verlängerung
+    yKL1=l2-(yOben/2+y2Oben/2+mitte/2+sin(grad2[1])*r2),   // Abstand Kreisende bis l2
+    yKL0=l1+(-y/2-y2/2-mitte/2-sin(grad2[0])*r2),         // Abstand Kreisende bis l1
+    g2EndX0=grad2[0]!=90? g2End[0]? yKL0*tan(grad2[0]):  // End Punkt unten winkel verlängerung
+                                    0:
+                          0,
+    g2EndX1=grad2[1]!=90? g2End[1]? yKL1*tan(grad2[1]):  // End Punkt oben winkel verlängerung
+                                    0:
+                          0
     )
 concat(
 
@@ -3168,7 +3191,7 @@ concat(
     ,[[x0,l2]]+[trans]//oben
 
     );
- 
+
 
 module Vollwelle(r=1,r2,grad=+60,grad2=+0,h,l,extrude=+5,center=true,xCenter=0,fn=12,x0=0,mitte=0,g2End=[1,1],help,name){
     
@@ -4153,7 +4176,7 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
     center=is_bool(center)?center?1:0:sign(center);
     r2=!is_undef(r2)?r2:r1;
     l2=!is_undef(l2)?l2:l1;
-    2D=is_parent(needs2D)?1:b(2D,false);
+    2D=is_parent(needs2D)&&!$children?1:b(2D,false);
     grad2=is_list(grad2)?grad2:[grad2,grad2];
     extrudeTrue=extrude;
     extrude=is_bool(extrude)?0:extrude;
@@ -4171,11 +4194,17 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
    
  if(grad&&!extrudeTrue)mirror(gradN<0?[1,0]:[0,0])translate(center?[0,0,0]:[dist/2,l1]){
     translate([dist/2,y/2,0])T(-r2)rotate(grad2[1])T(r2)Bogen(rad=r2,grad=grad+grad2[1],center=false,l1=l2-y/2,l2=l2m,help=0,name=0,messpunkt=messpunkt,2D=2D,fn=fn,d=2D,ueberlapp=spiel)
-    if($children)children();
-        else circle($fn=fn);
+    if($children){
+      $idx=is_undef($idx)?0:$idx;
+      children();
+    }
+    else circle($fn=fn);
   T(-dist/2,-y/2) mirror([1,0,0])rotate(180)T(r1)rotate(-grad2[0])T(-r1)Bogen(rad=r1,grad=-grad-grad2[0],center=false,l1=l1-y/2,l2=l2m,help=0,name=0,messpunkt=messpunkt,2D=2D,fn=fn,d=2D,ueberlapp=spiel)
-    if($children)children();
-        else circle($fn=fn);
+    if($children){
+      $idx=1;
+      children();
+    }
+    else circle($fn=fn);
  }
  
  if(!grad&&!extrudeTrue) //0 grad Grade
@@ -4235,18 +4264,19 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
        
     InfoTxt(parent_module(search(["Anschluss"],parentList(0))[0]?search(["Anschluss"],parentList(0))[0]:1),["ext",str(endPunkte[0],"/",endPunkte[1])," 2×=",str(2*endPunkte[0],"/",2*endPunkte[1]),"Kreiscenter",str(KreisCenterR1[selectKC],"/",KreisCenterR2[selectKC])
     ],name);
-
+ 
+  $idx=is_undef($idx)?0:$idx;
     //Warnings    
-   Echo(str(name," SBogen has no 2D-Object"),color=Hexstring([1,0.5,0]),size=4,condition=!$children&&!2D&&!extrudeTrue);
-   Echo(str(name," SBogen width is determined by var 2D=",2D,"mm"),color="info",size=4,condition=2D==1&&!extrudeTrue);       
+  Echo(str(name," SBogen has no 2D-Object"),color=Hexstring([1,0.5,0]),size=4,condition=!$children&&!2D&&!extrudeTrue);
+  Echo(str(name," SBogen width is determined by var 2D=",2D,"mm"),color="info",size=4,condition=2D==1&&!extrudeTrue&&$idx==0);       
    
-   Echo(str(name," SBogen r1/r2 to big  middle <0"),condition=l2m<0);
-   Echo(str(name," SBogen radius 1 negative"),condition=r1<0);
-   Echo(str(name," SBogen radius 2 negative"),condition=r2<0);    
-   Echo(str(name," SBogen r1/r2 to big or angle or dist to short"),condition=grad!=0&&r1-cos(grad)*r1+r2-cos(grad)*r2>abs(dist));
-   Echo(str(name," SBogen angle to small/ l1+l2 to short"),condition=l1-y/2<0||l2-y/2<0);
+  Echo(str(name," SBogen r1/r2 to big  middle <0"),condition=l2m<0);
+  Echo(str(name," SBogen radius 1 negative"),condition=r1<0);
+  Echo(str(name," SBogen radius 2 negative"),condition=r2<0);    
+  Echo(str(name," SBogen r1/r2 to big or angle or dist to short"),condition=grad!=0&&r1-cos(grad)*r1+r2-cos(grad)*r2>abs(dist));
+  Echo(str(name," SBogen angle to small/ l1+l2 to short"),condition=l1-y/2<0||l2-y/2<0);
    //Help    
-   HelpTxt("SBogen",["dist",dist,"r1",r1,"r2",r2,"grad",grad,"l1",l1,"l2",l2,"center",center,"fn",fn,"messpunkt",messpunkt,"2D",2D,"extrude",extrude,"grad2",grad2,"x0",x0,"spiel",spiel," ,name=",name],help); 
+  HelpTxt("SBogen",["dist",dist,"r1",r1,"r2",r2,"grad",grad,"l1",l1,"l2",l2,"center",center,"fn",fn,"messpunkt",messpunkt,"2D",2D,"extrude",extrude,"grad2",grad2,"x0",x0,"spiel",spiel," ,name=",name],help); 
 
 }
 
@@ -4309,8 +4339,10 @@ HelpTxt("Tri90",["grad",grad,"a",a,"b",b,"c",c,"r",r,"messpunkt",messpunkt,"tang
 }
 
 
-module Tri(grad=60,l=20,l2,h=0,r=0,messpunkt=0,center=+0,top=0,tang=1,fn=fn,name,help){
+module Tri(grad=60,l=20,l2,h=0,r=0,messpunkt=0,center=+0,top=0,tang=1,c,fn=fn,name,help){
     
+  Echo("WIP‼ c and tang=0",color="red",condition=is_num(c)&&!tang);
+  h=is_num(c)?c/tan(grad/2)/2:h;
   l22=is_undef(l2)?l:l2;  //wip
  
  w1=180-grad;  //Supplementwinkel 
@@ -4369,8 +4401,8 @@ points=concat(
         }
     }
    
- InfoTxt("Tri",["reale Höhe=",tang?hc-TangentenP(w1,r1):hc,"h",tang?hc:hc+TangentenP(w1,r1),"Basis",2*Kathete(l2,tang?hc:hc+TangentenP(w1,r1)),"Umkreis r",2*Kathete(l2,hc)/(2*sin(grad))],name);
- HelpTxt("Tri",["grad",grad,"l",l,"l2",l2,"h",h,"r",r,",messpunkt",messpunkt,",center=",center,"top",top,"tang",tang,"fn",fn,",name",name],help);    
+ InfoTxt("Tri",["reale Höhe=",tang?hc-TangentenP(w1,r1):hc,"h",tang?hc:hc+TangentenP(w1,r1),"Basis",2*Kathete(l2,tang?hc:hc+TangentenP(w1,r1)),"Umkreis r",2*Kathete(l2,hc)/(2*sin(grad)),"c",l==l22?sin(grad/2)*l*2:"WIP"],name);
+ HelpTxt("Tri",["grad",grad,"l",l,"l2",l2,"h",h,"r",r,",messpunkt",messpunkt,",center=",center,"top",top,"tang",tang,"c",c,"fn",fn,"name",name],help);    
  
 }
 
@@ -4950,7 +4982,9 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=fa
     assert(grad!=0&&grad2!=0);
     basisX=is_bool(basisX)?basisX?1:0:is_undef(centerX)?basisX:is_bool(centerX)?centerX?1:0:centerX;
     
-    y=is_undef(y)?is_list(x)?x[1]:x:y;
+    y=is_num(y)?y:
+                is_list(x)?x[1]:
+                           x;
     xNum=is_list(x)?x[0]:x;
     rundung=runden(min(xNum,y)/PHI/2,2);
     r=is_undef(r)?[rundung,rundung,rundung,rundung]:is_list(r)?r:[r,r,r,r];
@@ -5286,7 +5320,7 @@ module Strebe(h=20,d=5,d2,rad=4,rad2,sc=0,grad=0,skew=0,single=false,angle=360,s
     winkel=atan((single?(h-rad):(h-rad-rad2))/(d2/2-d/2));
     grad1=winkel>0?180-winkel:abs(winkel);//90;//VerbindugsWinkel unten
     grad2=180-grad1;//VerbindugsWinkel oben    
-    assert(h>(rad+rad2),"Strebe too short for rad"); 
+    assert(h>=(rad+rad2),str("Strebe too short h=",h,"<",rad,"+",rad2," for rad")); 
 
 
   if (!2D && !is_parent(needs2D))//search(["Rundrum"], parentList())[0] )
@@ -6462,6 +6496,7 @@ module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=
     
     mirror([grad<0?1:0,0,0])rotate(center?0:tcenter?-abs(grad)/2:+0)T(tcenter?grad>180?hSek+hc:-hSek-hc:0)rotate(tcenter?abs(grad)/2:0) T(center?0:tcenter?0:-rad){
     if(!2D) T(rad)R(+90,+0)Tz(-l1-ueberlapp){
+      $idx=0;
       color("green")   linear_extrude(l1,convexity=5)
             if ($children)mirror([grad<0?1:0,0,0])children();
             else circle(d=d,$fn=fn2);
@@ -6469,7 +6504,9 @@ module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=
         }
     else T(rad)R(0,+0)T(0,ueberlapp)color("green")T(-d/2)square([d,l1]);
  
-    if(grad)if(!2D) rotate_extrude(angle=-abs(grad)-0,$fa = abs(grad)/fn, $fs = 0.3,$fn=0,convexity=5)intersection(){T(rad)
+    if(grad)if(!2D) rotate_extrude(angle=-abs(grad)-0,$fa = abs(grad)/fn, $fs = 0.3,$fn=0,convexity=5)intersection(){
+      $idx=1;
+      T(rad)
             if ($children)mirror([grad<0?1:0,0,0])children();
                 else circle(d=d,$fn=fn2); 
                 translate([0,-500])square(1000);
@@ -6477,6 +6514,7 @@ module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=
         else Kreis(rand=d,grad=abs(grad),center=false,r=rad+d/2,fn=fn,name=0,help=0); 
         
      if (!2D)R(z=-abs(grad)-180) T(-rad,ueberlapp)R(-90,180,0){
+       $idx=2;
          color("darkorange")linear_extrude(l2,convexity=5)
             if ($children)mirror([grad<0?1:0,0,0])children();
             else circle(d=d,$fn=fn2);
