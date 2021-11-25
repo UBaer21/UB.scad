@@ -54,7 +54,7 @@ Changelog (archive at the very bottom)
 336|21  FIX Vollwelle grad2=90 FIX Strebe assert CHG Nut CHG negRed CHG Quad CHG Tri add c
 337|21  FIX SBogen 2D CHG Anschluss FIX Bogen CHG Bezier CHG gcode CHG Ttorus
 338|21  CHG Color $idxON  CHG Bezier hull=false
-339|21  FIX Ttorus
+339|21  FIX Ttorus  diverse $tab / $info fixes HypKehle Polar Linear Grid DBogen CHG SBogen
 
 */
 
@@ -4215,6 +4215,32 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
   $fn=fn;
   $fa=fa;
   $fs=fs;
+
+
+  grad2Y=[-l1+y/2+r1*sin(grad2[0]),l2-y/2-r2*sin(grad2[1])]; // Abstand Kreisende zu Punkt l1/l2
+  grad2X=[r1-r1*cos(grad2[0])-tan(grad2[0])*grad2Y[0],-r2+r2*cos(grad2[1])-tan(grad2[1])*grad2Y[1]];// Versatz der Punkte durch grad2
+
+
+  KreisCenterR1=[[-abs(dist)/2+extrude+r1,-y/2],[extrude+r1-abs(dist),-y/2-l2],[extrude+r1,-y/2+l1]];
+  KreisCenterR2=[[abs(dist)/2+extrude-r2,y/2],[extrude-r2,y/2-l2],[abs(dist)+extrude-r2,y/2+l1]];
+
+
+  selectKC=center?center>0?0:
+                           1:
+                  2;
+
+
+  endPunkte=center?center==1?[extrude-abs(dist/2)+grad2X[0],extrude+abs(dist/2)+grad2X[1]]:[extrude-abs(dist)+grad2X[0],extrude+grad2X[1]]:[extrude+grad2X[0],extrude+abs(dist)+grad2X[1]];
+
+
+    InfoTxt(parent_module(search(["Anschluss"],parentList(+0))[0]?
+        search(["Anschluss"],parentList(+0,start=0))[0]:
+        1)
+        
+        ,["ext",str(endPunkte[0],"/",endPunkte[1])," 2×=",str(2*endPunkte[0],"/",2*endPunkte[1]),"Kreiscenter",str(KreisCenterR1[selectKC],"/",KreisCenterR2[selectKC])
+    ],name);
+ 
+  $tab=is_undef($tab)?1:b($tab,false)+1;
     
    
  if(grad&&!extrudeTrue)mirror(gradN<0?[1,0]:[0,0])translate(center?[0,0,0]:[dist/2,l1]){
@@ -4238,9 +4264,7 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
          else circle($fn=fn);
  else T(center?0:-2D/2) square([2D,l1+l2],center?true:false);
      
- grad2Y=[-l1+y/2+r1*sin(grad2[0]),l2-y/2-r2*sin(grad2[1])]; // Abstand Kreisende zu Punkt l1/l2
- 
- grad2X=[r1-r1*cos(grad2[0])-tan(grad2[0])*grad2Y[0],-r2+r2*cos(grad2[1])-tan(grad2[1])*grad2Y[1]];// Versatz der Punkte durch grad2
+
  
  
  
@@ -4272,12 +4296,7 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
   
  }
     
-    KreisCenterR1=[[-abs(dist)/2+extrude+r1,-y/2],[extrude+r1-abs(dist),-y/2-l2],[extrude+r1,-y/2+l1]];
-    KreisCenterR2=[[abs(dist)/2+extrude-r2,y/2],[extrude-r2,y/2-l2],[abs(dist)+extrude-r2,y/2+l1]];
- 
- selectKC=center?center>0?0:
-                            1:
-                   2;
+
  if(messpunkt&&is_num(extrude)){
      Pivot(KreisCenterR1[selectKC],messpunkt=messpunkt,active=[1,0,0,1]);
      Pivot(KreisCenterR2[selectKC],messpunkt=messpunkt,active=[1,0,0,1]);
@@ -4285,12 +4304,7 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
  }
  
  
-    endPunkte=center?center==1?[extrude-abs(dist/2)+grad2X[0],extrude+abs(dist/2)+grad2X[1]]:[extrude-abs(dist)+grad2X[0],extrude+grad2X[1]]:[extrude+grad2X[0],extrude+abs(dist)+grad2X[1]];
-       
-    InfoTxt(parent_module(search(["Anschluss"],parentList(0))[0]?search(["Anschluss"],parentList(0))[0]:1),["ext",str(endPunkte[0],"/",endPunkte[1])," 2×=",str(2*endPunkte[0],"/",2*endPunkte[1]),"Kreiscenter",str(KreisCenterR1[selectKC],"/",KreisCenterR2[selectKC])
-    ],name);
- 
-  $idx=is_undef($idx)?0:$idx;
+
     //Warnings    
   Echo(str(name," SBogen has no 2D-Object"),color=Hexstring([1,0.5,0]),size=4,condition=!$children&&!2D&&!extrudeTrue);
   Echo(str(name," SBogen width is determined by var 2D=",2D,"mm"),color="info",size=4,condition=2D==1&&!extrudeTrue&&$idx==0);       
