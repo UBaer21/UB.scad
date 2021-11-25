@@ -53,7 +53,8 @@ Changelog (archive at the very bottom)
 335|21  FIX Strebe FIX Rundrum ADD is_parent( needs2D )CHG VarioFill
 336|21  FIX Vollwelle grad2=90 FIX Strebe assert CHG Nut CHG negRed CHG Quad CHG Tri add c
 337|21  FIX SBogen 2D CHG Anschluss FIX Bogen CHG Bezier CHG gcode CHG Ttorus
-
+338|21  CHG Color $idxON  CHG Bezier hull=false
+339|21  FIX Ttorus
 
 */
 
@@ -120,7 +121,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.337;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.339;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -289,16 +290,15 @@ is_num(f)||len(points[pos])>4?str(" F",len(points[pos])==5?points[pos][4]:f):"",
 )
 i>= 0?str(gcode(i=i-chunksize,chunksize=chunksize,points=points),chunk(i,max(0,i-chunksize))):"";
 
-function b(n,bool)=is_list(n)?[for(i=[0:len(n)-1])b(n[i],bool)]:
-                         is_num(n)?bool||is_undef(bool)?n?true:
-                                                          false:
-                                                        n?n:
-                                                          0:
-                                   bool?n?true:  // n = bool
-                                          false:
-                                        n?1:
-                                          0;
-
+function b(n,bool)=  is_list(n)?[for(i=[0:len(n)-1])b(n[i],bool)]:
+                               is_num(n)?bool||is_undef(bool)?n?true:
+                                                                false:
+                                                              n?n:
+                                                                0:
+                                         bool?n?true:  // n = bool
+                                                false:
+                                              n?1:
+                                                0;
 
 function scaleGrad(grad=45,h=1,r=1)=assert(grad!=0)max(0,(r-(h/tan(grad)))/r);
 
@@ -743,7 +743,6 @@ module M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=
 }
 
 
-
 // multiply children polar (e=number, x/y=radial distance)
 module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name,n,help){
     
@@ -751,8 +750,14 @@ module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name,n,help){
    radius=Hypotenuse(x,y);
    end=end==0?360:end;
    winkel=abs(end)==360?360/e:end/max(1,e-1);
+  
+  InfoTxt("Polar",["elements",str(e,
+    " radius ",radius,"mm ",re?str("rotElements=",re,"°"):"",end!=360?str(" End=",end,"°"):""," Element=",winkel,"° Abstand=",2*radius*PI/360*winkel,"mm (Sekante=",2*radius*sin(winkel/2),")")],name);
+  
+  
    if(e>+0) rotate(r)for(i=[0:e-1]){
         $idx=i;
+        $tab=is_undef($tab)?1:b($tab,false)+1;
         $info=$idx?false:name;
         rotate(e==1&&end<360?winkel/2:i*winkel)translate([x,y,0])rotate([0,0, re+(i*winkel)/end*dr])children();
     }
@@ -760,10 +765,8 @@ module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name,n,help){
          $idx=e;
          children(); 
      }
- 
-    InfoTxt("Polar",["elements",str(e,
-     //"transX= ",x," transY= ",y,
-    " radius ",radius,"mm ",re?str("rotElements=",re,"°"):"",end!=360?str(" End=",end,"°"):""," Element=",winkel,"° Abstand=",2*radius*PI/360*winkel,"mm (Sekante=",2*radius*sin(winkel/2),")")],name);
+
+     
     HelpTxt("Polar",["e",e,"x",x,"y",y,"r",r,"re",re,"end",end,"dr",dr,"mitte",mitte,"name",name],help);
 MO(!$children);
            
@@ -783,6 +786,10 @@ s=es==1?s:0;
     cx=center?1:cx;
     cy=center?1:cy;  
     cz=center?1:cz;
+  
+  InfoTxt("Linear",["länge",str((s?s:e*es)*norm([x,y,z]),"mm")],name);  
+  $tab=is_undef($tab)?1:b($tab,false)+1;
+  
 if(s!=0&&e>0){if(e>1)translate([cx?-x*es/2*s:0,cy?-y*es/2*s:0,cz?-z*es/2*s:0])for(i=[0:e-1])//for (i=[+0:s/(e-1):s+.00001])
          {
             $idx=i;
@@ -803,7 +810,7 @@ if(s==0&&e>0)for (i=[0:e-1])
         
 MO(!$children);
 
-InfoTxt("Linear",["länge",str((s?s:e*es)*norm([x,y,z]),"mm")],name);    
+  
 HelpTxt("Linear",["e",e,"es",es,"s",s,"x",x,"y",y,"z",z,"r",r,"re",re,"center",center,"cx",cx,"cy",cy,"cz",cz,"name",name],help);       
         
 }
@@ -941,6 +948,8 @@ module Grid(e=[2,2,1],es=10,s,center=true,name,help){
     center.y?str("\n\tY ",-(e[1]-1)*es[1]/2," ⇔ ",(e[1]-1)*es[1]/2," mm"):"",
     center.z?str("\n\tZ ",-(e[2]-1)*es[2]/2," ⇔ ",(e[2]-1)*es[2]/2," mm"):"")
     ],name);  
+    
+    $tab=is_undef($tab)?1:b($tab,false)+1;
        
     HelpTxt("Grid",[
     "e",e
@@ -963,8 +972,8 @@ module Grid(e=[2,2,1],es=10,s,center=true,name,help){
 
 
 // Grid but with alternating row offset - hex or circle packing
-module HexGrid(e=[11,4],es=5,center=true){
-    Grid(e=e,es=is_list(es)?es:[es*sin(60),es],center=center)
+module HexGrid(e=[11,4],es=5,center=true,name){
+    Grid(e=e,es=is_list(es)?es:[es*sin(60),es],center=center,name=name)
     translate([0,
     $idx[0]%2?is_list(es)?es[1]/2:es/2:
             0
@@ -1057,7 +1066,6 @@ InfoTxt("Anordnung",["e",e,"children",$children],name);
      Polar(e,x=r,re=rot,name=false){
        idx=$idx;
        $idx=0;
-       $tab=true;
        $idxON=true;
        $info=name;
        if(is_undef(c)&&(loop?true:idx<$children))
@@ -1070,7 +1078,6 @@ InfoTxt("Anordnung",["e",e,"children",$children],name);
   if(option==2)
       Linear(e=e,es=es,re=rot,center=center,x=axis==1?1:0,y=axis==2?1:0,z=axis==3?1:0,name=false){
         $info=name;
-        $tab=true;
         idx=$idx;
         $idx=0;
         $idxON=true;
@@ -1080,7 +1087,6 @@ InfoTxt("Anordnung",["e",e,"children",$children],name);
 
  if(option==3) Grid(e=e,es=es,center=center,name=false){
      $info=name;
-     $tab=true;
      childINDX=inverse?(loop?e.x*e.y*e.z:$children -1)-($idx[0]+e.x*$idx[1]):($idx[0]+e.x*$idx[1]);
      idx=$idx;
      $idx=0;
@@ -1138,7 +1144,7 @@ HelpTxt("Col",["no",no,"alpha",alpha,"pal",pal,"name",name],help);
 
 
 // object color with hue (and rgb) also color change for multiple children
-module Color(hue=0,alpha=1,v=1,l=0.5,spread=1,name=0,help){
+module Color(hue=0,alpha=1,v=1,l=0.5,spread=1,$idxON=true,name=0,help){
     
     function val(delta=0,hue=-hue*360,v=v,l=l*-2+1)=
         v*max(
@@ -1158,7 +1164,7 @@ module Color(hue=0,alpha=1,v=1,l=0.5,spread=1,name=0,help){
             
        if(name)  echo(str("Color ",name," child ($idx) ",i," hex=",Hexstring(c)," ",Hex(alpha*255),//" <font color=",Hexstring(c),"> ████ </font>
           "RGB=",c));
-       $idxON=true;
+      // $idxON=true;
        color(c,alpha)children(i); 
             
              
@@ -1459,7 +1465,7 @@ module ZigZag(e=5,es=0,x=50,y=7,mod=2,delta=+0,base=2,shift=0,center=true,name,h
 module Rundrum(x=+40,y,r=10,eck=4,twist=0,grad=90,grad2=90,spiel=0.005,fn=fn,name,help){
     
 $info=name;
-$tab=is_undef($tab)?0:$tab;
+$tab=is_undef($tab)?1:b($tab,false)+1;
 $fa=fa;
 $fs=fs;
 $fn=fn;
@@ -1486,7 +1492,6 @@ $fn=fn;
 
 if(eck==4&&twist==0)
     if(grad==90&&grad2==90){
-        $tab=b($tab,false)+1;
         $info=is_undef(name)?$info:name;
         //Ecken
         T(-x/2+r1,y/2-r1)rotate(90)RotEx(90,fn=fn/4,cut=true)T(r1)children();// R1
@@ -1508,7 +1513,6 @@ if(eck==4&&twist==0)
         
     }
 else T(-shiftx/2*0){
-      $tab=b($tab,false)+1;
       $info=is_undef(name)?$info:name;
     //plus x    
     T(x/2-rx(r2,grad2)+shiftx2/2,y/2-r2)rotate(90-grad2)rotate_extrude(angle=grad2,convexity=5,$fn=0,$fa = grad2/(fn/4), $fs = 0.1)Ecke(r2)children();
@@ -1580,7 +1584,7 @@ HelpTxt("Rundrum",["x",x,"y",y,"r",r,"eck",eck,"twist",twist,"grad",grad,"spiel"
 
 module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gradEnd=90,trxEnd=0,endRot=0,endspiel=+0,name,help)
     rotate(grad?0:-a/2){
-    $tab=is_undef($tab)?0:$tab;
+
     end=is_undef(spheres)?is_bool(end)?end?-1:0:end:spheres;//compatibility
     $d=d;
     $r=d/2;   
@@ -1591,14 +1595,13 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gr
     
     InfoTxt("Torus",["Innen∅",2*trx-d,"Mitten∅",2*trx,"Aussen∅",2*trx+d],info=name);
     HelpTxt("Torus",["trx",trx,"d",d,"a",a,"fn",fn,"fn2",fn2,",r=",r,", grad=",grad,"dia",dia,"center",center,"end",end,"gradEnd",gradEnd,"trxEnd",trxEnd,"endRot",endRot,"endspiel",endspiel,"name",name,"$d",$d],help);
-  
+    $tab=is_undef($tab)?1:b($tab,false)+1;
       
 rotate(end==-1&&!$children?(asin($r/trx))*sign(grad):0){
    $idx=true;
    $info=is_undef(name)?is_undef($info)?false:$info:name;
    translate([0,0,center?0:d/2]) RotEx(grad=a,fn=fn,cut=1,help=false){
                 $idx=0;
-                $tab=b($tab,false)+1;
                 if($children)T(x=trx)R(0,0,r)children();
                 else T(x=trx)R(0,0,r)circle(d=d,$fn=fn2);
                 }
@@ -1644,7 +1647,7 @@ rotate(end==-1&&!$children?(asin($r/trx))*sign(grad):0){
 
 
 
-module LinEx(h=5,h2=0,h22,scale=0.85,scale2,twist,twistcap=1,slices,$d,$r=5,grad,grad2,mantelwinkel=0,center=false,rotCenter=false,end=0,fn=12,name,help,n,$tab){
+module LinEx(h=5,h2=0,h22,scale=0.85,scale2,twist,twistcap=1,slices,$d,$r=5,grad,grad2,mantelwinkel=0,center=false,rotCenter=false,end=0,fn=12,name,help,n){
 
 
 $info=is_undef(name)?is_undef($info)?false:$info:name;
@@ -1685,6 +1688,8 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
     
     InfoTxt("LinEx",["core h",str(hc,"mm - twist per mm=",twist/(hc),"°, Fase für $d= ",$d,"mm ist ",grad,"°/",grad2,"° d=",$d*scale,"/",$d*scale2,"mm - r=",$r*scale,"/",$r*scale2,"mm Mantelwinkel für $d/$r=",$d,"/",$r,"mm⇒ ",mantelwinkel,"° twist=",twist,"° slices=",slices)],name); 
     
+    $tab=is_undef($tab)?1:b($tab,false)+1;
+    
     Echo(str(name," LinEx Höhe center=",hc,"mm"),color="red",condition=hc<0);
     
     if(is_list(grad2)?$r*tan(min(grad2[0],grad2[1]))<(is_list($r)?[h22,h22]:h22)&&min(grad2[0],grad2[1])<90&&min(grad2[0],grad2[1])>0:$r*tan(grad2)<(is_list($r)?[h22,h22]:h22)&&grad2<90&&grad2>0)Echo(str(name," LinEx Höhe h22=",h22," mm zu groß oder winkel/$r zu klein min=",atan(h22/$r),"° max=",is_list(grad2)?$r*tan(min(grad2[0],grad2[1])):$r*tan(grad2),"mm"),color="red");
@@ -1711,7 +1716,6 @@ rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
     //center
     Tz(h2){
       $idx=0;
-      $tab=b($tab,false)+1;
       rotate(twist/2)linear_extrude(hc,scale=1,convexity=5,twist=twist,slices=slices,center=false)children();
     }
   
@@ -1977,29 +1981,34 @@ module HypKehle(l=15,grad=90,d1=3,d2,l2,steps=20,fn=24,fill=false,exp=1,center=f
   $r=d1/2;
     l2=is_undef(l2)?l:l2;
     $info=false;
+  $tab=is_undef($tab)?1:b($tab,false)+1;
   
 R(center?-grad/2:0)
 for(i=[0:steps-1]){
-  Color(1/(steps*1.5)*i)hull()
+  Color(1/(steps*1.5)*i,$idxON=false)hull()
   union(){
-      Tz(pow(i,exp)*l/pow(steps-1,exp))R((grad +(180-grad)/(steps-1)*i)*rot +(rot?0:180))
-         if($children)linear_extrude(.1,scale=0)children(0);
-         else rotate(180/fn)cylinder(.1,d1=d1,d2=0,$fn=fn);
+    $idx=i;
+    Tz(pow(i,exp)*l/pow(steps-1,exp))R((grad +(180-grad)/(steps-1)*i)*rot +(rot?0:180))
+       if($children)linear_extrude(.1,scale=0)children(0);
+       else rotate(180/fn)cylinder(.1,d1=d1,d2=0,$fn=fn);
+    
+    if(fill){
+      $info=false;
+      if($children)R(0,90)RotEx(cut=true,fn=fn)rotate(90)children();
+       else Isosphere(d=is_num(fill)?fill:max(d1,d2),$fn=fn);
+    }
       
-      if(fill){
-        if($children)R(0,90)RotEx(cut=true,fn=fn)rotate(90)children();
-         else Isosphere(d=is_num(fill)?fill:max(d1,d2),$fn=fn);
-      }
-        
-     Color() R(grad)Tz(pow((steps-1)-i,exp)*l2/pow(steps-1,exp)) R( (180-grad)/(steps-1)*i*rot +180)
-      if($children)linear_extrude(.1,scale=0)mirror([0,1])children($children>1?1:0);
-      else rotate(180/fn)cylinder(.1,d1=d2,d2=0,$fn=fn);
+   Color($idxON=false) R(grad)Tz(pow((steps-1)-i,exp)*l2/pow(steps-1,exp)) R( (180-grad)/(steps-1)*i*rot +180)
+    if($children){
+      $info=$children>1?1:0;
+      linear_extrude(.1,scale=0)mirror([0,1])children($children>1?1:0);
+    }
+    else rotate(180/fn)cylinder(.1,d1=d2,d2=0,$fn=fn);
   }
 }
 if(!fill&&!$children)R(0,0,90)Isosphere(d=is_num(fill)?fill:max(d1,d2),$fn=fn);
 HelpTxt("HypKehle",["l",l,"grad",grad,"d1",d1,"d2",d2,"l2",l2,"steps",steps,"fn",fn,"fill",fill,"exp",exp,"center",center,"name",name],help);
 }
-
 
 
 
@@ -2733,7 +2742,7 @@ HelpTxt("DBogen",[
 
    // echo($parent_modules);
  if($children){ 
-   $tab=b($tab,false)+1;
+   $tab=is_undef($tab)?1:b($tab,false)+1;
    $info=name;
    $messpunkt=false;
    $helpM=false;  
@@ -2761,17 +2770,23 @@ T(y=-h+r2h)rotate(90)RotEx(grad=a+spiel,center=true,cut=sign(r),fn=max(12,is_und
 }
 
 
+
 module DRing(d=4,id=20,r=.5,l=0,grad=180,fn=fn,center=true,name,help){
     $info=false;
     $d=d;
     r=is_list(r)?r:[r,d/2];
+  
+  
    translate(center?[0,0]:[0,d/2+r[0]+l])union(){
     if($children){
         DBogen(fn=fn/2,grad=grad,x=(id+d)+r[0]*2,rad2=max(r[1],.0001))children();
+      union(){
+        $info=false;
         //RotEx(180,fn=fn/2)T((id+d)/2+r)children();
         T(y=-l)MKlon(tx=id/2)rotate(-90)RotEx(90,fn=fn/8)T(d/2+r[0])children();
         T(y=-d/2-r[0]-l)R(90,0,-90)linear_extrude(id,center=true)children();
         if(l)MKlon((id+d)/2+r[0])R(90)linear_extrude(l,center=false)children(); 
+      }
     }
     else{
     //RotEx(180,fn=fn/2)T((id+d)/2+r[0]) circle(d=d,$fn=fn);
@@ -5368,7 +5383,6 @@ if (2D || is_parent(needs2D))//search(["Rundrum"], parentList())[0] )
 
 HelpTxt("Strebe",["h",h,"d",d,"d2",d2,"rad",rad,"rad2",rad2,"sc",sc,"grad",grad,"skew",skew,"single",single,"angle",angle,"spiel",spiel,"fn",fn,"fn2",fn2,"name",name,"2D",str(2D,"/*2 for halb*/")],help); 
 
-
 }
 
 
@@ -5387,6 +5401,7 @@ pabs=false, //p1/p2 absolut/relativ p0/p3
 messpunkt=true,
 mpRot,
 twist=0,
+hull=true,
 name,
 help
 
@@ -5403,7 +5418,7 @@ help
   p1=v3(pabs?p1*w:v3(p1)*w+p0);  
   p2=v3(pabs?p2*w:v3(p2)*w+p3);
   
- $fn=fn;
+ $fn=hull?fn:$fn;
  $fa=fa;
  $fs=fs; 
 
@@ -5417,15 +5432,17 @@ help
             $rot=vektorWinkel(Bezier(t,p0,p1,p2,p3),Bezier(t+step,p0,p1,p2,p3))+twist/(max-step)*t;
             $tab=true;
             $idx=t;
-             Color(1/(max-step)*t)hull(){
+            if (hull) Color(1/(max-step)*t,$idxON=false)hull(){
                 translate(Bezier(t,p0,p1,p2,p3))rotate($rot)children();
-                union(){
+                 union(){
                     $idx=t+step;
                     $rot=t>=max-step?vektorWinkel(p2,p3)+twist: // last segment
                                      vektorWinkel(Bezier(t+step,p0,p1,p2,p3),Bezier(t+step*2,p0,p1,p2,p3))+twist/(max-step)*(t+step);
                     translate(Bezier(t+step,p0,p1,p2,p3))rotate($rot)children();
                 }
-             }   
+             }
+            else Color(1/(max-step)*t,$idxON=false)
+              translate(Bezier(t,p0,p1,p2,p3))rotate($rot)children();
             
         }
     
@@ -5467,22 +5484,22 @@ help
     if(name&&!$children)Echo("No Bezier object using polygon!",color="green");
 
 HelpTxt("Bezier",[   
-"p0",p0,",
-p1",p1,",
-p2",p2,",
-p3",p3,",
-w/*weighting*/",w,",
-max",max,",
-min",min,",
-fn",fn,",
-ex/*extrude X*/",ex,",
-pabs/*p1/p2 absolut/relativ */",pabs, 
-"messpunkt",messpunkt,",
-mpRot",mpRot,",
-twist",twist,"
-name",name]
-,help);
-
+  "p0",p0,
+  "p1",p1,
+  "p2",p2,
+  "p3",p3,
+  "w/*weighting*/",w,
+  "max",max,
+  "min",min,
+  ",fn",fn,
+  "ex/*extrude X*/",ex,
+  "pabs/*p1/p2 absolut/relativ */",pabs, 
+  "messpunkt",messpunkt,
+  "mpRot",mpRot,
+  "twist",twist,
+  "hull",hull,
+  "name",name]
+  ,help);
 }
 
 
@@ -5624,7 +5641,7 @@ module Ttorus(r=20,twist=360,angle=360,pitch=0,scale=1,r2,fn=fn,help){
     //$info=i?0:$info;
     //$helpM=i?0:$helpM; 
     $idx=i;  
-   Color(i/fn) hull(){
+   Color(i/fn,$idxON=false) hull(){
         rotate(i*step)translate([r+rdiff*i,0,i*pitch/360*step]) rotate([0,i*twist/360*step,0])scale([1,1,1]+(scale-[1,1,1])/fn*(i))children();
         rotate(j*step)translate([r+rdiff*j,0,j*pitch/360*step]) rotate([0,j*twist/360*step,0])union(){
             $info=false;
