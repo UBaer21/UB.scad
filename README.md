@@ -122,5 +122,6 @@ There are a lot of settings available but most is using  pre configuration - so 
 * `teiler( n, div=2)` least divisior 
 * `gcode( points, f)` generates gcode in output
 * `b( n)` switches bool in num and vica versa (works on vectors too)
+* `scaleGrad(grad=45, h=1, r=1)` scale factor for extrusions h of circle(r) to obtain angle grad at sides
 * `m( r=[0,0,0], t=[0,0,0] )` mulmatrix vector
 
