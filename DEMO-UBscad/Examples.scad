@@ -1,7 +1,13 @@
 use<ub.scad>
+//useVersion=21.337;
 
 $fn=72;
 
+
+T(0,40)Anordnen(es=50,option=2,cl=0.75,c=0.6){
+  Auger();
+ rotate(50) Wall();
+}
 
 Anordnen(es=50,option=2,cl=0.85,c=0.1){
   PipeBlock();
@@ -13,6 +19,18 @@ Anordnen(es=50,option=2,cl=0.85,c=0.1){
   
 } // End Anordnen
 
+
+module Wall(){
+  SBogen(l1=25,r1=25,r2=5)SBogen(l1=30,l2=15,center=false,2D=2.5);
+}
+
+module Auger(h=75){
+  
+  Gewinde(dn=20,h=h -9,p=20,kern=12.5,g=2,new=true,rad2=3,cyl=false,tz=10);
+  Pille(l=h,center=false,d=12.6,rad=[0,10]);
+  Tz(2.5)Pille(5,d=20,rad=1);
+  Tz(5)RotEx()VarioFill(dia=12.6,l=[2.5,10]);
+}
 
 module Hex(size=7.0)R(180){
   difference(){
@@ -33,18 +51,24 @@ module O5(e=5){
 
 module Junction(jh=15,jd=10,d1=22,d2=30,wallj=1,wall2=2,fn=36)rotate(-90){
   difference(){
-    Halb(1,y=1)Anschluss(d1=d1,d2=d2,wand=wall2,h=[25,30],center=+1);
+    //Halb(1,y=1)Anschluss(d1=d1,d2=d2,wand=wall2,h=[25,30],center=+1);
+    rotate(90)RotEx(grad=270)Anschluss(d1=d1,d2=d2,wand=wall2,h=[25,30],center=+1);
     Tz(jh)R(90)cylinder(d2,d=jd-wallj*2);
+    Tz(jh)mirror([0,1]) cube(50);
   }
   Tz(jh){
-    R(90){
+   difference(){ R(90){
       Tz(8)Ring(d2/2+5,rand=wallj,d=jd);
       Abzweig(d1=jd,d2=d2,fn=fn,rad=5,spiel=.5); // <- slow
       Abzweig(d1=jd,d2=d2-wall2*2,fn=fn,rad=2,inside=true,spiel=.5);// <- slow
     }
+   mirror([0,1]) cube(50);}
   }
   
-  Tz(-20)RotEx()Vollwelle(extrude=d1/2,xCenter=-1,x0=d1/2-wall2+.1);
+Tz(-20) difference(){
+   RotEx()Vollwelle(extrude=d1/2,xCenter=-1,r2=3,x0=d1/2-wall2+.1);
+   Tz(-5)cube(50);
+ }
 }
 
 
