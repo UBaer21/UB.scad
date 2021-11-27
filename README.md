@@ -66,31 +66,31 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 # Modifier
 
-![modifier](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOmodifier.png)
+![modifier](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/modifier.png)
 
 # Generator
 
-![3Dmodifier](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOgenerator.png)
+![3Dmodifier](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/generator.png)
 
 # Helper
 
-![helper](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOhelper.png)
+![helper](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/helper.png)
 
 # Polygons
 
-![polygons](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOpolygons.png)
+![polygons](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/polygons.png)
 
 # Objects
 
-![objects](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOobjects.png)
+![objects](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/objects.png)
 
 # Products
 
-![Products](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOproducts.png)
+![Products](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/products.png)
 
 # Functions
 
-![functions](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/DEMOfunctions.png)
+![functions](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/functions.png)
 * `l(x)` № layer in mm depending on layer=
 * `n(x)` wall / perimeter depending on nozzle=
 * `Inkreis( eck, rU)` inner circle of n-gon
