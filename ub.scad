@@ -58,6 +58,8 @@ Changelog (archive at the very bottom)
 340|21  ADD m CHG div tab info CHG InfoTxt FIX WaveEx
 341|21  FIX Pfeil d FIX Quad
 346|21  ADD mPoints CHG m add s
+349|21  CHG Bezier
+350|21  ADD function Quad ADD function octa ADD OctaH
 
 */
 
@@ -124,7 +126,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.346;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.350;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -320,43 +322,52 @@ is_list(parent)?is_num(search(parent,parentList())[i])?true:
 [Shear Z along X]  [Shear Z along Y]  [Scale Z]          [Translate Z]
 */
 
-m = function (r=[0,0,0], t=[0,0,0], s=[1,1,1])
+m = function (r=[0,0,0], t=[0,0,0], t2=[15,0,0], s=[1,1,1])
 let(
 s=is_num(s)?[s,s,s]:
             len(s)==2?concat(s,[1]):
                       s,
 r=is_num(r)?[0,0,r]:r,
 t=len(t)==2?concat(t,[0]):t,
+t2=len(t2)==2?concat(t2,[0]):t2,
+
   rx = function (x)[
-  [1, 0, 0, 0],
-  [0,cos(x),-sin(x),0],
-  [0,sin(x),cos(x),0],
+  [1,     0,      0, t.x],
+  [0,cos(x),-sin(x), t.y],
+  [0,sin(x), cos(x), t.z],
   [0,0,0,0]
   ],
 
   ry = function (y) [
-  [ cos(y), 0, sin(y), 0],
-  [0      , 1, 0     , 0],
-  [-sin(y), 0, cos(y), 0],
+  [ cos(y), 0, sin(y), t.x],
+  [0      , 1, 0     , t.y],
+  [-sin(y), 0, cos(y), t.z],
   [0,0,0,0]
   ],
 
   rz = function (z) [
-  [cos(z), -sin(z),0,0],
-  [sin(z),  cos(z),0,0],
-  [0, 0, 1, 0],
+  [cos(z), -sin(z), 0, t.x],
+  [sin(z),  cos(z), 0, t.y],
+  [0     ,       0, 1, t.z],
   [0,0,0,0]
   ],
   
   
 
-  mt = function (t=[0,50,0])[
+  mt = function (t2=[0,0,0])[
+  [1, 0, 0, t2.x],
+  [0, 1, 0, t2.y],
+  [0, 0, 1, t2.z],
+  [0, 0, 0, 0]
+  ],
+  
+  ms = function (s=[ 1, 1, 1])[
   [s.x, 0, 0, t.x],
   [0, s.y, 0, t.y],
   [0, 0, s.z, t.z],
   [0, 0, 0, 0]
   ],
-  out=rx(r.x)*ry(r.y)*rz(r.z)*mt(t)
+  out=rx(r.x)*ry(r.y)*rz(r.z)//*ms(s)*mt(t2)
 )
 out;
 
@@ -368,19 +379,63 @@ let(
 pointsI=is_list(points[0])?points:[points],
 dimension=len(pointsI[0]),
 out=
-[for(i=[0:len(pointsI)-1])m(r,t,s)*
+[for(i=[0:len(pointsI)-1])m(r=r,t=t,s=s)*
   concat(pointsI[i],
     dimension==3?[1]:concat([for(dim=[1:3-dimension])0],[1]) // add to vector
   )
     +[for(dim=[0:dimension-1])0]] // mask vector
 )is_list(points[0])?out:out[0];
 
+  /*
+p=[
+   [-10,  0,  0], 
+   [ 10,  0,  0], 
+   [  0, 10,  0], 
+   [  0,-10,  0], 
+   [  0,  0, 10], 
+   [  0,  0,-10]
+  ];
+
+a=[[for (i=[0:len(p)-1])i]];
+
+polyhedron(p2,a);
+
+p2=mPoints(p,t=[+20,0],r=[0,0,45],s=[2,0.5]);
+
+//*/
 
 
 
+octa = function (s=1) 
+let(
+s=is_list(s)?s:
+            [s,-s,s,-s,s,-s]
+)
+[
+  [ s[1],  0,  0], 
+  [ s[0],  0,  0], 
+  [  0, s[2],  0], 
+  [  0, s[3],  0], 
+  [  0,  0, s[4]], 
+  [  0,  0, s[5]]
+];
 
+//hull() polyhedron(octa(),[[for(i=[0:len(octa())-1])i]]);
 
+Quad = function (x=10,y,r=1,fn=$fn)
+ let(
+ y=is_list(x)?x.y:is_undef(y)?x:y,
+ x=is_list(x)?x.x:x,
+ r=is_list(r)?r:[r,r,r,r]
+) 
+concat(
+  Kreis(t=[ x/2 -r[0],  y/2 -r[0] ],r=r[0],rand=0,grad=90,rot=0,center=false,fn=fn/4),
+  Kreis(t=[ x/2 -r[1], -y/2 +r[1] ],r=r[1],rand=0,grad=90,rot=90,center=false,fn=fn/4),
+  Kreis(t=[-x/2 +r[2], -y/2 +r[2] ],r=r[2],rand=0,grad=90,rot=180,center=false,fn=fn/4),
+  Kreis(t=[-x/2 +r[3],  y/2 -r[3] ],r=r[3],rand=0,grad=90,rot=270,center=false,fn=fn/4)
+);
 
+//polygon(Quad());
 
 
 
@@ -477,6 +532,8 @@ echo    ("••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
 ••• is_parent(needs2D) search parentlist for string or list of strings (parent module needing polygon children) \n
 ••• m(r=[0,0,0], t=[0,0,0], s=[1,1,1]) mulmatrix vector*concat(point,[1]) for rotation and translation•••\n
 ••• mPoints(points,r,t,s)••• use with 2D&3D point / points  \n
+••• octa(s) ••• octaheadron points \n
+••• Quad(x,y,r) ••• Quad points \n
 
 ");
     
@@ -617,6 +674,8 @@ echo    ("\n
 •• Buchtung(help=1);••••\n
 •• SpiralCut(help=1);••••\n
 •• Isosphere(help=1);••••\n
+•• OctaH(s); Octahedron••••\n
+
 ");
 
 }
@@ -3411,6 +3470,7 @@ module Vollwelle(r=1,r2,grad=+60,grad2=+0,h,l,extrude=+5,center=true,xCenter=0,f
 }
 
 
+
 module SQ(size=[10,10],fn=[10,2],diff=[0.0001,0.0001,0.0001,0.0001],center=true,help){
     
     x=is_list(size)?size[0]:size;
@@ -3432,6 +3492,8 @@ module SQ(size=[10,10],fn=[10,2],diff=[0.0001,0.0001,0.0001,0.0001],center=true,
     //echo (path);
    translate(center?[0,0]:[x/2,y/2]) polygon(points,path);
     
+   
+ if($info) echo(" in twisted extrusions use linear_extrude(segments=20)");
 HelpTxt("SQ",["size",[x,y],"fn",[fnx,fny],"diff",diff,"center",center] ,help);   
 }
 
@@ -5518,8 +5580,8 @@ HelpTxt("Strebe",["h",h,"d",d,"d2",d2,"rad",rad,"rad2",rad2,"sc",sc,"grad",grad,
 
 module Bezier(
 p0=[+0,+10,0],
-p1=[15,-5,0],
-p2=[15,+5,0],
+p1=[15,-10,0],
+p2,
 p3=[0,-10,0],
 w=1,//weighting
 max=1.0,
@@ -5531,6 +5593,7 @@ messpunkt=true,
 mpRot,
 twist=0,
 hull=true,
+points,
 name,
 help
 
@@ -5541,11 +5604,11 @@ help
     //echo(search(["RotEx"],parentList())[0],parentList());
   twist=v3(twist);
   messpunkt=is_bool(messpunkt)?messpunkt?pivotSize:0:messpunkt;//$info?messpunkt:0;
-  
+  3d=len(p0)==3||is_list(points)?true:false;
   p0=v3(p0);
   p3=v3(p3);  
   p1=v3(pabs?p1*w:v3(p1)*w+p0);  
-  p2=v3(pabs?p2*w:v3(p2)*w+p3);
+  p2=is_undef(p2)?p1:v3(pabs?p2*w:v3(p2)*w+p3);
   
  $fn=hull?fn:$fn;
  $fa=fa;
@@ -5601,7 +5664,7 @@ help
         ex=is_undef(ex)?0:ex;
          vpr=mpRot?[90,0,0]:$vpr;
         Pivot(mpRot?[p0[0]+ex,0,p0[1]]:p0+[ex,0,0],messpunkt,txt="p0",vpr=vpr);
-        Pivot(mpRot?[p1[0]+ex,0,p1[1]]:p1+[ex,0,0],messpunkt/2,txt="p1",vpr=vpr);
+        Pivot(mpRot?[p1[0]+ex,0,p1[1]]:p1+[ex,0,0],messpunkt/2,txt=str("p1",p1==p2?"     ":""),vpr=vpr);
         Pivot(mpRot?[p2[0]+ex,0,p2[1]]:p2+[ex,0,0],messpunkt/2,txt="p2",vpr=vpr);
         Pivot(mpRot?[p3[0]+ex,0,p3[1]]:p3+[ex,0,0],messpunkt,txt="p3",vpr=vpr);
       d=b(messpunkt,false)/20;
@@ -5627,6 +5690,7 @@ HelpTxt("Bezier",[
   "mpRot",mpRot,
   "twist",twist,
   "hull",hull,
+  "points",points,
   "name",name]
   ,help);
 }
@@ -5874,6 +5938,25 @@ module Trapez (h=2.5,x1=6,x2=3.0,d=1,x2d=0,fn=36,rad,name,help){
       v=((x1+d)-(x2+d))/2/(h-d);
    if(name)echo(str(name," Trapez Steigung= ",v*100,"%-",atan(v),"°")); 
    HelpTxt("Trapez",["h",h,"x1",x1,"x2",x2,"d",d,"x2d",x2d,"fn",fn,"rad",rad],help);    
+}
+
+
+
+
+module OctaH(s=1){
+  
+  faces=[
+  [0,2,4],
+  [2,1,4],
+  [1,3,4],
+  [3,0,4],
+  [2,0,5],
+  [1,2,5],
+  [3,1,5],
+  [0,3,5],
+  
+  ];
+  polyhedron(octa(s),faces);
 }
 
 
