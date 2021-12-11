@@ -101,6 +101,12 @@ There are a lot of settings available but most is using  pre configuration - so 
 * `Cring()`         C-ring
 * `GT2Pulley()`     GT2 Pulley
 * `CyclGetriebe()`  Cycloidal gear (inner or outer)
+* `Klammer()`       Clamp
+* `KBS()`           Klemmbaustein - Construction block ( like LEGO™ )
+* `Tugel()`         Half hollow sphere half torus
+* `Ąchshalter()`    Shaft/axle/spindle clamp
+* `Achsenklammer()` holder for 2 cylinder or roller (spring load)
+
 
 # Functions
 
