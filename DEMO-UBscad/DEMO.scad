@@ -4,7 +4,7 @@
 
 include<ub.scad> 
 /*[Hidden]*/
-useVersion=21.351;//⇒ v.gd/ubaer
+useVersion=21.355;//⇒ v.gd/ubaer
 assert(Version>=useVersion,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 nozzle=.2;
 bed=false;
@@ -934,11 +934,13 @@ objPos=[2,1,0];
   }    
   
   union(){// radiusS
-    T([0,0,+0.1]+objPos )Color(color2)circle(r=radiusS(7,3),$fn=7);
-    T([0,0,+0.2]+objPos )rotate(360/7*4)Color(0.5)square([radiusS(7,3),1]);
-    T(objPos)square([10,3],center=true);
+    s=3;
+    T([0, 0, +0.1]+objPos )Color(color2)circle(r=radiusS(n=7, s=s), $fn=7);
+    T([0, 0, +0.2]+objPos )rotate(360/7*4)Color(0.5)square([radiusS(n=7, s=s), 1]);
+    T(objPos)square([10, s], center=true);
+    T(objPos)Caliper(s,center=true,s=4,messpunkt=0,end=3,translate=[-7,0],in=2);
     
-    Txt("r=radiusS(n=7,r=3)",0);
+    Txt(str("r=radiusS(n=7,s=",s,")"),0);
   }    
   
   union(){// gradS
