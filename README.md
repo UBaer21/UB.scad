@@ -106,6 +106,13 @@ There are a lot of settings available but most is using  pre configuration - so 
 * `Tugel()`         Half hollow sphere half torus
 * `Ąchshalter()`    Shaft/axle/spindle clamp
 * `Achsenklammer()` holder for 2 cylinder or roller (spring load)
+* `PCBcase()`       makes a Case with lid for PCB (also in existing geometries)
+* `Gardena()`       Quick connect garden hose fitting adapter
+* `Bitaufnahme()`   Screwdriver hex-bit adapter
+* `Knochen()`       Bone shaped structure element / Strut with equal height
+* `Servokopf()`     printable Servo head connector ( 15 pointed star )
+* `Balg()`          Gaiter (square )
+* `SpiralCut()`     cutting geometry for walled spiral prints (e.g for a ring)
 
 
 # Functions
