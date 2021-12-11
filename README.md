@@ -88,6 +88,10 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 ![Products](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/products.png)
 
+* `Gewinde()` creates a thread inner or outer 
+* `DRing()`   D-Ring 
+* `BB()`      Ballbearing or roller bearing
+
 # Functions
 
 ![functions](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/functions.png)
