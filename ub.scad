@@ -60,6 +60,9 @@ Changelog (archive at the very bottom)
 346|21  ADD mPoints CHG m add s
 349|21  CHG Bezier
 350|21  ADD function Quad ADD function octa ADD OctaH
+351|21  ADD function Stern CHG Torus End true for children CHG Sichel CHG Spirale
+354|21  CHG HexGrid info FIX Strebe
+355|21  CHG Bogen CHG Pille CHG GewindeV3 help
 
 */
 
@@ -126,7 +129,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.350;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.355;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -439,6 +442,35 @@ concat(
 
 
 
+Stern= function(e=5,r1=10,r2=5,mod=2,delta=+0)
+let(schritt=360/(e*mod))
+    [for(i=[0:e*mod])
+      i%mod<mod/2+round(delta)?[sin(i*schritt%360)*r1,cos(i*schritt%360)*r1]:
+                               [sin(i*schritt%360)*r2,cos(i*schritt%360)*r2]
+    ];
+
+//polygon(Stern());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ///////////////////////////////////////////////////////
 
 $fn=fn;
@@ -534,7 +566,7 @@ echo    ("••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
 ••• mPoints(points,r,t,s)••• use with 2D&3D point / points  \n
 ••• octa(s) ••• octaheadron points \n
 ••• Quad(x,y,r) ••• Quad points \n
-
+••• Stern(e=5,r1=10,r2=5,mod=2,delta=+0) ••• Stern points \n
 ");
     
 }
@@ -617,6 +649,7 @@ echo ("\n
 •• GT(help=1);\n
 •• Egg(help=1);\n
 •• VarioFill(help=1;\n
+•• Welle(help1);\n
 
 "); 
 }
@@ -667,7 +700,7 @@ echo();
 
 echo    ("•• [67] Disphenoid(h=15,l=25,b=20,r=1,ty=0,tz=0,fn=36)••••");
 echo    ("•• Zylinder(help=1)••••");
-echo    ("•• Welle(help=1) opt polygon••••");
+echo    ("•• Welle(help=1) polygon••••");
 echo    ("•• Anschluss(help=1) ••••");
 echo    ("•• TorusSeg(help=1) ••••");
 echo    ("\n
@@ -1128,12 +1161,15 @@ module Grid(e=[2,2,1],es=10,s,center=true,name,help){
 
 // Grid but with alternating row offset - hex or circle packing
 module HexGrid(e=[11,4],es=5,center=true,name){
-    Grid(e=e,es=is_list(es)?es:[es*sin(60),es],center=center,name=name)
+  es=is_list(es)?es:[es*sin(60),es];
+    Grid(e=e,es=es,center=center,name=name)
     translate([0,
     $idx[0]%2?is_list(es)?es[1]/2:es/2:
             0
     ])children();
     MO(!$children);
+  
+  InfoTxt("HexGrid",["es",es],name);
 }
 
 
@@ -1741,9 +1777,6 @@ HelpTxt("Rundrum",["x",x,"y",y,"r",r,"eck",eck,"twist",twist,"grad",grad,"spiel"
 
 
 
-
-
-
 module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gradEnd=90,trxEnd=0,endRot=0,endspiel=+0,name,help)
     rotate(grad?0:-a/2){
 
@@ -1751,16 +1784,22 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gr
     $d=d;
     $r=d/2;   
     endRot=is_list(endRot)?endRot:[endRot,endRot];
-    trx=dia?dia/2-d/2:trx;    
-    a=grad?end==-1&&!$children?grad-(asin($r/trx)*2)*sign(grad):grad:end==-1&&!$children?a-(asin($r/trx)*2)*sign(a):a;
+    trx=dia?dia/2-d/2:trx;
     grad=grad?grad:a;
+    a=end==-1&&!trxEnd? grad-(asin($r/trx)*2)*sign(grad):
+                                 grad;
+         //   end==-1&&!$children? a-(asin($r/trx)*2)*sign(a):
+         //                        a;
+      
+    
     $idxON=false;
     
     InfoTxt("Torus",["Innen∅",2*trx-d,"Mitten∅",2*trx,"Aussen∅",2*trx+d],info=name);
     HelpTxt("Torus",["trx",trx,"d",d,"a",a,"fn",fn,"fn2",fn2,",r=",r,", grad=",grad,"dia",dia,"center",center,"end",end,"gradEnd",gradEnd,"trxEnd",trxEnd,"endRot",endRot,"endspiel",endspiel,"name",name,"$d",$d],help);
     
       
-rotate(end==-1&&!$children?(asin($r/trx))*sign(grad):0){
+rotate(end==-1? (asin($r/trx))*sign(grad):
+                0){
    $idx=true;
    $info=is_undef(name)?is_undef($info)?false:$info:name;
     translate([0,0,center?0:d/2]) RotEx(grad=a,fn=fn,cut=1,help=false){
@@ -3842,6 +3881,10 @@ grad=360,
 name,
 help
 ){
+2D=is_parent(needs2D)&&!$children?2D?b(2D,false):
+                                 1:
+                              b(2D,false);
+
 r=is_undef(r)?d/2:r;
 rad=is_undef(rad)?2*r<l?r*[1,1]:l/2*[1,1]:is_list(rad)?rad*sign(r):[rad,rad]*sign(r);
 rad2=is_undef(rad2)?!is_undef(rad[1])?rad[1]:r<l?r:l-rad[0]:rad2*sign(r);
@@ -4358,7 +4401,7 @@ rad2=is_undef(rad2)?rad:rad2;
  difference(){
   if(grad==90)T(-rad,-rad)cube([r+rad,rad+r,h]);
       else translate([-rad*tan(90-grad/2),-rad]) rotate_extrude(angle=grad,convexity=5)square([radius2,h]);
-  translate(RotLang(90-grad/2,radius))rotate(grad/2+180)Strebe(angle=200-grad,h=h,single=single,2D=0,rad=rad,rad2=rad2,d=2*r,help=0,n=0,fn=fn);
+  translate(RotLang(90-grad/2,radius))rotate(grad/2+180)Strebe(angle=200-grad,h=h,single=single,2D=0,rad=rad,rad2=rad2,d=2*r,help=0,name=0,fn=fn);
  }   
 if(help)echo(str("<H3><font color='",helpMColor,"' <b>Help REcke(h=",h,",r=",r,",rad=",rad,",rad2=",rad2,",single=",single,",grad=",grad," ,fn=",fn," ,help")); 
  if(grad!=90)echo("<H1><font color=red> WIP grad!=90");   
@@ -4879,9 +4922,9 @@ kern=gh?2*(r-gh):kern;
 
 p=p?p:(w/360)/h;
 w=p?(h/p)*360:w;
-winkel=2*atan((p/2)/gh);
+winkel=atan2((p/2),gh)*2;
 
-if(name)echo(str(is_string(name)?"<H3>":"",name," GewindeV3 dn∅=",dn,"mm Steigung=",p,"mm/U Kern=",kern,"mm Gangtiefe=",gh,"mm Winkel~",winkel-23,"°(",winkel,"°)"));
+InfoTxt("GewindeV3",["dn∅",dn,"Steigung",str(p,"mm/U"),"Kern",kern,"Gangtiefe",gh,"Winkel~",str(winkel -22.5,"°(",winkel,"°)")],name);
 
     difference(){
        if($children) children();
@@ -4891,8 +4934,7 @@ if(name)echo(str(is_string(name)?"<H3>":"",name," GewindeV3 dn∅=",dn,"mm Steig
             
         }
     }
- if(help)echo(str("<H3> <font color=",helpMColor,">Help GewindeV3(dn=",dn,",h=",h,",kern=",kern,",p=",p,",w=",w,", profil=",profil,",gh=",gh,",g=",g,",name=",name,",fn=",fn,",help);"));   
-    
+ HelpTxt("GewindeV3",["dn",dn,",h",h,",kern",kern,",p",p,",w",w,", profil",profil,",gh",gh,",g",g,",name",name,",fn",fn],help);
 }
 
 
@@ -5125,6 +5167,8 @@ HelpTxt("Cring",[
  help);
 
 }
+
+
 
 
 
@@ -5523,6 +5567,7 @@ module WStrebe(grad=45,grad2,h=20,d=2,d2=0,rad=3,rad2=0,sc=0,angle=360,spiel=spi
 }
 
 
+
 module Strebe(h=20,d=5,d2,rad=4,rad2,sc=0,grad=0,skew=0,single=false,angle=360,spiel=spiel,fn=fn,fn2=fn/4,center=false,name,2D=false,help){
     
     rad2=is_undef(rad2)?is_list(rad)?rad[1]:
@@ -5533,10 +5578,13 @@ module Strebe(h=20,d=5,d2,rad=4,rad2,sc=0,grad=0,skew=0,single=false,angle=360,s
     skew=skew?skew:tan(grad);
     grad=atan(skew);
     sc=sc?sc:d/(d*cos(grad));
-    winkel=atan((single?(h-rad):(h-rad-rad2))/(d2/2-d/2));
+    winkel=h==rad+rad2?90:
+                       atan((single?(h-rad):
+                                    (h-rad-rad2))/(d2/2-d/2));
+
     grad1=winkel>0?180-winkel:abs(winkel);//90;//VerbindugsWinkel unten
     grad2=180-grad1;//VerbindugsWinkel oben    
-    assert(h>=(rad+rad2),str("Strebe too short h=",h,"<",rad,"+",rad2," for rad")); 
+    //assert(h>=(rad+rad2),str("Strebe too short h=",h,"<",rad,"+",rad2," for rad")); 
 
 
   if (!2D && !is_parent(needs2D))//search(["Rundrum"], parentList())[0] )
@@ -5558,18 +5606,26 @@ if (2D || is_parent(needs2D))//search(["Rundrum"], parentList())[0] )
   M(skewyx=skew)T(0,center?-h/2:0){
     if(grad1>90) Echo(str("Strebe ∅",d,"mm is d=",(d/2-rad+sin(grad1)*rad)*2),color="warning");
     if(grad2>90) Echo(str("Strebe ∅",d2,"mm is d2=",(d2/2-rad2+sin(grad2)*rad2)*2),color="warning");
-   
-    scale([sc,1])polygon(concat(
+    Echo(str("Strebe too short h=",h,"<",rad,"+",rad2," for rad"),color="warning",condition=h<(rad+rad2));
+   points= concat(
     2D==2?[[0,h+spiel]]:single?[[-d2/2,h]]:Kreis(fn=fn2,rand=0,r=rad2,grad=-grad2,rot=+grad2,center=false,sek=true,t=[-d2/2-abs(sin(winkel))*rad2,h-rad2]),
+    
     2D==2?[[+0,h+spiel]]:[[single?-d2/2:-d2/2-rad2,h+spiel]],
+    
     [[single?d2/2:d2/2+rad2,h+spiel]],
+    
     single?[[d2/2,h]]:Kreis(fn=fn2,rand=0,r=rad2,grad=-grad2,rot=0,center=false,sek=true,t=[d2/2+abs(sin(winkel))*rad2,h-rad2]),
+    
     Kreis(fn=fn2,rand=0,r=rad,grad=-grad1,rot=grad1-180,center=false,sek=true,t=[d/2+abs(sin(winkel))*rad,rad]),
+    
     [[d/2+rad,0-spiel]],
+    
     2D==2?[[0,-spiel]]:[[-d/2-rad,0-spiel]],
-    2D==2?[[+0,0]]:Kreis(fn=fn2,rand=0,r=rad,grad=-grad1,rot=180,center=false,sek=true,t=[-d/2-abs(sin(winkel))*rad,rad]))
-    ,convexity=5)
-    ; 
+    
+    2D==2?[[+0,0]]:Kreis(fn=fn2,rand=0,r=rad,grad=-grad1,rot=180,center=false,sek=true,t=[-d/2-abs(sin(winkel))*rad,rad]));
+    
+    scale([sc,1])polygon(points,convexity=5); 
+
 }
 
 HelpTxt("Strebe",["h",h,"d",d,"d2",d2,"rad",rad,"rad2",rad2,"sc",sc,"grad",grad,"skew",skew,"single",single,"angle",angle,"spiel",spiel,"fn",fn,"fn2",fn2,"name",name,"2D",str(2D,"/*2 for halb*/")],help); 
@@ -5943,7 +5999,9 @@ module Trapez (h=2.5,x1=6,x2=3.0,d=1,x2d=0,fn=36,rad,name,help){
 
 
 
-module OctaH(s=1){
+module OctaH(s=1,help){
+  s=is_list(s)?s:
+              [s,-s,s,-s,s,-s];
   
   faces=[
   [0,2,4],
@@ -5957,6 +6015,8 @@ module OctaH(s=1){
   
   ];
   polyhedron(octa(s),faces);
+  
+  HelpTxt("OctaH",["s",s],help);
 }
 
 
@@ -6021,33 +6081,31 @@ HelpTxt("Prisma",["x1",helpX1,",y1",helpY1,",z",z,"c1",c1,"s",s,"x2",helpX2,"y2"
 }
 
 module Sichel(h=1,start=55,max=270,dia=33,radius=30,delta=-1,step=5,2D=false,fn=36,help){
-  if(!2D) for (i=[start:step:max]){
+  if(!2D&&h) for (i=[start:step:max]){
        j=i+step;
-       hull(){
+       Color(i/max)hull(){
            rotate(i) T(radius+delta*i/max*dia/2)cylinder(h,d=i/max*dia,$fn=fn);
            rotate(j) T(radius+delta*j/max*dia/2)cylinder(h,d=j/max*dia,$fn=fn);
        }
     }
-  if(2D) for (i=[start:step:max]){
+  if(2D||!h) for (i=[start:step:max]){
        j=i+step;
-       hull(){
+       Color(i/max)hull(){
            rotate(i) T(radius+delta*i/max*dia/2)circle(d=i/max*dia,$fn=fn);
            rotate(j) T(radius+delta*j/max*dia/2)circle(d=j/max*dia,$fn=fn);
        }
     }   
   
- if(help)
-        echo(str("<H3><font color=",helpMColor,"> Help Sichel(",
-", h=",h,
-", start=",start,
-", max=",max,
-", dia=",dia,
-", radius=",radius,
-", delta=",delta,
-", step=",step,
-", 2D=",2D,
-", fn=",fn,
-", help")); 
+ HelpTxt("Sichel",[
+"h",h,
+"start",start,
+"max",max,
+"dia",dia,
+"radius",radius,
+"delta",delta,
+"step",step,
+"2D",2D,
+"fn",fn], help); 
 
 }
 
@@ -6099,9 +6157,10 @@ module Area(a=10,aInnen=0,rInnen=0,h=0,name,help){
 }
 
 
-module Spirale(grad=400*1,diff=2,radius=10,rand=n(2),name,detail,fn=fn,exp=1,center=false,hull=true,end=2,old=false,help){
+module Spirale(grad=400*1,diff=2,radius=10,rand=n(2),$d,detail,fn=fn,exp=1,center=false,hull=true,end=2,old=false,name,help){
    detail=fn;//compatibility
    advance=grad/detail; 
+    rand=is_undef($d)?rand:$d;
     $d=rand;
     
  
@@ -6124,17 +6183,19 @@ if(!$children&&!old)rotate(center?-grad/2:0)union(){
 if(!$children&&old)// compatibility old version
     for(i=[center?-grad/2:0:advance:(center?grad/2:grad)-minVal]){
     j=i+advance;    
-        hull(){
+        Color(i/((center?grad/2:grad)-minVal))hull(){
         rotate(i)T(radius-pow(i/360*diff,exp))circle(d=rand,$fn=36);
         rotate(j)T(radius-pow(j/360*diff,exp))circle(d=rand,$fn=36); 
         }           
     }
     
 if ($children)    for(i=[center?-grad/2:0:advance:(center?grad/2:grad)-minVal]){
-    j=i+advance;    
-      if(hull)  hull(){
+    j=i+advance;
+    $idx=i;
+      if(hull) Color(i/((center?grad/2:grad)-minVal),$idxON=false) hull(){
+        
         rotate(i)T(radius-pow(i/360*diff,exp))children();
-        rotate(j)T(radius-pow(j/360*diff,exp))children(); 
+        rotate(j)T(radius-pow(j/360*diff,exp))union(){$idx=j;children();} 
         } 
       else rotate(i)T(radius-pow(i/360*diff,exp))children();
             
@@ -6144,21 +6205,21 @@ if ($children)    for(i=[center?-grad/2:0:advance:(center?grad/2:grad)-minVal]){
     lang=(radius*PI+((radius-diff)*PI))/360*grad;
  InfoTxt("Spirale",["Länge ca.",lang],name);
      
- if(help)
-        echo(str("<H3><font color=",helpMColor,"> Help Spirale(
- grad=",grad,", 
- diff=",diff,", 
- radius=",radius,",
- rand=",rand,", 
- name=",name,", 
- //detail=",detail,",
- fn=",fn,", 
- exp=",exp,",
- center=",center,", 
- hull=",hull,", 
- end=",end,",
- old=",old,", 
- help);"));
+ HelpTxt("Spirale",[
+   "grad",grad,
+   "diff",diff,
+   "radius",radius,
+   "rand",rand,
+   "$d",$d,
+   //detail=",detail,"
+   "fn",fn,
+   "exp",exp,
+   "center",center,
+   "hull",hull,
+   "end",end,
+   "old",old,
+   "name",name],
+   help);
 }
 
 
@@ -6735,6 +6796,9 @@ module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=
     $idxON=false;
     l1=is_undef(l)?l1-ueberlapp:is_list(l)?l[0]-ueberlapp:l-ueberlapp;
     l2=is_undef(l)?l2-ueberlapp:is_list(l)?l[1]-ueberlapp:l-ueberlapp;
+    2D=is_parent(needs2D)&&!$children?2D?b(2D,false):
+                                       1:
+                                    b(2D,false);
     
     c=sin(abs(grad)/2)*rad*2;//  Sekante 
     w1=abs(grad)/2;          //  Schenkelwinkel
@@ -6795,17 +6859,7 @@ module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=
 }
 
 
-module BogenOrg(grad=90,rad=5,d=3,l1=10,l2=12,name,fn=fn,fn2=fn,ueberlapp=-0.001,help)//depreciated
-{
-      color("green")T(rad,ueberlapp)R(-90)cylinder(l1+0.0,d=d,$fn=fn); 
-      rotate(-grad/2)Torus(rad,d,a=-grad,n=0,fn=fn2,fn2=fn);
-      color("orange")R(z=-grad-180) T(-rad,ueberlapp)R(-90,180,0)cylinder(l2+0.0,d=d,$fn=fn);
-  if(name)echo(str("»»» »»» ",name," Bogen ",grad,"° Durchmesser= ",d,"mm — Innenmaß= ",2*max(rad,d/2)-d,"mm Außenmaß= ",2*max(rad,d/2)+d));
-      
-  if(!$children)Echo("Bogen missing Object! using circle",color="warning");
-  
-  if(help)echo(str("<font color=",helpMColor," size=3><b>Help Bogen(grad=90,rad=5,d=3,l1=10,l2=12,name,fn=fn,fn2=fn,ueberlapp=-0.001,help)"));
-}
+
 
 module Imprint(txt1=1,radius=20,abstand=7,rotz=-2,h=l(2),rotx=0,roty=0,stauchx=0,stauchy=0,txt0=" ",txt2=" ",size=5,font="Bahnschrift:style=bold",name)
 {
@@ -7711,7 +7765,17 @@ module PilleOLD(l=10,d=5,fn=fn,fn2=36,center=true,name,s=0,rad,rad2,loch=false,h
     
 }
 
-
+module BogenOrg(grad=90,rad=5,d=3,l1=10,l2=12,name,fn=fn,fn2=fn,ueberlapp=-0.001,help)//depreciated
+{
+      color("green")T(rad,ueberlapp)R(-90)cylinder(l1+0.0,d=d,$fn=fn); 
+      rotate(-grad/2)Torus(rad,d,a=-grad,n=0,fn=fn2,fn2=fn);
+      color("orange")R(z=-grad-180) T(-rad,ueberlapp)R(-90,180,0)cylinder(l2+0.0,d=d,$fn=fn);
+  if(name)echo(str("»»» »»» ",name," Bogen ",grad,"° Durchmesser= ",d,"mm — Innenmaß= ",2*max(rad,d/2)-d,"mm Außenmaß= ",2*max(rad,d/2)+d));
+      
+  if(!$children)Echo("Bogen missing Object! using circle",color="warning");
+  
+  if(help)echo(str("<font color=",helpMColor," size=3><b>Help Bogen(grad=90,rad=5,d=3,l1=10,l2=12,name,fn=fn,fn2=fn,ueberlapp=-0.001,help)"));
+}
    
 /*/////////////////////////////////////////////////////////////////////////////////////////////
     Depreciated / for Deletion
