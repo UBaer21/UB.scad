@@ -11,7 +11,7 @@ bed=false;
 
 vpr=[0,0,0];
 
-vpd=show=="products"?1000:show=="polygons"?410:show=="objects"?400:230;
+vpd=show=="products"?1000:show=="polygons"?470:show=="objects"?400:230;
 vpt=show=="products"?[100,100]:[viewportSize*0.43,viewportSize*0.38];//[35,30];show=="polygons"?[56,52]:
 
 $textSize=1.3;
@@ -571,7 +571,10 @@ $textPos=[-7,-8.5];
       Spirale(diff=3,radius=5,rand=1);
       Txt("Spirale"); 
     }   
-    
+     union(){ // Arc
+      Bogen(2D=true,messpunkt=5);
+      Txt("Bogen"); 
+    }     
     
     
     
@@ -687,11 +690,18 @@ Anordnen(es=[30,20],option=3,e=6,c=undef,loop=false,center=false,name="Objects")
     }
     
     Txt("Text"); 
-  }  
-  union(){ // 
-   T(objPos) R(85,35)Rohr(messpunkt=6);
+  }
+  
+  union(){ // Pipe
+   T(objPos) R(85,35)Rohr(d=5,rand=-1,messpunkt=6);
     Txt("Rohr"); 
-  }  
+  } 
+  
+  union(){ //  Bow
+  T(objPos) R(55,35)Bogen(l=4,messpunkt=6);
+  Txt("Bogen"); 
+  } 
+  
   union(){ // 
     T(objPos)R(-45,-25)Kassette(size=6,gon=4,r=1,r1=.5,r2=1);
     Txt("Kassette"); 
@@ -745,6 +755,8 @@ Anordnen(es=[30,20],option=3,e=6,c=undef,loop=false,center=false,name="Objects")
     T(objPos+[0,5])R(-20)OctaH(7);
     Txt("OctaH"); 
   }  
+  
+  
   
   
   
