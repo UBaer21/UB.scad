@@ -88,9 +88,19 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 ![Products](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/products.png)
 
-* `Gewinde()` creates a thread inner or outer 
-* `DRing()`   D-Ring 
-* `BB()`      Ballbearing or roller bearing
+* `Gewinde()`       creates a thread inner or outer 
+* `DRing()`         D-Ring 
+* `BB()`            Ballbearing or roller bearing
+* `Glied()`         Hinge
+  * `DGlied1()`       double hinge A
+  * `DGlied2()`       double hinge B
+* `SRing()`         Sicherungsring Retaining ring (push on)
+* `Luer()`          [Luer taper](https://en.wikipedia.org/wiki/Luer_taper) female/male
+* `Pin()`           Bolt (snap/clip in)
+* `Halbrund()`      Half-round arbor
+* `Cring()`         C-ring
+* `GT2Pulley()`     GT2 Pulley
+* `CyclGetriebe()`  Cycloidal gear (inner or outer)
 
 # Functions
 
