@@ -63,6 +63,8 @@ Changelog (archive at the very bottom)
 351|21  ADD function Stern CHG Torus End true for children CHG Sichel CHG Spirale
 354|21  CHG HexGrid info FIX Strebe
 355|21  CHG Bogen CHG Pille CHG GewindeV3 help
+356|21  FIX Servokopf FIX Glied CHG HypKehleD CHG TorusSeg
+357|21  CHG Rohr/Bogen  CHG OctaH CHG TorusSeg REN ⇒ RingSeg CHG Gewinde version undef⇒ new FIX V2
 
 */
 
@@ -129,7 +131,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.355;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.357;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -702,12 +704,12 @@ echo    ("•• [67] Disphenoid(h=15,l=25,b=20,r=1,ty=0,tz=0,fn=36)••••
 echo    ("•• Zylinder(help=1)••••");
 echo    ("•• Welle(help=1) polygon••••");
 echo    ("•• Anschluss(help=1) ••••");
-echo    ("•• TorusSeg(help=1) ••••");
+echo    ("•• RingSeg(help=1) ••••");
 echo    ("\n
 •• Buchtung(help=1);••••\n
 •• SpiralCut(help=1);••••\n
 •• Isosphere(help=1);••••\n
-•• OctaH(s); Octahedron••••\n
+•• OctaH(help=1); Octahedron••••\n
 
 ");
 
@@ -1776,7 +1778,6 @@ HelpTxt("Rundrum",["x",x,"y",y,"r",r,"eck",eck,"twist",twist,"grad",grad,"spiel"
 
 
 
-
 module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gradEnd=90,trxEnd=0,endRot=0,endspiel=+0,name,help)
     rotate(grad?0:-a/2){
 
@@ -2069,58 +2070,62 @@ HelpTxt("GT2Pulley",["h",h,"z",z,"achse",achse,"center",center,"name",name],help
 }
 
 
-// Was KreisSeg(
-module TorusSeg(
+
+// Was KreisSeg( Was TorusSeg(
+module RingSeg(
 grad=90,
 size=4,
 h,
 rad=1.0,
 r=10,
 spiel=.5,
+fn=fn,
 name,
 help
 ){
-  HelpTxt("KreisSeg",["grad",grad,"size",size,"h",h,"rad",rad,"r",r,"spiel",spiel,"name",name],help);  
+  HelpTxt("RingSeg",["grad",grad,"size",size,"h",h,"rad",rad,"r",r,"spiel",spiel,"fn",fn,"name",name],help);  
   $info=name;  
     rad2=rad+spiel;//spiel
 
 h=is_undef(h)?size:h;
+   winkel2=asin(rad2/(r+size/2-rad));
+   winkel1=asin(rad2/(r-size/2+rad));
+  
+fnS=fn;
 
 difference(){
-Torus(grad=grad,end=+0,trx=r,d=size)Quad(size,h,r=rad);
-   difference(){
-       linear_extrude(h+5,center=true)polygon([
-       [0,0],
-       [r-size/2+rad,rad2],
-       [r+size/2-rad,rad2],
-       [r+size/2+5,rad2 +sin(asin(rad2/(r+size/2-rad)))*(rad+5)],
-       [r+size/2+5,-rad],
-       ]);
-       
-    hull(){
-       rotate(asin(rad2/(r+size/2-rad))) T(r+size/2-rad)MKlon(tz=h/2-rad)sphere(rad);
-       rotate(asin(rad2/(r-size/2+rad))) T(r-size/2+rad)MKlon(tz=h/2-rad)sphere(rad); 
-    }
-   }
-   
-   difference(){
-    rotate(grad)linear_extrude(h+5,center=true)polygon([
-       [0,0],
-       [r-size/2+rad,-rad2],
-       [r+size/2-rad,-rad2],
-       [r+size/2+5,-rad2 -sin(asin(rad2/(r+size/2-rad)))*(rad+5)],
-       [r+size/2+5,+rad],
-       ]);       
-       
-    hull(){
-       rotate(grad-asin(rad2/(r+size/2-rad))) T(r+size/2-rad)MKlon(tz=h/2-rad)sphere(rad);
-       rotate(grad-asin(rad2/(r-size/2+rad))) T(r-size/2+rad)MKlon(tz=h/2-rad)sphere(rad); 
-    }
-   }   
-  
-}  
+   Torus(grad=grad,end=+0,trx=r,d=size,fn=fn)Quad(size,h,r=rad,fn=fn);
+  //base part
+   linear_extrude(h+5,center=true,convexity=5)polygon([
+     [0,0],
+     (r-size/2 +rad) *[sin(90-winkel1), cos(90-winkel1)],// mittelpunkt sphere1
+     (r+size/2 -rad) *[sin(90-winkel2), cos(90-winkel2)],// mittelpunkt sphere2
+     (r+size/2 +5)   *[sin(90-winkel2), cos(90-winkel2)],
+     [r+size/2 +5,-rad],
+   ]);
+
+// angeled part
+   linear_extrude(h+5,center=true,convexity=5)polygon([
+     [0,0],
+     (r-size/2 +rad) *[sin(-grad +90 +winkel1), cos(-grad +90 +winkel1)],// mittelpunkt sphere1
+     (r+size/2 -rad) *[sin(-grad +90 +winkel2), cos(-grad +90 +winkel2)],// mittelpunkt sphere2
+     (r+size/2 +5)   *[sin(-grad +90 +winkel2), cos(-grad +90 +winkel2)],
+     (r+size/2 +5)   *[sin(90-grad-5),cos(90-grad-5)],
+   ]); 
 }
 
+//End cabs
+    hull(){
+       rotate(asin(rad2/(r+size/2-rad))) T(r+size/2-rad)MKlon(tz=h/2-rad)OctaH(rad,n=fnS);
+       rotate(asin(rad2/(r-size/2+rad))) T(r-size/2+rad)MKlon(tz=h/2-rad)OctaH(rad,n=fnS);
+    }
+
+    hull(){
+       rotate(grad-asin(rad2/(r+size/2-rad))) T(r+size/2-rad)MKlon(tz=h/2-rad)OctaH(rad,n=fnS);
+       rotate(grad-asin(rad2/(r-size/2+rad))) T(r-size/2+rad)MKlon(tz=h/2-rad)OctaH(rad,n=fnS);
+    }
+
+}
 
 
 module Abzweig(r1=5,r2=20,rad=2,inside=false,d1,d2,spiel=spiel,fn=fn,help){
@@ -2165,13 +2170,17 @@ if(inside)R(90) cylinder(500,r=r2+spiel,center=true);
 HelpTxt("Abzweig",["r1",r1,"r2",r2,"rad",rad,"inside",inside,"d1",d1,"d2",d2,"spiel",spiel,"fn",fn],help);
 }
 
-module HypKehleD(grad=40,steps=15,l=10,l2,l3,d=2.5,d2,fill=false,exp=1,name,help){
+module HypKehleD(grad=40,steps=15,l=10,l2,l3,d=2.5,d2,fill=false,exp=1,fn=24,name,help){
     exp=is_num(exp)?[exp,exp]:is_bool(exp)?[1,1]:exp;
     d3=is_undef(d3)?d:d3;
-    l3=is_undef(l3)?l:l3;
-    l2=is_undef(l2)?l:l2;
-    HypKehle(grad=90-grad,l=l2,l2=l3,steps=steps,d1=d,d2=d2,exp=exp[1],fill=fill);
-    R(0,180)HypKehle(grad=90+grad,l=l,l2=l3,d1=d,d2=d2,steps=steps,exp=exp[0],fill=fill);
+    l= is_list(l)?len(l)==3?l:
+                            concat(l,l[0]):
+                  [l,l,l];
+
+    l3=is_undef(l3)?l[2]:l3;
+    l2=is_undef(l2)?l[1]:l2;
+    HypKehle(grad=90-grad,l=l2,l2=l3,steps=steps,d1=d,d2=d2,exp=exp[1],fill=fill,fn=fn);
+    R(0,180)HypKehle(grad=90+grad,l=l[0],l2=l3,d1=d,d2=d2,steps=steps,exp=exp[0],fill=fill,fn=fn);
   
   HelpTxt("HypKehleD",["grad",grad,"steps",steps,"l",l,"l2",l2,"l3",l3,"d",d,"d2",d2,"fn",fn,"fill",fill,"exp",exp,"name",name],help);
 }
@@ -2655,10 +2664,10 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
         search([preset],other_Gewinde)[0];
   
     
-   if(!(is_undef(useVersion)?0:useVersion>19.88)&&is_undef(new)||new==false){// old Version
+   if(is_num(useVersion) && useVersion<19.88 && is_undef(new) || new==false){// old Version
        Echo(str("Using GewindeV2,useVersion=",useVersion),color="warning");
-       if($children)GewindeV2(dn=dn,s=s,w=w,g=g,winkel=winkel,rot2=rot2,r1=r1,kern=kern,fn=fn<20?fn:1,detail=detail,spiel=spiel,n=name,tz=tz,preset=preset,h=is_undef(h)?grad/360*p:h,translate=translate,rotate=rotate,d=d,gd=gd,r=r,center=center,help=help,p=p,endMod=endMod)children();
-       else  GewindeV2(dn=dn,s=s,w=w,g=g,winkel=winkel,rot2=rot2,r1=r1,kern=kern,fn=fn<20?fn:1,detail=detail,spiel=spiel,n=name,tz=tz,preset=preset,h=is_undef(h)?grad/360*p:h,translate=translate,rotate=rotate,d=d,gd=gd,r=r,center=center,help=help,p=p,endMod=endMod);
+       if($children)GewindeV2(dn=dn,s=s,w=w,g=g,winkel=winkel,rot2=rot2,r1=r1,kern=kern,fn=fn<20?fn:1,detail=detail,spiel=spiel,name=name,tz=tz,preset=preset,h=is_undef(h)?grad/360*p:h,translate=translate,rotate=rotate,d=d,gd=gd,r=r,center=center,help=help,p=p,endMod=endMod)children();
+       else  GewindeV2(dn=dn,s=s,w=w,g=g,winkel=winkel,rot2=rot2,r1=r1,kern=kern,fn=fn<20?fn:1,detail=detail,spiel=spiel,name=name,tz=tz,preset=preset,h=is_undef(h)?grad/360*p:h,translate=translate,rotate=rotate,d=d,gd=gd,r=r,center=center,help=help,p=p,endMod=endMod);
     }
   else if(is_num(zeile)){ // presets
       
@@ -2667,9 +2676,9 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
     if($children)difference(){
       children();
         if(innen)Tz(center?tz-iso_Gewinde[zeile][1]/2:
-            tz)cylinder(is_undef(h)?(grad+360)*iso_Gewinde[zeile][1]/360:
-                        h,d=iso_Gewinde[zeile][2]+(innen?spiel*2:
-                                                      0));
+                           tz)cylinder(is_undef(h)?(grad+360)*iso_Gewinde[zeile][1]/360:
+                                                   h,d=iso_Gewinde[zeile][2]+(innen?spiel*4:
+                                                                                    spiel*2));
     }
      // other
     }else if(preset){
@@ -2723,7 +2732,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
                Echo(str("Gewinde preset=",preset," Not found!"),color="red",condition=preset);
                if($children)difference(){
                   children();
-                    if(innen)Tz(center?tz-p/2:tz-0)cylinder(is_undef(h)?grad*p/360+p:h,d=dn);
+                    if(innen)Tz(center?tz-p/2:tz-0)cylinder(is_undef(h)?grad*p/360+p:h,d=dn+spiel*2);
                 }      
                
             }
@@ -5375,7 +5384,7 @@ kern=!is_undef(kern)?kern:dn-2*rh+spiel;
      
 function profil(rot=0)=
  0?    vollwelle(fn=1,extrude=-1,x0=+0,h=1,xCenter=1,r=0.2,r2=0.5,l=p-.1) // test vollwelle
-   : Kreis(r=r1,rand=+0,fn=fn,grad=winkel,sek=winkel==360?1:0,rot=rot2+180);
+   : Kreis(r=r1,rand=+0,fn=fn,grad=winkel,sek=winkel==360?1:0,rot=rot2);
 
 
 function RotEx(rot=0,punkte=profil(rot=60),verschieb=dn/2,steigung=1,detail=detail)=[for(rotation=[0:detail*rot/360])for(i=[0:len(punkte)-1])
@@ -5389,9 +5398,9 @@ for(i=[0:len(punkte)-2-fn])[fn+1+i,1+i,+i],
 for(i=[0:len(punkte)-2-fn])[fn+i,fn+1+i,+i],
 for(i=[1:fn])[len(punkte)-i+0,len(punkte)-i-1,len(punkte)-1]    
 ];
-echo("<H2><font color=red>‼ using old GewindeV2 ‼");
+Echo("‼ using old GewindeV2 ‼",color="warning");
  if(d||gd||r){GewindeV1(d=d,s=s,w=w?w:5,g=g,tz=tz,gd=gd?gd:1.75,fn=fn==1?3:fn,r=r)children();//Kompatibilität
-     echo("<H2><font color=red>‼ using old GewindeV1 ‼");
+     Echo("‼ using old GewindeV1 ‼",color="warning");
  }
  else if(false)R(90)polyhedron(RotEx(rot=100,steigung=p),faces(punkte=RotEx(rot=100)),convexity=15);   //test for polyhedron only   
  else if(preset==0){
@@ -5412,40 +5421,40 @@ echo("<H2><font color=red>‼ using old GewindeV2 ‼");
        }
     } 
     
-if(help&&!preset)echo(str("Help Gewinde(dn=",dn,",s=",s,",w=",w,",g=",g,",winkel=",winkel,",rot2=",rot2,", r1=",r1,",kern=",kern,",fn=",fn,",detail=",detail,",spiel=",spiel,",name=",name,",tz=",tz,", preset=",preset,",h=",h,",translate=",translate,",rotate=",rotate,",d=",d,",gd=",gd,",r=",r,",center=",center,",help, p=",p,", endMod=",endMod,");"));
+HelpTxt("GewindeV2",["dn",dn,"s",s,"w",w,"g",g,"winkel",winkel,"rot2",rot2,", r1",r1,",kern",kern,"fn",fn,"detail",detail,"spiel",spiel,"name",name,"tz",tz,"preset",preset,"h",h,"translate",translate,"rotate",rotate,"d",d,"gd",gd,"r",r,"center",center,"p",p,"endMod",endMod],help&&!preset);
     
  
     
 if(name)echo(str("Gangtiefe=",rh,"mm - Gangflanke(r1)=",r1,"mm - Steigung=",p,"mm - Höhe=",w/360*p,"mm+",p)); 
-if(name)echo(str("<H2>",n,rot2==0?$children?" Innen": " Aussen":" Undefiniertes","gewinde ∅=",dn-spiel," (",dn,") Kern=",kern));
- if(winkel==360)echo(str("<H2><font color=red> ∅ Diameter Warning!"));
+if(name)echo(str(name,rot2==0?$children?" Innen": " Aussen":" Undefiniertes","gewinde ∅=",dn-spiel," (",dn,") Kern=",kern));
+ if(winkel==360)Echo(str(" ∅ Diameter Warning!"),color="warning");
  }
 
 else if(preset==1){// ½ Zoll Gewinde
   if($children)  GewindeV2(dn=20.95,w=w,h=h,kern=19,winkel=55,p=1.814286,preset=0,fn=1,translate=translate,rotate=rotate)children();
    if(!$children)  GewindeV2(dn=20.95,w=w,h=h,winkel=55,p=1.814286,preset=0,fn=1,translate=translate,rotate=rotate,help=help);  
     
-    echo(str("<H2><b> ½ Zoll Gewinde </b>"));
+    echo(str(" ½ Zoll Gewinde "));
 }
 
 else if(preset==2){// ¾ Zoll Gewinde
   if($children)  GewindeV2(dn=26.44,w=w,h=h,kern=24.5,winkel=55,p=1.814286,preset=0,fn=1,translate=translate,rotate=rotate)children();
    if(!$children)  GewindeV2(dn=26.44,w=w,h=h,winkel=55,p=1.814286,preset=0,fn=1,translate=translate,rotate=rotate);  
     
-    echo(str("<H2><b> ¾ Zoll Gewinde </b>"));
+    echo(str(" ¾ Zoll Gewinde "));
 }
 
 else if(preset=="M3"){// M3 Gewinde
   if($children)  GewindeV2(dn=3,w=w,h=h,p=.5,preset=0,fn=1,translate=translate,rotate=rotate)children();
    if(!$children)  GewindeV2(dn=3,w=w,h=h,p=.5,preset=0,fn=1,translate=translate,rotate=rotate);  
     
-    echo(str("<H2><b> M3 Gewinde </b>"));
+    echo(str(" M3 Gewinde "));
 }
 else if(preset=="M6"){// M6 Gewinde
   if($children)  GewindeV2(dn=6,w=w,h=h,p=1,preset=0,fn=1,translate=translate,rotate=rotate)children();
    if(!$children)  GewindeV2(dn=6,w=w,h=h,p=1,preset=0,fn=1,translate=translate,rotate=rotate);  
     
-    echo(str("<H2><b> M6 Gewinde </b>"));
+    echo(str(" M6 Gewinde "));
 }
 
 }
@@ -5998,10 +6007,16 @@ module Trapez (h=2.5,x1=6,x2=3.0,d=1,x2d=0,fn=36,rad,name,help){
 
 
 
-
-module OctaH(s=1,help){
-  s=is_list(s)?s:
-              [s,-s,s,-s,s,-s];
+module OctaH(r=1,n=0,d,help){
+  
+HelpTxt("OctaH",["r",r,"n",n,"d",d],help);
+  
+  r=is_list(r)?r:
+              is_undef(d)?[r, -r, r, -r, r, -r]:
+                          is_list(d)? [d.x /2, -d.x /2,
+                                       d.y /2, -d.y /2,
+                                       d.z /2, -d.z /2]:
+                                     [d /2, -d /2, d /2, -d /2, d /2, -d /2];
   
   faces=[
   [0,2,4],
@@ -6014,9 +6029,68 @@ module OctaH(s=1,help){
   [0,3,5],
   
   ];
-  polyhedron(octa(s),faces);
+  if(n==0)polyhedron(octa(r),faces);
   
-  HelpTxt("OctaH",["s",s],help);
+  else OctaSphere(r,n,d);
+  module OctaSphere(r=10,n=10,d){   
+    //by Hans Loeblich
+    // https://github.com/thehans/FunctionalOpenSCAD
+    // MIT license
+    
+
+  data=sphere_subdiv(r=is_list(r)?r[0]:r,d=is_list(d)?d[0]:d,divs=max(1,floor(n/4)), poly=OCTAHEDRON());
+  polyhedron(data[0],data[1]);
+
+
+  // sum a vector of vectors.  vsum([]) == undef
+  function vsum(v,i=0) = len(v)-1 > i ? v[i] + vsum(v, i+1) : v[i];
+  // angle between two vectors (2D or 3D)
+  function anglev(v1,v2) = acos( (v1*v2) / (norm(v1)*norm(v2) ) );
+  function flatten(l) = [ for (a = l) for (b = a) b ];
+  function unit(v) = v / norm(v); // convert vector to unit vector
+  // spherical linear interpolation
+  function slerp(p0,p1,t) = let(a = anglev(p0,p1)) (sin((1-t)*a)*p0 + sin(t*a)*p1) / sin(a);
+
+  function OCTAHEDRON() = [
+     [[0,0,-1],[1,0,0],[0,1,0],[-1,0,0],[0,-1,0],[0,0,1]],
+    [ [0,3,4],[0,1,2],[0,2,3],[0,4,1],
+      [5,2,1],[5,3,2],[5,4,3],[5,1,4] ] ];
+
+
+  // subdivide faces, splitting edges into integer number of divisions
+  // input faces must be triangles with vertices on the unit sphere
+  function sphere_subdiv(r,d,divs=1, poly) = 
+    let(
+      R = d == undef ? r : d/2, // optional radius or diameter
+      d = divs, // shorthand
+      pv = poly[0], // points vector
+      tv = poly[1], // triangle index vector
+      newpoints = [for (t = tv) let(p = [pv[t[0]], pv[t[1]], pv[t[2]]])
+        for (i=[0:1:d], j=[0:1:d-i]) if (i+j!=0 && i!=d && j!=d) // skip original corner points
+          let(subv=[for (vi=[0:2]) let(k=d-i-j, ii=[i,j,k],
+              j1=ii[(vi+1)%3], n=ii[vi]+j1,
+              p0=p[vi], p1=p[(vi+1)%3], p2=p[(vi+2)%3],
+              p_i=slerp(p0,p1,n/d), p_j=slerp(p0,p2,n/d)
+            ) slerp(p_i,p_j,j1/n)
+          ])
+          unit(vsum(subv))
+      ],
+      Tn = function(n) n*(n+1)/2, // triangular numbers
+      Td = Tn(d+1), // total points for subdivided face
+      np = Td - 3, // new points per original face
+      lp = len(pv),
+      allpoints = concat(pv, newpoints),
+      // Given original triangle point indices t, 
+      // and indices i,j for subdivided basis vectors, { i => (tri[0],tri[1]), j => (tri[0],tri[2]) }
+      // convert to absolute point index of resulting full point set.
+      pij = function(n,t,i,j) i+j==0 ? t[0] : i==d ? t[1] : j==d ? t[2] :
+        lp + n*np + Td - Tn(d+1-i) + j - (i==0 ? 1 : 2),
+      faces = flatten([for (n = [0:1:len(tv)-1]) let(t = tv[n]) [
+        for (i=[0:1:d-1], j=[0:1:d-1-i]) [ pij(n,t,i,j), pij(n,t,i+1,j), pij(n,t,i  ,j+1) ],
+        for (i=[1:1:d-1], j=[0:1:d-1-i]) [ pij(n,t,i,j), pij(n,t,i,j+1), pij(n,t,i-1,j+1) ] 
+      ] ])
+    ) [R*allpoints, faces];
+   }
 }
 
 
@@ -6068,7 +6142,7 @@ CubeFaces = [
     translate([0,0,vC[0]||vC[1]?c1?c1/2:s/2:s/2+minVal/2-(center?z/2:0)])minkowski(){
         polyhedron( CubePoints, CubeFaces,convexity=5 );
         rotate(a=90,v=vC)rotate(cRot)cylinder(c2?max(z-s-minVal,minVal):minVal,d1=c1-s,d2=cylinderd2-s,center=c2?false:true,$fn=fnC);
-        sphere(d=s,$fn=fnS);
+        sphere(d=s,$fn=fnS);//OctaH(d=s,n=fnS);//
     }
    vx=((x1+s)-(x2+s))/2/(z-s);
    vy=((y1+s)-(y2+s))/2/(z-s); 
@@ -6477,11 +6551,11 @@ module Drehpunkt(x=0,rz=0,rx=0,ry=0,y=0,z=0,messpunkt=messpunkt,help)
 }
 
 
-module Rohr(grad=90,rad=5,d=8,l,l1=10,l2=12,fn=fn,fn2=fn,rand=n(2),name,center=true,messpunkt=messpunkt,help)
+module Rohr(grad=90,rad=5,d=8,l,l1=10,l2=12,fn=fn,fn2=fn,rand=n(2),name,center=true,messpunkt=messpunkt,spiel=-minVal,help)
 {
-    Bogen(grad=grad,rad=rad,l=l,l1=l1,l2=l2,fn=fn,name=name,help=0,center=center,messpunkt=messpunkt)polygon(Kreis(r=d/2,rand=rand,fn=fn2));
+    Bogen(grad=grad,rad=rad,l=l,l1=l1,l2=l2,fn=fn,name=name,help=0,center=center,messpunkt=messpunkt,spiel=spiel)polygon(Kreis(r=d/2,rand=rand,fn=fn2));
     
-    HelpTxt(titel="Rohr",string=["grad",grad,"rad",rad,"d",d,"l",l,"l1",l1,"l2",l2,"fn",fn,"fn2",fn2,"rand",rand,"name",name,"center",center,"messpunkt",messpunkt],help=help);
+    HelpTxt(titel="Rohr",string=["grad",grad,"rad",rad,"d",d,"l",l,"l1",l1,"l2",l2,"fn",fn,"fn2",fn2,"rand",rand,"name",name,"center",center,"messpunkt",messpunkt,"spiel",spiel],help=help);
     InfoTxt(name="Rohr",string=concat(rand>0?["ID",d-rand*2]:["OD",d-rand*2],["d",d]),info=name);
 
 }
@@ -6786,7 +6860,7 @@ module GewindeV1(d=20,s=1.5,w=5,g=1,fn=3,r=0,gd=1.75,detail=5,tz=0,name)//deprec
 }
 
 
-module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=3,fn2=fn,ueberlapp=0,help,messpunkt=messpunkt,2D=false)
+module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=3,fn2=fn,ueberlapp,spiel=-minVal,help,messpunkt=messpunkt,2D=false)
 {
     $fn=fn;
     $fs=fs;
@@ -6794,6 +6868,7 @@ module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=
     $helpM=0;
     $info=0;
     $idxON=false;
+    ueberlapp=is_undef(ueberlapp)?spiel:ueberlapp;
     l1=is_undef(l)?l1-ueberlapp:is_list(l)?l[0]-ueberlapp:l-ueberlapp;
     l2=is_undef(l)?l2-ueberlapp:is_list(l)?l[1]-ueberlapp:l-ueberlapp;
     2D=is_parent(needs2D)&&!$children?2D?b(2D,false):
@@ -6854,7 +6929,7 @@ module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=
       
   if(!$children&&name&&!2D)Echo("Bogen missing Object! using circle",color="warning");
   
-  HelpTxt("Bogen",["grad",grad,"rad",rad,"l",l,"l1",l1,"l2",l2,"fn",fn,"center",center,"tcenter",tcenter,"name",name,"d",d,"fn2",fn2,"ueberlapp",ueberlapp,"messpunkt",messpunkt,"2D",2D],help);
+  HelpTxt("Bogen",["grad",grad,"rad",rad,"l",l,"l1",l1,"l2",l2,"fn",fn,"center",center,"tcenter",tcenter,"name",name,"d",d,"fn2",fn2,"spiel",spiel,"messpunkt",messpunkt,"2D",2D],help);
     
 }
 
@@ -7193,7 +7268,9 @@ rotate(20+180)T(0,-31)Glied(l=31,d=3,la=+0);
 }
 */
 
-module Glied(l=12,spiel=0.5,la=+1.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=20,name=0,help)
+
+
+module Glied(l=12,spiel=0.5,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name=0,help)
 
 {
     hFreiraum=h/2;
@@ -7224,12 +7301,12 @@ module Glied(l=12,spiel=0.5,la=+1.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=20,name
         {
             lkopf=l-(d-.5)/tan(freiwinkel)+la-2;
             
-            T(0,-lkopf/2-la,h/2) minkowski()
+            T(0,-lkopf/2,h/2) minkowski()
             {
                 cube([d-2*0.8+.25,lkopf-2*0.8,hSteg-2*.8],true);
                 sphere(0.8,$fn=fn);
             } 
-            cylinder(h,d=d,$fn=48);//Achse!
+            cylinder(h,d=d,$fs=0.2,$fa=5,$fn=0);//Achse!
         }
    difference()
    {
@@ -7251,8 +7328,8 @@ module Glied(l=12,spiel=0.5,la=+1.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=20,name
        
         
         
-        
-        cylinder(500,d=d+2*spiel,$fn=fn,center=true);
+        translate([0,l])cylinder(h*2,d=d+rand*2+spiel,$fn=0,$fs=0.5);// space for ring of other
+        cylinder(h*2,d=d+2*spiel,$fn=fn,center=true);
         Freiwinkel();
         Tz(h/2)Pille(l=hSteg+n(1),d=d+1+2*spiel,rad=1,fn=fn); 
     }
@@ -7478,6 +7555,7 @@ module Riemenscheibe(e=40,radius=25,nockendurchmesser1=2,nockendurchmesser2=2,ho
 }
 
 
+
 module Servokopf(rot=0,spiel=0,schraube=true,help)
 {
     // 15 Zacken!
@@ -7493,7 +7571,7 @@ module Servokopf(rot=0,spiel=0,schraube=true,help)
     
     difference()
     {
-        union()
+        if($children)union()
         {
             children();
             
@@ -7519,11 +7597,11 @@ module Servokopf(rot=0,spiel=0,schraube=true,help)
     if(!$children)     translate([0,0,-0.01])cylinder(.5,d1=d1-0.1,d2=d1-2,$fn=36,center=false);//basekone
     
     
- if(help)echo(str("<H3><font color=",helpMColor,">Help Servokopf(
-    rot=",rot, 
-    " ,spiel=",spiel,
-    " ,schraube=",schraube,
-    " ,help));"));
+ HelpTxt("Servokopf",[
+    "rot",rot, 
+    "spiel",spiel,
+    "schraube",schraube],
+    help);
     
     
 }
