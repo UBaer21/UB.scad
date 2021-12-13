@@ -6006,12 +6006,12 @@ module Trapez (h=2.5,x1=6,x2=3.0,d=1,x2d=0,fn=36,rad,name,help){
 }
 
 
-
 module OctaH(r=1,n=0,d,help){
   
 HelpTxt("OctaH",["r",r,"n",n,"d",d],help);
   
-  r=is_list(r)?r:
+  r=is_list(r)?[for(i=[0:5])assert(r[i]!=0) i%2? -abs(r[i]):   // neg quadrant
+                                                 abs(r[i])]:  //pos quadrants
               is_undef(d)?[r, -r, r, -r, r, -r]:
                           is_list(d)? [d.x /2, -d.x /2,
                                        d.y /2, -d.y /2,
@@ -6033,12 +6033,12 @@ HelpTxt("OctaH",["r",r,"n",n,"d",d],help);
   
   else OctaSphere(r,n,d);
   module OctaSphere(r=10,n=10,d){   
-    //by Hans Loeblich
+    // based on Hans Loeblich alternative spheres
     // https://github.com/thehans/FunctionalOpenSCAD
     // MIT license
     
 
-  data=sphere_subdiv(r=is_list(r)?r[0]:r,d=is_list(d)?d[0]:d,divs=max(1,floor(n/4)), poly=OCTAHEDRON());
+  data=sphere_subdiv(divs=max(1,floor(n/4)), poly=OCTAHEDRON());
   polyhedron(data[0],data[1]);
 
 
@@ -6047,21 +6047,23 @@ HelpTxt("OctaH",["r",r,"n",n,"d",d],help);
   // angle between two vectors (2D or 3D)
   function anglev(v1,v2) = acos( (v1*v2) / (norm(v1)*norm(v2) ) );
   function flatten(l) = [ for (a = l) for (b = a) b ];
-  function unit(v) = v / norm(v); // convert vector to unit vector
+  //function unit(v) = v / norm(v); // convert vector to unit vector
   // spherical linear interpolation
   function slerp(p0,p1,t) = let(a = anglev(p0,p1)) (sin((1-t)*a)*p0 + sin(t*a)*p1) / sin(a);
 
-  function OCTAHEDRON() = [
-     [[0,0,-1],[1,0,0],[0,1,0],[-1,0,0],[0,-1,0],[0,0,1]],
-    [ [0,3,4],[0,1,2],[0,2,3],[0,4,1],
-      [5,2,1],[5,3,2],[5,4,3],[5,1,4] ] ];
+  function OCTAHEDRON() = [octa(r),faces];
+  
+  
+//  [ [[0,0,r[5]],[r[0],0,0],[0,r[2],0],[r[1],0,0],[0,r[3],0],[0,0,r[4]]],
+//    [ [0,3,4],[0,1,2],[0,2,3],[0,4,1],
+//      [5,2,1],[5,3,2],[5,4,3],[5,1,4] ] ];
 
 
   // subdivide faces, splitting edges into integer number of divisions
   // input faces must be triangles with vertices on the unit sphere
-  function sphere_subdiv(r,d,divs=1, poly) = 
+  function sphere_subdiv(divs=1, poly) = 
     let(
-      R = d == undef ? r : d/2, // optional radius or diameter
+      R = 1,//d == undef ? r : d/2, // optional radius or diameter
       d = divs, // shorthand
       pv = poly[0], // points vector
       tv = poly[1], // triangle index vector
@@ -6073,13 +6075,13 @@ HelpTxt("OctaH",["r",r,"n",n,"d",d],help);
               p_i=slerp(p0,p1,n/d), p_j=slerp(p0,p2,n/d)
             ) slerp(p_i,p_j,j1/n)
           ])
-          unit(vsum(subv))
+          vsum(subv)
       ],
       Tn = function(n) n*(n+1)/2, // triangular numbers
       Td = Tn(d+1), // total points for subdivided face
       np = Td - 3, // new points per original face
       lp = len(pv),
-      allpoints = concat(pv, newpoints),
+      allpoints = concat(pv, newpoints/3),
       // Given original triangle point indices t, 
       // and indices i,j for subdivided basis vectors, { i => (tri[0],tri[1]), j => (tri[0],tri[2]) }
       // convert to absolute point index of resulting full point set.
