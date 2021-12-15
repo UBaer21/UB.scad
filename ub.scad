@@ -65,6 +65,7 @@ Changelog (archive at the very bottom)
 355|21  CHG Bogen CHG Pille CHG GewindeV3 help
 356|21  FIX Servokopf FIX Glied CHG HypKehleD CHG TorusSeg
 357|21  CHG Rohr/Bogen  CHG OctaH CHG TorusSeg REN ⇒ RingSeg CHG Gewinde version undef⇒ new FIX V2
+358|21  CHG Box help CHG Gewinde CHG OctaH
 
 */
 
@@ -131,7 +132,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.357;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.358;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -2672,26 +2673,34 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
   else if(is_num(zeile)){ // presets
       
       //metric
-    if(preset[0]=="M"){  GewindeV4(p=iso_Gewinde [zeile][1],dn=iso_Gewinde[zeile][2]+(innen?spiel*2:0),grad=grad,h=h,winkel=60,name=iso_Gewinde[zeile][0],innen=innen,wand=wand,cyl=cyl,tz=tz,start=start,end=end,fn=fn,fn2=fn2,center=center,spiel=spiel,profil=profil,help=help);
+    if(preset[0]=="M"){
+      GewindeV4(
+        p=iso_Gewinde [zeile][1],
+        dn=iso_Gewinde[zeile][2]+(innen?spiel*2:0),
+        grad=grad,h=h,winkel=60,name=iso_Gewinde[zeile][0],
+        innen=innen,wand=wand,mantel=mantel,cyl=cyl,tz=tz,start=start,
+        end=end,fn=fn,fn2=fn2,center=center,spiel=spiel,profil=profil,help=help);
     if($children)difference(){
       children();
         if(innen)Tz(center?tz-iso_Gewinde[zeile][1]/2:
                            tz)cylinder(is_undef(h)?(grad+360)*iso_Gewinde[zeile][1]/360:
-                                                   h,d=iso_Gewinde[zeile][2]+(innen?spiel*4:
-                                                                                    spiel*2));
+                                                   h,d=iso_Gewinde[zeile][2]+spiel*4,$fn=fn);
     }
      // other
     }else if(preset){
         if(preset=="search")echo(zeile=zeile,Txt=other_Gewinde[zeile]);
         else {
-            GewindeV4(p=other_Gewinde [zeile][1],
+            GewindeV4(
+            p=other_Gewinde [zeile][1],
             dn=other_Gewinde[zeile][2]+(innen?spiel*2:0),
             kern=is_undef(other_Gewinde[zeile][3])?undef:other_Gewinde[zeile][3]+(innen?spiel*2:0),
             breite=is_undef(breite)?other_Gewinde [zeile][4]:breite,
             rad1=is_undef(rad1)?other_Gewinde [zeile][5]:rad1,
             rad2=is_undef(rad1)?other_Gewinde [zeile][6]:rad2,
             winkel=other_Gewinde [zeile][7],
-            wand=wand,innen=innen,grad=grad,h=h,start=start,end=end,center=center,profil=profil,fn2=fn2,fn=fn,cyl=cyl,tz=tz,spiel=spiel,
+            wand=wand,mantel=mantel,innen=innen,grad=grad,h=h,
+            start=start,end=end,center=center,profil=profil,fn2=fn2,
+            fn=fn,cyl=cyl,tz=tz,spiel=spiel,
             name=other_Gewinde[zeile][8],
             help=help);
             
@@ -2732,7 +2741,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
                Echo(str("Gewinde preset=",preset," Not found!"),color="red",condition=preset);
                if($children)difference(){
                   children();
-                    if(innen)Tz(center?tz-p/2:tz-0)cylinder(is_undef(h)?grad*p/360+p:h,d=dn+spiel*2);
+                    if(innen)Tz(center?tz-p/2:tz-0)cylinder(is_undef(h)?grad*p/360+p:h,d=dn+spiel*2,fn=fn);
                 }      
                
             }
@@ -6010,8 +6019,9 @@ module OctaH(r=1,n=0,d,help){
   
 HelpTxt("OctaH",["r",r,"n",n,"d",d],help);
   
-  r=is_list(r)?[for(i=[0:5])assert(r[i]!=0) i%2? -abs(r[i]):   // neg quadrant
-                                                 abs(r[i])]:  //pos quadrants
+  scaling=is_list(r)||is_list(d)?true:false; // if subdiv needs sep scaling
+  r=is_list(r)?[for(i=[0:5]) i%2? -abs(r[i]):   // neg quadrant
+                                   abs(r[i])]:  //pos quadrants
               is_undef(d)?[r, -r, r, -r, r, -r]:
                           is_list(d)? [d.x /2, -d.x /2,
                                        d.y /2, -d.y /2,
@@ -6038,7 +6048,7 @@ HelpTxt("OctaH",["r",r,"n",n,"d",d],help);
     // MIT license
     
 
-  data=sphere_subdiv(divs=max(1,floor(n/4)), poly=OCTAHEDRON());
+  data=sphere_subdiv(divs=max(1,floor(n/4)), poly=OCTAHEDRON(1));
   polyhedron(data[0],data[1]);
 
 
@@ -6051,7 +6061,7 @@ HelpTxt("OctaH",["r",r,"n",n,"d",d],help);
   // spherical linear interpolation
   function slerp(p0,p1,t) = let(a = anglev(p0,p1)) (sin((1-t)*a)*p0 + sin(t*a)*p1) / sin(a);
 
-  function OCTAHEDRON() = [octa(r),faces];
+  function OCTAHEDRON(r) = [octa(r),faces];
   
   
 //  [ [[0,0,r[5]],[r[0],0,0],[0,r[2],0],[r[1],0,0],[0,r[3],0],[0,0,r[4]]],
@@ -6063,7 +6073,7 @@ HelpTxt("OctaH",["r",r,"n",n,"d",d],help);
   // input faces must be triangles with vertices on the unit sphere
   function sphere_subdiv(divs=1, poly) = 
     let(
-      R = 1,//d == undef ? r : d/2, // optional radius or diameter
+      R = r[0],//d == undef ? r : d/2, // optional radius or diameter
       d = divs, // shorthand
       pv = poly[0], // points vector
       tv = poly[1], // triangle index vector
@@ -6091,9 +6101,16 @@ HelpTxt("OctaH",["r",r,"n",n,"d",d],help);
         for (i=[0:1:d-1], j=[0:1:d-1-i]) [ pij(n,t,i,j), pij(n,t,i+1,j), pij(n,t,i  ,j+1) ],
         for (i=[1:1:d-1], j=[0:1:d-1-i]) [ pij(n,t,i,j), pij(n,t,i,j+1), pij(n,t,i-1,j+1) ] 
       ] ])
-    ) [R*allpoints, faces];
+    )[scaling?[for(i=[0:len(allpoints)-1])[
+      allpoints[i].x>0?allpoints[i].x*r[0]:allpoints[i].x*-r[1],
+      allpoints[i].y>0?allpoints[i].y*r[2]:allpoints[i].y*-r[3],
+      allpoints[i].z>0?allpoints[i].z*r[4]:allpoints[i].z*-r[5],
+    ]]
+      :R*allpoints
+        , faces];
    }
 }
+
 
 
 module Prisma(x1=12,y1,z=6,c1=5,s=1,x2,y2,x2d=0,y2d=0,c2=0,vC=[0,0,1],cRot=0,fnC=fn,fnS=36,center=false,name,help){
@@ -6335,17 +6352,25 @@ if(!2D)linear_extrude(height=h,convexity=10,center=true){
 }
 
 
-module Box(x=8,y=8,z=5,d2=0,c=3.5,s=1.5,eck=4,fnC=36,fnS=24,help){
-    d2=d2?d2:x;
+
+module Box(x=8,y,z=5,d2,c=3.5,s=1.5,eck=4,outer=true,fnC=36,fnS=24,help){
+  red=c>s?c:s;
+  
+  x=is_num(y)||outer?x:
+                    Umkreis(eck,x-red)+red;
+  d2=is_undef(d2)?x:
+                  outer?d2:
+                        Umkreis(eck,d2-red)+red;
+
+
   T(z=s/2+(z-s)/2)  minkowski(){
-        if(eck==4)cube([c>s?x-c:x-s,c>s?y-c:y-s,z-s-.01],center=true);
-            else cylinder(h=z-s-.01,d1=c>s?x-c:x-s,d2=c>s?d2-c:d2-s,$fn=eck,center=true);
-      if(c>s)cylinder(.01,d=c-s,center=true,$fn=fnC);
-        sphere(d=s,$fn=fnS);
+    if(is_num(y))cube([x -red, y -red, z-s-minVal],center=true);
+        else cylinder(h=z -s -minVal, d1=x -red, d2=d2 -red, $fn=eck, center=true);
+    if(c>s)cylinder(minVal,d=c-s,center=true,$fn=fnC);
+    sphere(d=s,$fn=fnS);
     }
     
-    if(help)
-        echo(str("<H3><font color='",helpMColor,"' <b>Help Box(x=",x,",y=",y,",z=",z,",d2=",d2,",c=",c,",s=",s,",eck=",eck,",fnC=",fnC,",fnS=",fnS,",help);"));
+HelpTxt("Box",["x",x,"y",y,"z",z,"d2",d2,"c",c,"s",s,"eck",eck,"outer",outer,"fnC",fnC,"fnS",fnS],help);
 }
 
 
