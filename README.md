@@ -1,5 +1,5 @@
 # UB.scad
-This [library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) is a full 3Dprinting workflow solution for [openSCAD](https://www.openscad.org).
+This [library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) is a full 3Dprinting workflow solution for [openSCAD](https://www.openscad.org) v.21 and above.
 There are a lot of settings available but most is using  pre configuration - so you can start with the template but also just with `include<ub.scad>`
 
 <img src="https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/Examples.png" height="275">
