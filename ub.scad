@@ -459,7 +459,7 @@ let(schritt=360/(e*mod))
 
 function tetra(r=1)=
   let(
-  r=is_list(r)?r:[r,r,r,r],
+  r=is_list(r)?r:[r,r,r,r]
   )
 [
 [ 0, 0, r[0]],
