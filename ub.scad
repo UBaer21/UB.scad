@@ -1,9 +1,12 @@
-// maintained https://github.com/UBaer21/UB.scad
 
-// under windows save here
-// ..\Documents\OpenSCAD\libraries
+//works from OpenSCAD version 2021   maintained at https://github.com/UBaer21/UB.scad
 
-/*
+/* save here
+ • Windows:  ..\Documents\OpenSCAD\libraries
+ • Linux:    $HOME/.local/share/OpenSCAD/libraries/
+ • Mac OS X: $HOME/Documents/OpenSCAD/libraries/
+
+
 Open SCAD library www.openscad.org by ulrich.baer+openscad@gmail.com (mail me if you need help - i am happy to assist)
 Copy this file into your libaries directory (File » show Libraries)
 [https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries]
@@ -67,6 +70,7 @@ Changelog (archive at the very bottom)
 357|21  CHG Rohr/Bogen  CHG OctaH CHG TorusSeg REN ⇒ RingSeg CHG Gewinde version undef⇒ new FIX V2
 358|21  CHG Box help CHG Gewinde CHG OctaH
 359|21  ADD Points Add Helper help CHG help menu
+360|21  CHG Anordnen
 
 */
 
@@ -1322,38 +1326,38 @@ InfoTxt("Anordnung",["e",e,"children",$children],name);
  if(option==1){
      r=is_undef(r)?(es/2)/sin(180/e):r;
      Polar(e,x=r,re=rot,name=false){
-       idx=$idx;
-       $idx=0;
+       ///idx=$idx;
+       //$idx=0;
        $idxON=true;
        $info=name;
-       if(is_undef(c)&&(loop?true:idx<$children))
-         children((inverse?$children-idx-1:idx)%$children);//
-     else Color(c+1/$children*idx,l=cl)
-         if(loop?true:idx<$children)children((inverse?$children-idx-1:idx)%$children);
+       if(is_undef(c)&&(loop?true:$idx<$children))
+         children((inverse?$children-$idx-1:$idx)%$children);//
+     else Color(c+1/$children*$idx,l=cl)
+         if(loop?true:$idx<$children)children((inverse?$children-$idx-1:$idx)%$children);
          }
      }
      
   if(option==2)
       Linear(e=e,es=es,re=rot,center=center,x=axis==1?1:0,y=axis==2?1:0,z=axis==3?1:0,name=false){
         $info=name;
-        idx=$idx;
-        $idx=0;
+        //idx=$idx;
+        //$idx=0;
         $idxON=true;
-        if(is_undef(c))children(idx%$children);
-        else Color(c+1/$children*idx,l=cl)children(idx%$children);
+        if(is_undef(c))children($idx%$children);
+        else Color(c+1/$children*$idx,l=cl)children($idx%$children);
       }
 
  if(option==3) Grid(e=e,es=es,center=center,name=false){
      $info=name;
      childINDX=inverse?(loop?e.x*e.y*e.z:$children -1)-($idx[0]+e.x*$idx[1]):($idx[0]+e.x*$idx[1]);
-     idx=$idx;
-     $idx=0;
+     //idx=$idx;
+     //$idx=0;
      $idxON=true;
      
      rotate(rot)
-     if(is_undef(c)&&(loop?true:idx.x+e.x*idx.y+e.x*e.y*idx.z<$children))children(childINDX%$children);
-     else Color(([idx.x/(e.x -1),idx.y/(e.y -1),idx.z/e.z]+[ 0,0,cl])){
-     if(loop?true:idx.x+e.x*idx.y+e.x*e.y*idx.z<$children)children(childINDX%$children);
+     if(is_undef(c)&&(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children))children(childINDX%$children);
+     else Color(([$idx.x/(e.x -1),$idx.y/(e.y -1),$idx.z/e.z]+[ 0,0,cl])){
+     if(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children)children(childINDX%$children);
      //text(str([$idx.x/(e.x-1), $idx.y/(e.y-1), $idx.z/e.z]+[ 0,0,cl]),size=2);
  }
  }  
