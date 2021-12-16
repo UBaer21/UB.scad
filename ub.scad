@@ -66,6 +66,7 @@ Changelog (archive at the very bottom)
 356|21  FIX Servokopf FIX Glied CHG HypKehleD CHG TorusSeg
 357|21  CHG Rohr/Bogen  CHG OctaH CHG TorusSeg REN ⇒ RingSeg CHG Gewinde version undef⇒ new FIX V2
 358|21  CHG Box help CHG Gewinde CHG OctaH
+359|21  ADD Points Add Helper help CHG help menu
 
 */
 
@@ -132,7 +133,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.358;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.360;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -328,6 +329,8 @@ is_list(parent)?is_num(search(parent,parentList())[i])?true:
 [Shear Z along X]  [Shear Z along Y]  [Scale Z]          [Translate Z]
 */
 
+
+// WIP  rot sequence wrong
 m = function (r=[0,0,0], t=[0,0,0], t2=[15,0,0], s=[1,1,1])
 let(
 s=is_num(s)?[s,s,s]:
@@ -412,7 +415,7 @@ p2=mPoints(p,t=[+20,0],r=[0,0,45],s=[2,0.5]);
 
 
 
-octa = function (s=1) 
+function octa   (s=1) =
 let(
 s=is_list(s)?s:
             [s,-s,s,-s,s,-s]
@@ -428,7 +431,7 @@ s=is_list(s)?s:
 
 //hull() polyhedron(octa(),[[for(i=[0:len(octa())-1])i]]);
 
-Quad = function (x=10,y,r=1,fn=$fn)
+function Quad  (x=10,y,r=1,fn=$fn) = 
  let(
  y=is_list(x)?x.y:is_undef(y)?x:y,
  x=is_list(x)?x.x:x,
@@ -445,7 +448,7 @@ concat(
 
 
 
-Stern= function(e=5,r1=10,r2=5,mod=2,delta=+0)
+function Stern (e=5,r1=10,r2=5,mod=2,delta=+0)=
 let(schritt=360/(e*mod))
     [for(i=[0:e*mod])
       i%mod<mod/2+round(delta)?[sin(i*schritt%360)*r1,cos(i*schritt%360)*r1]:
@@ -454,7 +457,16 @@ let(schritt=360/(e*mod))
 
 //polygon(Stern());
 
+function tetra(r=1)=
+  let(
+  r=is_list(r)?r:[r,r,r,r],
+  )
+[
+[ 0, 0, r[0]],
+for(i=[0:2])[sin(120*i)*sin(tw)*r[i+1],cos(120*i)*sin(tw)*r[i+1],cos(tw)*r[i+1]]
+];
 
+//hull()polyhedron(tetra(),[[0,1,2,3]]);
 
 
 
@@ -480,11 +492,16 @@ $fn=fn;
 $fs=fs;
 $fa=fa;
 help=$preview?anima?false:helpsw:false;
-helpFunc= helpsw==1||helpsw==true?true:false;//Funktionen
-helpMod=  helpsw==2||helpsw==true?true:false;//Objektmodifikatoren
-helpB=    helpsw==3||helpsw==true?true:false;//Basis help
-helpP=    helpsw==4||helpsw==true?true:false;//Produkte help
-help2D=   helpsw==5||helpsw==true?true:false;// 2D Objekte
+
+helpHelper= helpsw==1||helpsw==true?true:false;   //Helper
+helpMod=  helpsw==2||helpsw==true?true:false;    // Objektmodifikatoren
+help2D=   helpsw==3||helpsw==true?true:false;   // 2D Objekte
+helpB=    helpsw==4||helpsw==true?true:false;  //Basis help
+helpP=    helpsw==5||helpsw==true?true:false; //Produkte help
+helpFunc= helpsw==6||helpsw==true?true:false;//Funktionen
+
+
+
 //helpM=help;//module help old
 $helpM=help;//module help
 
@@ -531,6 +548,27 @@ if (help&&!anima)
 if (show)echo(str("🟣 ••• show=",show)); 
     
 
+
+if(!helpHelper)echo("❌••••• Helper List off — use» helpHelper=true; •••••");
+if (helpHelper){
+echo    ("•••••••••• Helper:   •••••••••••••••\n
+• Schnit(help=1) cuts children\n
+• Col(help=1) colors children with palette\n
+• Color(help=1) colors children with hue\n
+• Pivot(help=1) marks p0\n
+• Line(help=1) line p0⇔p1 \n
+• SCT(help=1) output sin cos tan\n
+• Caliper(help=1) measure \n
+• Points(help=1) numbers points\n
+• Anorden(help=1) arranges \n
+• InfoTxt(help=1) output Infotxt \n
+• HelpTxt(help=1) output helptxt \n
+• Echo(help=1) output txt \n
+• 3Projection(help=1) projects child along axis \n
+  
+  ");
+}
+
 if(!helpFunc)echo("❌••••• Functions List off — use» helpFunc=true; •••••");
 if (helpFunc){
 echo    ("•••••••••• Funktionen:   •••••••••••••••");
@@ -559,17 +597,19 @@ echo    ("••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
 ••• fs2fn(r, grad=360, fs=fs,minf=3); •••\n
 ••• vektorWinkel(p1, p2, twist=0); •••\n
 ••• v3(v); makes v a vector3 •••\n
-••• parentList(n=-1, start=1) list with all parent modules parent_module(“[start:n]“)•••\n
+••• parentList(n=-1, start=1) list with all parent modules parent_module(“[start:n]“) •••\n
 ••• teiler(n, div=2) least divisior •••\n
 ••• gcode(points, f) generates gcode in output •••\n
 ••• b(n); switches bool in num and vica versa (works on vectors) •••\n
-••• scaleGrad(grad=45, h=1,r=1) scale factor for extrusions•••\n
+••• scaleGrad(grad=45, h=1,r=1) scale factor for extrusions •••\n
 ••• is_parent(needs2D) search parentlist for string or list of strings (parent module needing polygon children) \n
-••• m(r=[0,0,0], t=[0,0,0], s=[1,1,1]) mulmatrix vector*concat(point,[1]) for rotation and translation•••\n
-••• mPoints(points,r,t,s)••• use with 2D&3D point / points  \n
-••• octa(s) ••• octaheadron points \n
-••• Quad(x,y,r) ••• Quad points \n
-••• Stern(e=5,r1=10,r2=5,mod=2,delta=+0) ••• Stern points \n
+••• m(r=[0,0,0], t=[0,0,0], s=[1,1,1]) mulmatrix vector*concat(point,[1]) for rotation and translation •••\n
+••• mPoints(points,r,t,s) use with 2D&3D point / points •••\n
+••• tetra(r) tetrahedron points •••\n
+••• octa(r,n,d)  octaheadron points (subdiv n) ••• \n
+••• Quad(x,y,r)  Quad points ••• \n
+••• Stern(e=5,r1=10,r2=5,mod=2,delta=+0)  Stern points ••• \n
+
 ");
     
 }
@@ -580,11 +620,11 @@ if (helpMod){
 echo    ("•••••••••• Objektmodifikatoren:   ••••••");
 echo    ("•••• T(x=0,y=0,z=0)•Tz(z=0) ••• R(x=0,y=0,z=0)  ••");
 echo    ("•••• M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=1,scalexz=1,scaleyz=1)••");
-echo    ("•••• Col(no=0,alpha=1,pal=0,n=0)multi Objekt color  ••");
-echo    ("••••Color(hue=0,alpha=1,v=1,l=0.5,n=0)••");
+//echo    ("•••• Col(no=0,alpha=1,pal=0,n=0)multi Objekt color  ••");
+///echo    ("••••Color(hue=0,alpha=1,v=1,l=0.5,n=0)••");
 
 echo    ("•••• Rund(or=+0,ir=0,chamfer=false,fn=fn)polygon••");
-echo    ("•••• Schnitt(on=1,r=0,x=0,y=0,z=0,rx=0,ry=0,sizex=200,sizey=200,sizez=50,center=0)Objekt  ••");    
+//echo    ("•••• Schnitt(on=1,r=0,x=0,y=0,z=0,rx=0,ry=0,sizex=200,sizey=200,sizez=50,center=0)Objekt  ••");    
 echo    ("•••• Linear(es=1,s=100,e=2,x=1,y=0,z=0,r=0,re=0,center=0,cx=0,cy=0,cz=0 ••");   
 echo    ("•••• Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name)dr=delta element rotation  ••");
 echo    ("•••• Grid(es=[10,10,10],e=[2,2,1],center=true) ••");
@@ -612,7 +652,7 @@ echo    ("\n
 •••• Bogen(help=1) opt Polygon   ••\n
 •••• SBogen(help=1) opt Polygon   ••\n
 •••• Row(help=1) opt. Objekt ••\n
-•••• Anordnung(help=1) Objekte ••\n
+//•••• Anordnung(help=1) Objekte ••\n
 •••• Bevel(help=1) Objekt ••\n
 •••• Scale(help=1) Objekt ••\n
 
@@ -693,7 +733,7 @@ echo    ("•• [54] Sinuskoerper(h=10,d=33,rand=2,randamp=1,randw=4,amp=1.5,w=
 
 echo    ("•• [55] Kassette(r1=2,r2=2,size=20,h=0,gon=3,fn=fn,fn2=36,r=0,grad=90,grad2=90,spiel=0.001,mitte=true,sizey=0,help=helpM)••••");
 echo    ("•• Surface(multiple,help=helpM)••••");
-echo    ("•• [58] Box(x=8,y=8,z=5,d2=0,c=3.5,s=1.5,eck=4,fnC=36,fnS=24)••••");
+echo    ("•• [58] Box(x=8,y=8,z=5,d2=0,c=3.5,s=1.5,eck=4,outer=true,fnC=36,fnS=24)••••");
 echo    ("•• [62] Spirale(grad=400,diff=2,radius=10,rand=n(2),detail=5,exp=1,hull=true)opt Object••••");
 echo    ("•• [63] Area(a=10,aInnen=0,rInnen=0,h=0,name)••••");
 echo    ("•• [65] Sichel(start=55,max=270,dia=33,radius=30,delta=-1,2D=false)••••");
@@ -719,9 +759,9 @@ echo    ("\n
  if(helpP){ // PRODUKT OBJEKTE
 
 echo    ("•••••••••• Produkt Objekte:   ••••••••••");
-echo    ("•• [400] Pivot(p0=[0,0,0],size=pivotSize,active=[1,1,1,1]) ••••");
-echo    ("•• [401] Line(p0, p1, d=.5,center=false) ••••");
-echo    ("•• [402] SCT(a=90) sin cos tan info ••••");
+//echo    ("•• [400] Pivot(p0=[0,0,0],size=pivotSize,active=[1,1,1,1]) ••••");
+//echo    ("•• [401] Line(p0, p1, d=.5,center=false) ••••");
+//echo    ("•• [402] SCT(a=90) sin cos tan info ••••");
 echo    ("•• [42] Gardena(l=10,d=10) ••••"); 
 echo    ("•• [43] Servotraeger(SON=1) ••• Servo(r,narbe) ••••");
 echo    ("•• [44] Knochen(l=+15,d=3,d2=5,b=0,fn=36)   ••••");
@@ -1181,17 +1221,41 @@ module HexGrid(e=[11,4],es=5,center=true,name){
 
 
 
-
-
-
 ///ΔΔ Modificatoren ΔΔ///
 
 ///∇∇ Helper ∇∇/// (not for creating geometry or objects)
 
+module Points(points,color,size,hull=true,loop=25,start=0,mark,help){
+  lp=len(points);
+  cMark=["Chartreuse","Aqua","Magenta","LightSkyBlue"];
+  size=is_undef(size)?$vpd/100:size;
+  if($preview){
 
 
+    for (i=[0:is_list(points[0])?lp-1:0])translate(is_list(points[0])?points[i]:points){
+     if(is_num(mark)&&i==mark)color("Chartreuse", alpha=.6)OctaH(.6);
+     if(is_list(mark)) for(j=[0:len(mark)-1])if(i==mark[j])color(cMark[j%len(cMark)], alpha=0.4)OctaH(0.4,$fn=12);
+       
+     if(i>=start&&i<start+loop){
+      if(i==start          )color("red",  alpha=.4)sphere(.25,$fn=24);
+      if(i==start +loop -1 )color("blue", alpha=.4)sphere(.25,$fn=24);
 
 
+      Color(is_undef(color[0])?1/(lp*1.2)*i:color,is_undef(color[3])?.5:color[3])rotate($vpr){
+      translate([0,i==lp-1?size *+2.5:size*1.25])linear_extrude(.1,convexity=3)text(str(i==lp-1?"end":"p",i),size=size,halign="center");
+      rotate([-90,-45,45])cylinder(i==lp-1?size*3.5:size,0,size/5,$fn=3);
+    }}}
+
+     if(hull) if(len(points[0])==3)color(alpha=is_bool(hull)?1: hull)
+                hull() polyhedron(points, [[for(i=[0:len(points)-1]) i ]]);
+              else if(len(points[0])==2)color(alpha=is_undef(color[3])?.2:color[3])polygon(points);
+
+  }
+  
+  HelpTxt("Points",["points",[[1,2,3]],"color",color,"size",size,"hull",hull,"loop",loop,"start",start,"mark",mark],help);
+  }
+
+ //Points(Kreis(grad=120,fn=6),start=0,loop=6,mark=[2,3,4,12]);
 
 
 
@@ -1505,6 +1569,82 @@ else HelpTxt("Help",["titel",titel,"string",string,"help",help],help=1);
 }
 
 
+
+
+module Caliper(l=20,in=1,s=$vpd/15,center=true,messpunkt=true,translate=[0,0,0],end=1,h=1.1,render=false,l2,txt,help){
+    
+    txt=is_undef(txt)?str(l,"mm "):txt;
+    center=is_bool(center)?center?1:0:center;
+    textl=in>1?s/3:s/4*(len(str(txt)));// end=0 use own def
+    line=s/20;
+    //l2=is_undef(l2)?s:ls;
+    
+    
+    if($preview||render)translate(translate)translate(in>1?center?[0,0]:[0,l/2]:center?[0,0]:[l/2,0]){
+      if(end==1&&h)Col(5){
+        rotate(in?in==2?90:in==3?-90:180:0)linear_extrude(h,center=true)Mklon(tx=l/2,mz=0)polygon([[max(-5,-l/3),0],[0,s],[0,0]]);
+        rotate(in?in==2?90:in==3?-90:180:0)linear_extrude(h,center=true)Mklon(tx=-l/2,mz=0)polygon([[max(-5,-l/3),0],[0,-s],[0,0]]);
+        
+        Text(h=h+.1,text=txt,center=true,size=s/4);
+        }
+     else if(end==2&&h)Col(3)union(){
+        rotate(in?in==2?90:in==3?-90:180:0)MKlon(tx=l/2)T(-(l-textl)/4,0)cube([(l-textl)/2,line,h],center=true);
+        rotate(in?in==2?90:in==3?-90:180:0)MKlon(tx=l/2)T(-line/2)cube([line,s,h],center=true);    
+        translate([(l<textl+1&&in<2)?l/2+textl/2+1:0,l<textl+1&&in>1?l/2+textl/2+1:0,0])Text(h=h+.1,text=txt,center=true,size=s/4);
+         if(l<textl+1)
+             if(in<2)translate([.5,0])square([l+.5,line],true);
+                else translate([0,.5])square([line,l+.5],true);
+         
+        }
+        else Col(1)union(){
+            s=s==$vpd/15?5:s;
+            line=s/20;
+            l2=is_undef(l2)?s:ls;
+            textl=in>1?s/3:s/4*len(txt);
+            // text line
+        rotate(in?in==2?90:in==3?-90:180:0)MKlon(tx=l/2)T(-(l-textl)/4,0)square([(l-textl)/2,line],center=true);
+            //End lines
+        rotate(in?in==2?90:in==3?-90:180:0){MKlon(tx=l/2){
+           T(+line/2) square([line,l2],center=true);
+            Pfeil([0,min(l/3,s/2)],b=[line,s],center=[-1,1],name=false);
+        }    
+         translate([l<textl+s?l/2+textl/2+1:0,0])rotate(in>1?-90:180) Text(h=0,text=txt,center=true,size=s/4);
+        // verbindung text ausserhalb
+        if(l<textl+s) translate([.5,0])square([l+.5,line],true);
+        }
+        // verlängerungen translate auf 0
+       if(translate.y)MKlon(tx=l/2) mirror([0,translate.y>0?1:0,0])square([line,abs(translate.y)],false);
+       if(translate.x)MKlon(ty=l/2) mirror([translate.x>0?1:0,0,0])square([abs(translate.x),line],false);    
+       //if(translate.x) mirror([translate.x>0?1:0,0,0])T(l/2,-line/2)square([abs(translate.x),line],false);
+
+        }
+    }
+ Echo("Caliper will render",color="warning",condition=render);  
+if(h&&end)    
+Pivot(messpunkt=messpunkt,p0=translate,active=[1,1,1,1,norm(translate)]);
+    
+    HelpTxt("Caliper",[
+    "l",l,
+    "in",in,
+    "s",s,
+    "center",center,
+    "messpunkt",messpunkt,
+    "translate",translate,
+    "end",end,
+    "h",h,
+    "render",render,
+    "l2",l2,
+    "txt",txt]
+    ,help);
+}
+
+
+
+
+module SCT(a=90){
+    echo(str("<H3>Winkel=",a," sin=",sin(a)," cos=",cos(a)," tan=",tan(a)));
+    echo(str("<H3>Winkel=",a," asin=",asin(a)," acos=",acos(a)," atan=",atan(a)));    
+}
 
 
 
@@ -4680,82 +4820,6 @@ points=concat(
  InfoTxt("Tri",["reale Höhe=",tang?hc-TangentenP(w1,r1):hc,"h",tang?hc:hc+TangentenP(w1,r1),"Basis",2*Kathete(l2,tang?hc:hc+TangentenP(w1,r1)),"Umkreis r",2*Kathete(l2,hc)/(2*sin(grad)),"c",l==l22?sin(grad/2)*l*2:"WIP"],name);
  HelpTxt("Tri",["grad",grad,"l",l,"l2",l2,"h",h,"r",r,",messpunkt",messpunkt,",center=",center,"top",top,"tang",tang,"c",c,"fn",fn,"name",name],help);    
  
-}
-
-
-module Caliper(l=20,in=1,s=$vpd/15,center=true,messpunkt=true,translate=[0,0,0],end=1,h=1.1,render=false,l2,txt,help){
-    
-    txt=is_undef(txt)?str(l,"mm "):txt;
-    center=is_bool(center)?center?1:0:center;
-    textl=in>1?s/3:s/4*(len(str(txt)));// end=0 use own def
-    line=s/20;
-    //l2=is_undef(l2)?s:ls;
-    
-    
-    if($preview||render)translate(translate)translate(in>1?center?[0,0]:[0,l/2]:center?[0,0]:[l/2,0]){
-      if(end==1&&h)Col(5){
-        rotate(in?in==2?90:in==3?-90:180:0)linear_extrude(h,center=true)Mklon(tx=l/2,mz=0)polygon([[max(-5,-l/3),0],[0,s],[0,0]]);
-        rotate(in?in==2?90:in==3?-90:180:0)linear_extrude(h,center=true)Mklon(tx=-l/2,mz=0)polygon([[max(-5,-l/3),0],[0,-s],[0,0]]);
-        
-        Text(h=h+.1,text=txt,center=true,size=s/4);
-        }
-     else if(end==2&&h)Col(3)union(){
-        rotate(in?in==2?90:in==3?-90:180:0)MKlon(tx=l/2)T(-(l-textl)/4,0)cube([(l-textl)/2,line,h],center=true);
-        rotate(in?in==2?90:in==3?-90:180:0)MKlon(tx=l/2)T(-line/2)cube([line,s,h],center=true);    
-        translate([(l<textl+1&&in<2)?l/2+textl/2+1:0,l<textl+1&&in>1?l/2+textl/2+1:0,0])Text(h=h+.1,text=txt,center=true,size=s/4);
-         if(l<textl+1)
-             if(in<2)translate([.5,0])square([l+.5,line],true);
-                else translate([0,.5])square([line,l+.5],true);
-         
-        }
-        else Col(1)union(){
-            s=s==$vpd/15?5:s;
-            line=s/20;
-            l2=is_undef(l2)?s:ls;
-            textl=in>1?s/3:s/4*len(txt);
-            // text line
-        rotate(in?in==2?90:in==3?-90:180:0)MKlon(tx=l/2)T(-(l-textl)/4,0)square([(l-textl)/2,line],center=true);
-            //End lines
-        rotate(in?in==2?90:in==3?-90:180:0){MKlon(tx=l/2){
-           T(+line/2) square([line,l2],center=true);
-            Pfeil([0,min(l/3,s/2)],b=[line,s],center=[-1,1],name=false);
-        }    
-         translate([l<textl+s?l/2+textl/2+1:0,0])rotate(in>1?-90:180) Text(h=0,text=txt,center=true,size=s/4);
-        // verbindung text ausserhalb
-        if(l<textl+s) translate([.5,0])square([l+.5,line],true);
-        }
-        // verlängerungen translate auf 0
-       if(translate.y)MKlon(tx=l/2) mirror([0,translate.y>0?1:0,0])square([line,abs(translate.y)],false);
-       if(translate.x)MKlon(ty=l/2) mirror([translate.x>0?1:0,0,0])square([abs(translate.x),line],false);    
-       //if(translate.x) mirror([translate.x>0?1:0,0,0])T(l/2,-line/2)square([abs(translate.x),line],false);
-
-        }
-    }
- Echo("Caliper will render",color="warning",condition=render);  
-if(h&&end)    
-Pivot(messpunkt=messpunkt,p0=translate,active=[1,1,1,1,norm(translate)]);
-    
-    HelpTxt("Caliper",[
-    "l",l,
-    "in",in,
-    "s",s,
-    "center",center,
-    "messpunkt",messpunkt,
-    "translate",translate,
-    "end",end,
-    "h",h,
-    "render",render,
-    "l2",l2,
-    "txt",txt]
-    ,help);
-}
-
-
-
-
-module SCT(a=90){
-    echo(str("<H3>Winkel=",a," sin=",sin(a)," cos=",cos(a)," tan=",tan(a)));
-    echo(str("<H3>Winkel=",a," asin=",asin(a)," acos=",acos(a)," atan=",atan(a)));    
 }
 
 
