@@ -1,5 +1,5 @@
 use<ub.scad>
-//useVersion=21.337;
+//useVersion=21.360; // openSCAD version >= 21.12
 
 $fn=72;
 

@@ -11,7 +11,7 @@ echo   creating 2/7 generator.png
 E:\Prog\OpenSCAD2021.10.19\openscad.exe -o generator.png -D "show=""generator""" -q --colorscheme "DeepOcean" --imgsize 900,1100 --projection o --camera 40,35,0,0,0,0,280 DEMO.scad
 
 echo   creating 3/7 helper.png
-E:\Prog\OpenSCAD2021.10.19\openscad.exe -o helper.png -D "show=""helper""" -q --colorscheme "DeepOcean" --imgsize 900,700 --projection o --camera 25,12,0,0,0,0,125 DEMO.scad
+E:\Prog\OpenSCAD2021.10.19\openscad.exe -o helper.png -D "show=""helper""" -q --colorscheme "DeepOcean" --imgsize 900,900 --projection o --camera 25,18,0,0,0,0,152 DEMO.scad
 
 echo   creating 4/7 polygons.png
 E:\Prog\OpenSCAD2021.10.19\openscad.exe -o polygons.png -D "show=""polygons""" -q --colorscheme "DeepOcean" --imgsize 900,1200 --projection o --camera 60,75,0,0,0,0,460 DEMO.scad
