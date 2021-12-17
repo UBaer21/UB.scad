@@ -2,7 +2,7 @@
 This [library](https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries) is a full 3Dprinting workflow solution for [openSCAD](https://www.openscad.org) v.21 and above.
 There are a lot of settings available but most is using  pre configuration - so you can start with the template but also just with `include<ub.scad>`
 
-<img src="https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/Examples.png" height="275">
+<img src="https://github.com/UBaer21/UB.scad/blob/main/Images/Examples.png" height="275">
 
 - giving you
   * [parameter](#parameter)
@@ -23,10 +23,10 @@ There are a lot of settings available but most is using  pre configuration - so 
   
   Also every `module Example()` has an internal help, use: `Example(help=true);`<br>Additional there are informations displayed on the console window. When giving a name to module `Example(name="Test");` they are emphasized. For a little suprise put in your name.
   
-![](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/consoleTXT.png)
+![](https://github.com/UBaer21/UB.scad/blob/main/Images/consoleTXT.png)
   
   and switches to show the status
-  ![](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/consoleSchalter.png)
+  ![](https://github.com/UBaer21/UB.scad/blob/main/Images/consoleSchalter.png)
   
 # Parameter
 `name="myProject";` shows a name 
@@ -66,27 +66,27 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 # Modifier
 
-![modifier](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/modifier.png)
+![modifier](https://github.com/UBaer21/UB.scad/blob/main/Images/modifier.png)
 
 # Generator
 
-![3Dmodifier](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/generator.png)
+![3Dmodifier](https://github.com/UBaer21/UB.scad/blob/main/Images/generator.png)
 
 # Helper
 
-![helper](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/helper.png)
+![helper](https://github.com/UBaer21/UB.scad/blob/main/Images/helper.png)
 
 # Polygons
 
-![polygons](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/polygons.png)
+![polygons](https://github.com/UBaer21/UB.scad/blob/main/Images/polygons.png)
 
 # Objects
 
-![objects](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/objects.png)
+![objects](https://github.com/UBaer21/UB.scad/blob/main/Images/objects.png)
 
 # Products
 
-![Products](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/products.png)
+![Products](https://github.com/UBaer21/UB.scad/blob/main/Images/products.png)
 
 * `Gewinde()`       creates a thread inner or outer 
 * `DRing()`         D-Ring 
@@ -117,7 +117,7 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 # Functions
 
-![functions](https://github.com/UBaer21/UB.scad/blob/main/DEMO-UBscad/functions.png)
+![functions](https://github.com/UBaer21/UB.scad/blob/main/Images/functions.png)
 * `l(x)` № layer in mm depending on layer=
 * `n(x)` wall / perimeter depending on nozzle=
 * `Inkreis( eck, rU)` inner circle of n-gon
