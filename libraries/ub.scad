@@ -72,6 +72,9 @@ Changelog (archive at the very bottom)
 359|21  ADD Points Add Helper help CHG help menu
 360|21  CHG Anordnen
 361|21  CHG Vollwelle CHG fVollwelle Add tMitte  CHG multiple (help) Menu HelpTxt Buchtung KreisSeg
+362|21  CHG RotEx fn CHG Halbrund help
+
+
 
 */
 
@@ -138,7 +141,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.361;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=21.362;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -1136,7 +1139,7 @@ module Halb(i=0,x=0,y=0,z=0,2D=0,size=max(100,viewportSize))
 
 //short for rotate_extrude(angle,convexity=5) with options
 module RotEx(grad=360,fn=fn,center=false,cut=false,convexity=5,help){
-  fnrotex=fn;
+  fnrotex=$fn;
     rotate(center?sign(grad)*-min(abs(grad)/2,180):grad>=360?180:0)
   rotate_extrude(angle=grad,convexity=convexity, $fa =fn?abs(grad/fn):$fa,$fs=.2,$fn=0)intersection(){
     $fn=fnrotex;
@@ -7628,15 +7631,14 @@ else difference(){
 }
   if (name)echo(str(is_string(name)?"<H3>":"",name," Halbrund",h?str(" l= ",h): " h=0↦2D"," ∅= ",(d)," Abgeflacht um= ",x," ↦",d2));  
      
- if(help)echo(str("<H3><font color=",helpMColor,">Help Halbrund(",
- " h=",h,
-" ,d=",d,
-" ,d2=",d2,
-" ,x=",x,
-" ,doppel=",doppel,
-" ,name=",name,
-" ,help" 
- ,");")); 
+ HelpTxt("Halbrund",[
+ "h",h,
+"d",d,
+"d2",d2,
+"x",x,
+"doppel",doppel,
+"name",name],
+help); 
     
 }
 
