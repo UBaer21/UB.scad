@@ -1,0 +1,43 @@
+{
+    "name" : "UB",
+    "index" : 900,
+    "paper" : "#1d1f22",
+    "text" : "#c5c8c6",
+    "caret" : {
+        "width" : 2,
+        "foreground" : "#ffffff",
+        "line-background" : "#282a2e"
+    },
+    "colors" : {
+        "keyword1" : "#de935f",
+        "keyword2" : "#b294bb",
+        "keyword3" : "#81a2be",
+	"keyword4" : "Orange",
+	"comment" : "#969896",
+        "commentline" : "#969896",
+        "commentdoc" : "#969896",
+        "commentdockeyword" : "#f0c674",
+        "number" : "#cc6666",
+        "string" : "#b5bd68",
+        "operator" : "#8abeb7",
+        "whitespace-foreground" : "#c5c8c6",
+        "selection-foreground" : "#373b41",
+        "selection-background" : "#c5c8c6",
+        "margin-background" : "#1d1f21",
+        "margin-foreground" : "#969896",
+        "matched-brace-background" : "#50545c",
+        "matched-brace-foreground" : "#e2e6e3",
+        "unmatched-brace-background" : "#8a1111",
+        "unmatched-brace-foreground" : "#e2e6e3",
+        "error-marker" : "#ff0000",
+        "error-indicator" : "#80ff0000",
+        "error-indicator-outline" : "#ff000000",
+        "edge" : "#d33682"
+    },
+    "keywords" : {
+        "keyword-set1" : "if else let for module function true false undef include use",
+        "keyword-set2" : "n l  abs sign rands min max sin cos asin acos tan atan atan2 round ceil floor pow sqrt exp len log ln str chr ord concat is_undef is_list is_num is_bool is_string lookup search version version_num norm cross parent_module dxf_dim dxf_cross",
+        "keyword-set3" : "Rand Rund Prisma RotEx LinEx Rundrum cube sphere cylinder polyhedron square circle polygon text minkowski hull resize child echo union difference intersection linear_extrude rotate_extrude import group projection render surface scale rotate mirror translate multmatrix color offset children assert",
+	"keyword-set4" : "Example"
+    }
+}
