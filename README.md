@@ -76,11 +76,11 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 ![helper](https://github.com/UBaer21/UB.scad/blob/main/Images/helper.png)
 
-# [Polygons](https://github.com/UBaer21/UB.scad/blob/main/Examples/Polygons.scad)
+# [Polygons](https://github.com/UBaer21/UB.scad/blob/main/examples/UBexamples/Polygons.scad)
 
 ![polygons](https://github.com/UBaer21/UB.scad/blob/main/Images/polygons.png)
 
-# [Objects](https://github.com/UBaer21/UB.scad/blob/main/Examples/Objects.scad)
+# [Objects](https://github.com/UBaer21/UB.scad/blob/main/examples/UBexamples/Objects.scad)
 
 ![objects](https://github.com/UBaer21/UB.scad/blob/main/Images/objects.png)
 
