@@ -151,7 +151,8 @@ There are a lot of settings available but most is using  pre configuration - so 
 * `b( n)` switches bool in num and vica versa (works on vectors too)
 * `scaleGrad(grad=45, h=1, r=1)` scale factor for extrusions h of circle(r) to obtain angle grad at sides
 * `m( r=[0,0,0], t=[0,0,0] )` mulmatrix vector
-* `mPoints(points,r,t,s)` transform (rotate translate scale ) point or points (2D/3D)
-* `Quad(x,y,r)` Quad polygon points x can be vector [x,y] r can be list
+* `mPoints(points, r, t, s)` transform (rotate translate scale ) point or points (2D/3D)
+* `quad(x, y, r, fn)` Quad polygon points x can be vector [x,y] r can be list
+* `stern(e, r1, r2, mod, delta)` Stern polygon points, mod sets additonal points delta moves between
 * `octa(s)` octahedron points (s can be list)
 
