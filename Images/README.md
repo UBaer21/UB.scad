@@ -1,4 +1,4 @@
-# There are known Issues with OpenScad version 21.01 
+# There are known Issues with OpenScad version 21.01 using these scripts
 
 …use a higher [dev snapshot build](http://openscad.org/downloads.html#snapshots)
 
