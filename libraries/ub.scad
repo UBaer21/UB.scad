@@ -30,50 +30,8 @@ bed=true        // Print bed active (centers vp printPos)
 name="object";     // used in modules for showing name or number - if 0 no info is shown
 
 Changelog (archive at the very bottom)
-313|21  Reordering modules ADD teiler FIX Help txt ADD MO fix missing obj warnings
-314|21  ADD Example Fix Linear infotxt
-315|21  CHG Anordnen Add center CHG Pfeil  add center add inv CHG Calliper CHG Pivot
-316|21  ADD 3Projection CHG Scale CHG Halb CHG Rand add help
-317|21  CHG WStern help CHG Caliper CHG GT2Pull ADD gcode CHG Tri, Quad, Kreis
-318|21  CHG Tri90, Linse, Pivot, Star, 7Seg, DBogen
-319|21  ADD b() CHG PCBcase
-320|21  CHG view to viewportSize
-321|21  CHG Kehle ADD KBS REN KreisSeg↦TorusSeg
-324|21  ADD scaleGrad CHG RotEx $fa
-325|21 !CHG Kreis rotate 180 for center==true ⇒ CHG Quad ⇒ Egg ⇒ WKreis ⇒ GT ⇒ RSternFill ⇒ Tri CHG LinEx CHG Bezier CHG Ttorus CHG Torus CHG Rundrum CHG Pivot CHG Bogen
-326|21  CHG CyclGetriebe CHG Pivot CHG Kreis CHG Klammer CHG KBS add top
-327|21  CHG HypKehle/HypKehleD ADD Isopshere Add pPos
-3272|21 FIX  Issue  #2
-328|21  CHG $helpM use  CHG HelpTxt CHG Quad CHG Rundrum  CHG n↦name
-3281|21 CHG KBS CHG CHG $info
-3282|21 CHG Quad Add tangent + Fixes
-329|21  CHG Polar Prisma help info CHG Anordnen FIX Bogen(2D) SBogen CHG Kontaktwinkel CHG b(add bool) Add $tab
-330|21  FIX HypKehle ADD VarioFill CHG Color CHG InfoTxt CHG Flower CHG Cycloid FIX DBogen FIX Kegel info/help Kegelmantel
-331|21  CHG Abzweig CHG Kontaktwinkel
-332|21  CHG Linear CHG Surface help Scale 2D
-333|21  ADD easterEgg
-334|21  FIX Bezier FIX Line
-335|21  FIX Strebe FIX Rundrum ADD is_parent( needs2D )CHG VarioFill
-336|21  FIX Vollwelle grad2=90 FIX Strebe assert CHG Nut CHG negRed CHG Quad CHG Tri add c
-337|21  FIX SBogen 2D CHG Anschluss FIX Bogen CHG Bezier CHG gcode CHG Ttorus
-338|21  CHG Color $idxON  CHG Bezier hull=false
-339|21  FIX Ttorus  diverse $tab / $info fixes HypKehle Polar Linear Grid DBogen CHG SBogen
-340|21  ADD m CHG div tab info CHG InfoTxt FIX WaveEx
-341|21  FIX Pfeil d FIX Quad
-346|21  ADD mPoints CHG m add s
-349|21  CHG Bezier
-350|21  ADD function Quad ADD function octa ADD OctaH
-351|21  ADD function Stern CHG Torus End true for children CHG Sichel CHG Spirale
-354|21  CHG HexGrid info FIX Strebe
-355|21  CHG Bogen CHG Pille CHG GewindeV3 help
-356|21  FIX Servokopf FIX Glied CHG HypKehleD CHG TorusSeg
-357|21  CHG Rohr/Bogen  CHG OctaH CHG TorusSeg REN ⇒ RingSeg CHG Gewinde version undef⇒ new FIX V2
-358|21  CHG Box help CHG Gewinde CHG OctaH
-359|21  ADD Points Add Helper help CHG help menu
-360|21  CHG Anordnen
-361|21  CHG Vollwelle CHG fVollwelle Add tMitte  CHG multiple (help) Menu HelpTxt Buchtung KreisSeg
-362|21  CHG RotEx fn CHG Halbrund help
 
+000|22 prepare release CHG VarioFill
 
 
 */
@@ -141,7 +99,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=21.362;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.000;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -174,8 +132,8 @@ lz=is_undef(lz)?l:lz
 )
 is_undef(z)?is_undef(e)?[sin(rot)*l,cos(rot)*l2]:[sin(rot)*cos(e)*l,cos(rot)*cos(e)*l2,sin(e)*lz]:[sin(rot)*l,cos(rot)*l,z];
 
-
-function Bezier(t,p0=[0,0],p1=[-20,20],p2=[20,20],p3=[0,0])=
+function Bezier(t,p0=[0,0],p1=[-20,20],p2=[20,20],p3=[0,0])=bezier(t,p0,p1,p2,p3);
+function bezier(t,p0=[0,0],p1=[-20,20],p2=[20,20],p3=[0,0])=
 let(
     omt = 1 - t,
     omt2 = omt * omt,
@@ -183,8 +141,8 @@ let(
 )
 p0*(omt2*omt) + p1*(3*omt2*t) + p2*(3*omt*t2) + p3*(t2*t);
 
-
-function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=
+function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=kreis(r,rand,grad,grad2,fn,center,sek,r2,rand2,rcenter,rot,t);
+function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=
 let (
 grad2=is_undef(grad2)?grad:grad2,
 r=rcenter?r+rand/2:r,
@@ -212,11 +170,13 @@ if(rand)for(i=[0:fn])
 
 
 
-function KreisXY(r=5,grad=0)=[r*sin(grad),r*cos(grad)];//depreciated use RotLang
+function kreisXY(r=5,grad=0)=[r*sin(grad),r*cos(grad)];//depreciated use RotLang
+function KreisXY(r=5,grad=0)=kreisXY(r,grad);//depreciated use RotLang
 
 function 5gon(b1=20,l1=15,b2=10,l2=30)=[[0,0],[b1,l1],[b2,l2],[-b2,l2],[-b1,l1]];
 
-function ZigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)=[for(i=[0:e*mod])[i%mod<mod/2+delta?i*x/(e*mod):i*x/(e*mod)+shift,i%mod<mod/2+delta?base:y],[x,0],[0,0]];
+function ZigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)=zigZag(e,x,y,mod,delta,base,shift);
+function zigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)=[for(i=[0:e*mod])[i%mod<mod/2+delta?i*x/(e*mod):i*x/(e*mod)+shift,i%mod<mod/2+delta?base:y],[x,0],[0,0]];
 
 function TangentenP(//Tangenten schnittpunkt ab Kreis mit radius rad
 grad=150, // Winkel der Tangenten
@@ -268,7 +228,10 @@ function gradB(b,r)=360/(PI*r*2)*b; // winkel zur Bogen strecke b des Kreisradiu
 function gradS(s,r)=asin(s/(2*r))*2;// winkel zur Sehne s des Kreisradiuses r
 function radiusS(n,s,a)=(s/2)/(sin((is_undef(n)?a:360/n)/2));// Radius  zur Sehne
 function runden(x,dec=2)=round(x*pow(10,dec))/pow(10,dec);//auf komastelle runden
-function grad(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)=grad+h/24*360+min/60+sec/3600+atan(prozent/100)+gon/400*360+rad/(2*PI)*360;
+//convert angle
+function grad(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)=gradC(grad,min,sec,h,prozent,gon,rad); // compatibility as renamed gradC
+function gradC(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)=grad+h/24*360+min/60+sec/3600+atan(prozent/100)+gon/400*360+rad/(2*PI)*360;
+
 function inch(inch)=inch*25.4;
 function kreisbogen(r,grad=360)=PI*r*2/360*grad;
 function fs2fn(r,grad=360,fs=fs,minf=3)=max(minf,PI*r*2/360*grad/fs);
@@ -439,24 +402,24 @@ s=is_list(s)?s:
 
 //hull() polyhedron(octa(),[[for(i=[0:len(octa())-1])i]]);
 
-function Quad  (x=10,y,r=1,fn=$fn) = 
+function quad  (x=10,y,r=1,fn=$fn) = 
  let(
  y=is_list(x)?x.y:is_undef(y)?x:y,
  x=is_list(x)?x.x:x,
  r=is_list(r)?r:[r,r,r,r]
 ) 
 concat(
-  Kreis(t=[ x/2 -r[0],  y/2 -r[0] ],r=r[0],rand=0,grad=90,rot=0,center=false,fn=fn/4),
-  Kreis(t=[ x/2 -r[1], -y/2 +r[1] ],r=r[1],rand=0,grad=90,rot=90,center=false,fn=fn/4),
-  Kreis(t=[-x/2 +r[2], -y/2 +r[2] ],r=r[2],rand=0,grad=90,rot=180,center=false,fn=fn/4),
-  Kreis(t=[-x/2 +r[3],  y/2 -r[3] ],r=r[3],rand=0,grad=90,rot=270,center=false,fn=fn/4)
+  kreis(t=[ x/2 -r[0],  y/2 -r[0] ],r=r[0],rand=0,grad=90,rot=0,center=false,fn=fn/4),
+  kreis(t=[ x/2 -r[1], -y/2 +r[1] ],r=r[1],rand=0,grad=90,rot=90,center=false,fn=fn/4),
+  kreis(t=[-x/2 +r[2], -y/2 +r[2] ],r=r[2],rand=0,grad=90,rot=180,center=false,fn=fn/4),
+  kreis(t=[-x/2 +r[3],  y/2 -r[3] ],r=r[3],rand=0,grad=90,rot=270,center=false,fn=fn/4)
 );
 
 //polygon(Quad());
 
 
 
-function Stern (e=5,r1=10,r2=5,mod=2,delta=+0)=
+function stern (e=5,r1=10,r2=5,mod=2,delta=+0)=
 let(schritt=360/(e*mod))
     [for(i=[0:e*mod])
       i%mod<mod/2+round(delta)?[sin(i*schritt%360)*r1,cos(i*schritt%360)*r1]:
@@ -580,14 +543,18 @@ echo    ("•••••••••• Helper:   •••••••••�
 if(!helpFunc)echo("❌••••• Functions List off — use» helpFunc=true; •••••");
 if (helpFunc){
 echo    ("•••••••••• Funktionen:   •••••••••••••••");
-echo    ("••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
-••• Inkreis(eck, rU) •• Umkreis(eck, rI) •••\n
-••• Hypotenuse(a, b) length •• Kathete(hyp, kat) length •••\n
+echo    ("
+••• l(x) Layer\n
+••• n(x) Nozzledurchmesser\n
+••• Inkreis(eck, rU)\n
+••• Umkreis(eck, rI)\n
+••• Hypotenuse(a, b) length\n
+••• Kathete(hyp, kat) length\n
 ••• Sehne(n, r, a) length n-eck/alpha winkel •••\n
 ••• RotLang(rot, l, z, e, lz) [vector] (e=elevation)•••\n
-••• Bezier(t, p0=[0,0], p1=[-20,20],p2=[20,20],p3=[0,0]) points   •••\n
-••• Kreis(r=10, rand=+5, grad=360,grad2=+0,fn=fn,center=true,sek=true,r2=0,rand2=0,rcenter=0,rot=0,t=[0,0]) points •••\n
-••• KreisXY(r=5, grad=0) [vector]•••\n
+••• bezier(t, p0=[0,0], p1=[-20,20],p2=[20,20],p3=[0,0]) points   •••\n
+••• kreis(r=10, rand=+5, grad=360,grad2=+0,fn=fn,center=true,sek=true,r2=0,rand2=0,rcenter=0,rot=0,t=[0,0]) points •••\n
+///••• kreisXY(r=5, grad=0) [vector]•••\n
 ••• 5gon(b1=20, l1=15, b2=10, l2=30) points •••\n
 ••• ZigZag(e=5, x=50, y=5, mod=2, delta=+0, base=2, shift=0) points •••\n
 ••• TangentenP(grad, rad, r) length •••\n
@@ -599,7 +566,7 @@ echo    ("••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
 ••• vollwelle() ⇒ Vollwelle(help=1) •••\n
 ••• runden(x, dec=2) x runden auf Dezimalstelle ••• \n
 ••• radiusS(n, s, a) radius zur Sehne ••• \n
-••• grad(grad=0, min=0, sec=0, h=0, prozent=0, gon=0, rad=0) Winkelmaßumrechnung ••• \n  
+••• gradC(grad=0, min=0, sec=0, h=0, prozent=0, gon=0, rad=0) Winkelmaßumrechnung ••• \n  
 ••• inch(inch) Inch⇒mm •••\n 
 ••• kreisbogen(r, grad=360) ••• \n
 ••• fs2fn(r, grad=360, fs=fs,minf=3); •••\n
@@ -615,8 +582,8 @@ echo    ("••• l(x)//Layer  ••  n(x)//Nozzledurchmesser   •••\n
 ••• mPoints(points,r,t,s) use with 2D&3D point / points •••\n
 ••• tetra(r) tetrahedron points •••\n
 ••• octa(r,n,d)  octaheadron points (subdiv n) ••• \n
-••• Quad(x,y,r)  Quad points ••• \n
-••• Stern(e=5,r1=10,r2=5,mod=2,delta=+0)  Stern points ••• \n
+••• quad(x,y,r)  Quad points ••• \n
+••• stern(e=5,r1=10,r2=5,mod=2,delta=+0)  Stern points ••• \n
 
 ");
     
@@ -628,11 +595,7 @@ if (helpMod){
 echo    ("•••••••••• Objektmodifikatoren:   ••••••");
 echo    ("•••• T(x=0,y=0,z=0)•Tz(z=0) ••• R(x=0,y=0,z=0)  ••");
 echo    ("•••• M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=1,scalexz=1,scaleyz=1)••");
-//echo    ("•••• Col(no=0,alpha=1,pal=0,n=0)multi Objekt color  ••");
-///echo    ("••••Color(hue=0,alpha=1,v=1,l=0.5,n=0)••");
-
 echo    ("•••• Rund(or=+0,ir=0,chamfer=false,fn=fn)polygon••");
-//echo    ("•••• Schnitt(on=1,r=0,x=0,y=0,z=0,rx=0,ry=0,sizex=200,sizey=200,sizez=50,center=0)Objekt  ••");    
 echo    ("•••• Linear(es=1,s=100,e=2,x=1,y=0,z=0,r=0,re=0,center=0,cx=0,cy=0,cz=0 ••");   
 echo    ("•••• Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name)dr=delta element rotation  ••");
 echo    ("•••• Grid(es=[10,10,10],e=[2,2,1],center=true) ••");
@@ -1138,7 +1101,7 @@ module Halb(i=0,x=0,y=0,z=0,2D=0,size=max(100,viewportSize))
 
 
 //short for rotate_extrude(angle,convexity=5) with options
-module RotEx(grad=360,fn=fn,center=false,cut=false,convexity=5,help){
+module RotEx(grad=360,fn=fn,center=false,cut=false,convexity=5,help=false){
   fnrotex=$fn;
     rotate(center?sign(grad)*-min(abs(grad)/2,180):grad>=360?180:0)
   rotate_extrude(angle=grad,convexity=convexity, $fa =fn?abs(grad/fn):$fa,$fs=.2,$fn=0)intersection(){
@@ -1668,6 +1631,7 @@ module VarioFill(
 l=15,
 exp=+2,
 dia,
+h,
 chamfer=1,
 deg=45,
 extrude=0,
@@ -1737,19 +1701,21 @@ cut=spiel.x>abs(dia/2) ||
 
 
 if(is_num(diaw) && !is_parent(needs2D)) RotEx(cut=cut) polygon(points);
-  else if( l.x>0?grad.y>90:grad.y<90 || (l.y>0?grad.x<0:grad.x>0) )
-    intersection(){
-      polygon(points);
-      mirror([sign(l.x)==1?0:1,sign(l.y)==1?0:1])translate([-padding.y+dia/2-(extrude*sign(l.x)<0?-extrude*sign(l.x):0),grad.x<0?-l.y:-padding.x])
-        square([abs(extrude)+abs(l.x)+padding.y,grad.x<0?2*l.y:abs(l.y)+padding.x]);
-    }
-    else polygon(points);
+  else if(h && !is_parent(needs2D)) linear_extrude(h,convexity=2,$fn=fn)polygon(points); 
+    else if( l.x>0?grad.y>90:grad.y<90 || (l.y>0?grad.x<0:grad.x>0) )
+      intersection(){
+        polygon(points);
+        mirror([sign(l.x)==1?0:1,sign(l.y)==1?0:1])translate([-padding.y+dia/2-(extrude*sign(l.x)<0?-extrude*sign(l.x):0),grad.x<0?-l.y:-padding.x])
+          square([abs(extrude)+abs(l.x)+padding.y,grad.x<0?2*l.y:abs(l.y)+padding.x]);
+      }
+      else polygon(points);
     
 //%multmatrix(m)translate([-spiel.y,-spiel.x])square([l.x+spiel.y,l.y+spiel.x]);
 HelpTxt("VarioFill",[
   "l",l,
   "exp",exp,
   "dia",dia,
+  "h",h,
   "chamfer",chamfer,
   "deg",deg,
   "extrude",extrude,
@@ -1769,7 +1735,7 @@ module Kreis(r=10,rand=0,grad=360,grad2,fn=fn,center=true,sek=false,r2=0,rand2,r
     grad=is_undef(b)?grad:r==0?0:b/(2*PI*r)*360;
     b=2*r*PI*grad/360;
     
-   polygon(Kreis(r=r,rand=rand,grad=grad,grad2=grad2,fn=fn,center=center,sek=sek,r2=r2,rand2=rand2,rcenter=rcenter,rot=grad==360?center?rot:rot+90:center?rot+180:rot+90,t=t),convexity=5);
+   polygon( kreis(r=r,rand=rand,grad=grad,grad2=grad2,fn=fn,center=center,sek=sek,r2=r2,rand2=rand2,rcenter=rcenter,rot=grad==360?center?rot:rot+90:center?rot+180:rot+90,t=t),convexity=5);
    
     
     HelpTxt("Kreis",["r",r,"rand",rand,"grad",grad,"grad2",grad2,"fn",fn,"center",center,"sek",sek,"r2",r2,"rand2",rand2,"rcenter",rcenter,"rot",rot,"t",t,"name",name,"d",d,", b",b],help);
@@ -2471,9 +2437,9 @@ module Egg(r1=10,r2=3,breit,grad,r3=true,fs=fs,name,help){
 
     
     points=concat(
-        Kreis(r1,grad=grad,rot=-90,center=false,t=[x,0],rand=0,sek=true,fn=fs2fn(r1,grad,fs,5))
-       ,Kreis(r2,grad=180-grad*2,rot=90,center=true,t=[0,hM],rand=0,sek=true,fn=fs2fn(r2,180-grad*2,fs,5))//spitze
-       ,Kreis(r1,grad=grad,center=false,rot=90-grad,t=[-x,0],rand=0,sek=true,fn=fs2fn(r1,grad,fs,5))
+        kreis(r1,grad=grad,rot=-90,center=false,t=[x,0],rand=0,sek=true,fn=fs2fn(r1,grad,fs,5))
+       , kreis(r2,grad=180-grad*2,rot=90,center=true,t=[0,hM],rand=0,sek=true,fn=fs2fn(r2,180-grad*2,fs,5))//spitze
+       , kreis(r1,grad=grad,center=false,rot=90-grad,t=[-x,0],rand=0,sek=true,fn=fs2fn(r1,grad,fs,5))
     );
     
     pointsR3=Kreis(grad=180,r=breit/2,rot=-90,rand=0,sek=true,fn=fs2fn(breit/2,180,fs,10));  
@@ -2508,9 +2474,9 @@ module GT2(){  //GT2
    
   pointsGT2= concat(
         [[-p,ht],[-p,ht+i],[p,ht+i],[p,ht]]
-            ,Kreis(r=r2,fn=fn/16,grad=22.5,center=false,t=[-b,ht],rot=90,rand=0,sek=true)
-            ,Kreis(r=r3,grad=180-45,rot=-90,fn=fn/4,t=[0,r3],rand=0,sek=true)            
-            ,Kreis(r=r2,fn=fn/16,grad=22.5,center=false,t=[b,ht],rot=-90-22.5,rand=0,sek=true)
+            , kreis(r=r2,fn=fn/16,grad=22.5,center=false,t=[-b,ht],rot=90,rand=0,sek=true)
+            , kreis(r=r3,grad=180-45,rot=-90,fn=fn/4,t=[0,r3],rand=0,sek=true)            
+            , kreis(r=r2,fn=fn/16,grad=22.5,center=false,t=[b,ht],rot=-90-22.5,rand=0,sek=true)
         );
    
     T(0,-ht)Rund(0,r1,fn=fn)
@@ -2717,7 +2683,7 @@ module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d,center=true,name,help){
 if(d)translate(center.y?center.y<0?[0,d/2]:
                                 [0,0]:
                 [0,-d/2]){
-    Kreis(d=d,rand=b[0],b=-l[0],center=false,rcenter=true,rot=-90); 
+    kreis(d=d,rand=b[0],b=-l[0],center=false,rcenter=true,rot=-90); 
     
         translate([0,d/2])polygon(points);
 //    intersection(){
@@ -3139,9 +3105,9 @@ T(y=-h+r2h)rotate(90)RotEx(grad=a+spiel,center=true,cut=sign(r),fn=max(12,is_und
         points=concat(
         [[l/2,base]]
         ,[[-l/2,base]]
-        ,Kreis(r2,grad=a2,rand=rand,t=[-l/2+r2,0],rot=-90,center=false,fn=max(12,is_undef(fn)?kreisbogen(r2,a2)/fs:fn),sek=true)
-        ,Kreis(r,grad=a,rand=rand,t=[0,-h+r2h],rot=90,fn=max(12,is_undef(fn)?kreisbogen(r,a)/fs:fn*2),sek=true)// Scheitelbogen
-        ,Kreis(r2,grad=a2,rand=rand,t=[l/2-r2,0],rot=90-a2,center=false,fn=max(12,is_undef(fn)?kreisbogen(r2,a2)/fs:fn),sek=true)
+        , kreis(r2,grad=a2,rand=rand,t=[-l/2+r2,0],rot=-90,center=false,fn=max(12,is_undef(fn)?kreisbogen(r2,a2)/fs:fn),sek=true)
+        , kreis(r,grad=a,rand=rand,t=[0,-h+r2h],rot=90,fn=max(12,is_undef(fn)?kreisbogen(r,a)/fs:fn*2),sek=true)// Scheitelbogen
+        , kreis(r2,grad=a2,rand=rand,t=[l/2-r2,0],rot=90-a2,center=false,fn=max(12,is_undef(fn)?kreisbogen(r2,a2)/fs:fn),sek=true)
         );
         polygon(points);
     }
@@ -3250,7 +3216,7 @@ module SRing(e=4,id=3.5,od=10,h=.8,rand=n(3),reduction=.5,schlitz=-17,help){
 $info=false;
 intersection(){
     LinEx(h,.2,scale=1.05)Rund(0.3)difference(){
-       Kreis(od/2);
+       kreis(od/2);
        Rund(0.5) Stern(e,od/2-rand,id/2-reduction-1,mod=100,delta=schlitz);
        rotate(180+180/e)intersection_for(i=[0:e-1])rotate(i*360/e)T(reduction)Kreis(id/2,fn=e*15);
     }
@@ -3348,20 +3314,24 @@ module Buchtung(size=[10,5],l=10,r=2.5,rmin=0,center=true,fn=15,fn2=fn,phase=360
         rscale=r-rmin;
         $info=0;
         $helpM=false;
-        translate(center?[0,0,-l/2]:[0,0,0]+size/2)hull(){
+        translate(center?[0,0,-l/2]:[0,0,0]+size/2)Color(i/((fn-1)*1.1))hull(){
+          $idx=i;
         Tz(i*zscale)linear_extrude(minVal,scale=0)Quad(size,r=(1+sin(i*phase/fn+deltaPhi))*rscale/2+rmin,fn=fn2);
-        Tz(j*zscale+minVal)linear_extrude(minVal,scale=0)Quad(size,r=(1+sin(j*phase/fn+deltaPhi))*rscale/2+rmin,fn=fn2);
+        Tz(j*zscale+minVal){
+          $idx=j;
+          linear_extrude(minVal,scale=0)Quad(size,r=(1+sin(j*phase/fn+deltaPhi))*rscale/2+rmin,fn=fn2);
+          }
         }
     }    
 HelpTxt("Buchtung",[
     "size",size,
-    "l=",l,
-    "r=",r,
-    "rmin=",rmin,
-    "fn=",fn,
+    "l",l,
+    "r",r,
+    "rmin",rmin,
+    "fn",fn,
     "fn2=",fn2,
-    "phase=",phase,
-    "deltaPhi=",deltaPhi],
+    "phase",phase,
+    "deltaPhi",deltaPhi],
      help);
 }
 
@@ -3585,10 +3555,10 @@ let(
 concat(
 
     [[extrude-x2-cos(grad2[1])*r2+g2EndX1,l2]]+[trans]//oben Kreis verl.
-    ,Kreis(r=r2,rand=0,rot=-90+grad2[1],center=false,grad=-grad[1]-grad2[1],t=[extrude-x2,yOben/2+y2Oben/2+mitte/2]+trans,fn=fn[0])//oben
-    ,Kreis(r=r,r2=r*sc,rand=0,rot=90-grad[1],grad=grad[1],t=[extrude+x,mitte/2]+trans,fn=fn[1],center=false)//mitte oben
-    ,Kreis(r=r,r2=r*sc,rand=0,rot=90,grad=grad[0],t=[extrude+x,-mitte/2]+trans,fn=fn[1],center=false)//mitte unten
-    ,Kreis(r=r2,rand=0,rot=grad[0]-90,center=false,grad=-grad[0]-grad2[0],t=[extrude-x2,-y/2-y2/2-mitte/2]+trans,fn=fn[0])  //unten 
+    , kreis(r=r2,rand=0,rot=-90+grad2[1],center=false,grad=-grad[1]-grad2[1],t=[extrude-x2,yOben/2+y2Oben/2+mitte/2]+trans,fn=fn[0])//oben
+    , kreis(r=r,r2=r*sc,rand=0,rot=90-grad[1],grad=grad[1],t=[extrude+x,mitte/2]+trans,fn=fn[1],center=false)//mitte oben
+    , kreis(r=r,r2=r*sc,rand=0,rot=90,grad=grad[0],t=[extrude+x,-mitte/2]+trans,fn=fn[1],center=false)//mitte unten
+    , kreis(r=r2,rand=0,rot=grad[0]-90,center=false,grad=-grad[0]-grad2[0],t=[extrude-x2,-y/2-y2/2-mitte/2]+trans,fn=fn[0])  //unten 
    
     ,[[extrude-x2-cos(grad2[0])*r2+g2EndX0,-l1]]+[trans]//unten Kreis verl.
     ,[[x0,-l1]]+[trans]//unten
@@ -3862,8 +3832,8 @@ module WKreis(e=12,d1=1,d2,grad=180,r,diff,fn=24,r1,r2,name,help){
     
     
     wk=[for(i=[0:e-1])each concat(
-    Kreis(r=-d2/2,rot=90-winkel/2+i*winkel*2,rand=0,grad=-grad2,sek=true,t=RotLang(-winkel/2+i*winkel*2,rK2),fn=fn)
-    ,Kreis(r=d1/2,rot=90+winkel/2+i*winkel*2,rand=0,grad=grad1,sek=true,t=RotLang(winkel/2+i*winkel*2,rK1),fn=fn)
+    kreis(r=-d2/2,rot=90-winkel/2+i*winkel*2,rand=0,grad=-grad2,sek=true,t=RotLang(-winkel/2+i*winkel*2,rK2),fn=fn)
+    , kreis(r=d1/2,rot=90+winkel/2+i*winkel*2,rand=0,grad=grad1,sek=true,t=RotLang(winkel/2+i*winkel*2,rK1),fn=fn)
     )];
 
    rotate(winkel/2-90) polygon(wk,convexity=5);
@@ -4534,7 +4504,7 @@ module WaveEx(grad=0,h=50,r=5,ry,f=0,fy,a=1,ay,fv=0,fvy,tf=0,trx=20,try,tfy=0,tf
     twist=0;
     rotate=rot;
     
-    pointsLin=!grad?[for(i=[0:fn],j=[0:fn2])concat(Kreis(rot=rotate+twist/fn*i,fn=fn2,rand=0,r=(1+(scale-1)/fn*i)*(r+sin(i*f*360/fn+fv)*a),r2=(1+(scaley-1)/fn*i)*(ry+sin(i*fy*360/fn+fvy)*ay),t=[trx+ta*sin(i*tf*360/fn+tfv),try+tay*cos(i*tfy*360/fn+tfvy)])[j],[i*h/fn])]:0;
+    pointsLin=!grad?[for(i=[0:fn],j=[0:fn2])concat( kreis(rot=rotate+twist/fn*i,fn=fn2,rand=0,r=(1+(scale-1)/fn*i)*(r+sin(i*f*360/fn+fv)*a),r2=(1+(scaley-1)/fn*i)*(ry+sin(i*fy*360/fn+fvy)*ay),t=[trx+ta*sin(i*tf*360/fn+tfv),try+tay*cos(i*tfy*360/fn+tfvy)])[j],[i*h/fn])]:0;
     
     
     function RotEx(rot=grad,punkte=Kreis(rot=rotate+twist/fn,fn=fn2,rand=0,r=(1+(scale-1)/fn)*(r+sin(0*f*360/fn+fv)*a),r2=(1+(scaley-1)/fn)*(ry+sin(0*fy*360/fn+fvy)*ay),t=[0,0]),verschieb=trx,verschiebY=try,p=-p,detail=fn*grad/360)=[for(rotation=[detail:-1:0])for(i=[0:len(punkte)-1])
@@ -4682,21 +4652,21 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
      
      points=center?center==1?concat(//center=1
      [[x0,l2]],[[extrude+abs(dist)/2+grad2X[1],l2+0]],
-     Kreis(r=-r2,rand=0,grad=abs(grad)+grad2[1],rot=-90-grad2[1],center=false,fn=fn,t=[abs(dist)/2+extrude-r2,y/2]), // ok
-     Kreis(r=-r1,rand=0,grad=-abs(grad)-grad2[0],fn=fn,rot=90+abs(grad),center=false,t=[-abs(dist)/2+extrude+r1,-y/2]),  // ok   
+     kreis(r=-r2,rand=0,grad=abs(grad)+grad2[1],rot=-90-grad2[1],center=false,fn=fn,t=[abs(dist)/2+extrude-r2,y/2]), // ok
+     kreis(r=-r1,rand=0,grad=-abs(grad)-grad2[0],fn=fn,rot=90+abs(grad),center=false,t=[-abs(dist)/2+extrude+r1,-y/2]),  // ok   
      [[extrude-abs(dist)/2+grad2X[0],-l1]],     
      [[x0,-l1]]
      ): concat(//center==-1||>1
      [[x0,0]],[[extrude+grad2X[1],0]],
-     Kreis(r=-r2,rand=0,grad=abs(grad)+grad2[1],rot=-90-grad2[1],center=false,fn=fn,t=[extrude-r2,y/2-l2]), // ok
-     Kreis(r=-r1,rand=0,grad=-abs(grad)-grad2[0],fn=fn,rot=90+abs(grad),center=false,t=[extrude+r1-abs(dist),-y/2-l2]),  // ok   
+     kreis(r=-r2,rand=0,grad=abs(grad)+grad2[1],rot=-90-grad2[1],center=false,fn=fn,t=[extrude-r2,y/2-l2]), // ok
+     kreis(r=-r1,rand=0,grad=-abs(grad)-grad2[0],fn=fn,rot=90+abs(grad),center=false,t=[extrude+r1-abs(dist),-y/2-l2]),  // ok   
      [[extrude-abs(dist)+grad2X[0],-l2-l1]],     
      [[x0,-l2-l1]]     
      ):
      concat(//center==0
      [[x0,l2+l1]],[[extrude+abs(dist)+grad2X[1],l2+l1]],
-     Kreis(r=-r2,rand=0,grad=abs(grad)+grad2[1],rot=-90-grad2[1],center=false,fn=fn,t=[abs(dist)+extrude-r2,y/2+l1]), // ok
-     Kreis(r=-r1,rand=0,grad=-abs(grad)-grad2[0],fn=fn,rot=90+abs(grad),center=false,t=[extrude+r1,-y/2+l1]),  // ok   
+     kreis(r=-r2,rand=0,grad=abs(grad)+grad2[1],rot=-90-grad2[1],center=false,fn=fn,t=[abs(dist)+extrude-r2,y/2+l1]), // ok
+     kreis(r=-r1,rand=0,grad=-abs(grad)-grad2[0],fn=fn,rot=90+abs(grad),center=false,t=[extrude+r1,-y/2+l1]),  // ok   
      [[extrude+grad2X[0],0]],     
      [[x0,0]]     
      );
@@ -4821,9 +4791,9 @@ module Tri(grad=60,l=20,l2,h=0,r=0,messpunkt=0,center=+0,top=0,tang=1,c,fn=fn,na
  t3=RotLang(90+grad/2,l3)-RotLang(90+w3/2,TangentenP(w3,r3,r3));
     
 points=concat(
-        Kreis(rand=0,r=r1,grad=w1,t=t1,fn=fn/3),
-        Kreis(rand=0,r=r2,rot=-rot+180,grad=w2,t=t2,fn=fn/3),    
-        Kreis(rand=0,r=r3,rot=rot+180,grad=w3,t=t3,fn=fn/3)    
+        kreis(rand=0,r=r1,grad=w1,t=t1,fn=fn/3),
+        kreis(rand=0,r=r2,rot=-rot+180,grad=w2,t=t2,fn=fn/3),    
+        kreis(rand=0,r=r3,rot=rot+180,grad=w3,t=t3,fn=fn/3)    
 );
     
     
@@ -5006,8 +4976,8 @@ winkel=360/(e*2);
 
     
     wk=[for(i=[0:e-1]) each concat(
-    Kreis(r=-d2/2,rot=90-winkel/2+i*winkel*2,rand=0,grad=-grad2,sek=true,t=RotLang(-winkel/2+i*winkel*2,r2),fn=fn)
-    ,Kreis(r=d1/2,rot=90+winkel/2+i*winkel*2,rand=0,grad=grad1,sek=true,t=RotLang(winkel/2+i*winkel*2,r1),fn=fn)
+    kreis(r=-d2/2,rot=90-winkel/2+i*winkel*2,rand=0,grad=-grad2,sek=true,t=RotLang(-winkel/2+i*winkel*2,r2),fn=fn)
+    , kreis(r=d1/2,rot=90+winkel/2+i*winkel*2,rand=0,grad=grad1,sek=true,t=RotLang(winkel/2+i*winkel*2,r1),fn=fn)
     )];
 
   rotate(winkel/2-90)polygon(wk,convexity=5);
@@ -5444,7 +5414,7 @@ grad=2*asin((dia/2)/r);
 dick=2*(r-tx);
 
 
-   polygon(concat(Kreis(rand=0,r=r,grad=grad,t=[tx,0]),Kreis(rand=0,r=r,grad=grad,rot=-180,t=[-tx,0]))); 
+   polygon(concat( kreis(rand=0,r=r,grad=grad,t=[tx,0]), kreis(rand=0,r=r,grad=grad,rot=-180,t=[-tx,0]))); 
   if(messpunkt){
       Pivot([tx,0],active=[1,0,0,1,0],messpunkt=messpunkt);
       Pivot([0,dia/2],active=[1,0,0,1,1],messpunkt=messpunkt);
@@ -5490,7 +5460,7 @@ kern=!is_undef(kern)?kern:dn-2*rh+spiel;
      
 function profil(rot=0)=
  0?    vollwelle(fn=1,extrude=-1,x0=+0,h=1,xCenter=1,r=0.2,r2=0.5,l=p-.1) // test vollwelle
-   : Kreis(r=r1,rand=+0,fn=fn,grad=winkel,sek=winkel==360?1:0,rot=rot2);
+   : kreis(r=r1,rand=+0,fn=fn,grad=winkel,sek=winkel==360?1:0,rot=rot2);
 
 
 function RotEx(rot=0,punkte=profil(rot=60),verschieb=dn/2,steigung=1,detail=detail)=[for(rotation=[0:detail*rot/360])for(i=[0:len(punkte)-1])
@@ -5730,7 +5700,7 @@ if (2D || is_parent(needs2D))//search(["Rundrum"], parentList())[0] )
     
     single?[[d2/2,h]]:Kreis(fn=fn2,rand=0,r=rad2,grad=-grad2,rot=0,center=false,sek=true,t=[d2/2+abs(sin(winkel))*rad2,h-rad2]),
     
-    Kreis(fn=fn2,rand=0,r=rad,grad=-grad1,rot=grad1-180,center=false,sek=true,t=[d/2+abs(sin(winkel))*rad,rad]),
+    kreis(fn=fn2,rand=0,r=rad,grad=-grad1,rot=grad1-180,center=false,sek=true,t=[d/2+abs(sin(winkel))*rad,rad]),
     
     [[d/2+rad,0-spiel]],
     
@@ -6615,12 +6585,12 @@ sizey=sizey?sizey:size;
 
     r1I=min(r1,size/2-2*r2);//unten innen radius when mitte=1
     points=concat(
-        Kreis(r=r1,grad=-90,fn=fn2/4,rand=0,rot=-90,center=false,t=[size/2+r1,r1]), //r1 unten
+        kreis(r=r1,grad=-90,fn=fn2/4,rand=0,rot=-90,center=false,t=[size/2+r1,r1]), //r1 unten
         [[r1+size/2,-basis]], //unten aussen
         [[0,-basis]],//unten mitte
         [mitte?[0,r1+r2+h]:[0,0]],  //oben mitte
         mitte?[[size/2-r2,r1+r2+h]]:Kreis(r=r1I,grad=-90,fn=fn2/4,rand=0,rot=+180,center=false,t=[size/2-r2*2-r1I,r1I]),
-        Kreis(r=r2,rot=mitte?0:-90,grad=mitte?90:180,fn=mitte?fn2/4:fn2/2,rand=0,center=false,t=[size/2-r2,h+r1])// r2 oben
+        kreis(r=r2,rot=mitte?0:-90,grad=mitte?90:180,fn=mitte?fn2/4:fn2/2,rand=0,center=false,t=[size/2-r2,h+r1])// r2 oben
         );
  
 
@@ -6678,7 +6648,7 @@ module Drehpunkt(x=0,rz=0,rx=0,ry=0,y=0,z=0,messpunkt=messpunkt,help)
 
 module Rohr(grad=90,rad=5,d=8,l,l1=10,l2=12,fn=fn,fn2=fn,rand=n(2),name,center=true,messpunkt=messpunkt,spiel=-minVal,help)
 {
-    Bogen(grad=grad,rad=rad,l=l,l1=l1,l2=l2,fn=fn,name=name,help=0,center=center,messpunkt=messpunkt,spiel=spiel)polygon(Kreis(r=d/2,rand=rand,fn=fn2));
+    Bogen(grad=grad,rad=rad,l=l,l1=l1,l2=l2,fn=fn,name=name,help=0,center=center,messpunkt=messpunkt,spiel=spiel)polygon( kreis(r=d/2,rand=rand,fn=fn2));
     
     HelpTxt(titel="Rohr",string=["grad",grad,"rad",rad,"d",d,"l",l,"l1",l1,"l2",l2,"fn",fn,"fn2",fn2,"rand",rand,"name",name,"center",center,"messpunkt",messpunkt,"spiel",spiel],help=help);
     InfoTxt(name="Rohr",string=concat(rand>0?["ID",d-rand*2]:["OD",d-rand*2],["d",d]),info=name);
@@ -6778,18 +6748,20 @@ module Gardena(l=+10,r=8.5,ir=4.5,help)
 }
 
 
-module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn=fn,fn2=fn,r2=0,spiel=spiel,center=false,help,2D=false,end=false,fase=false,fillet)
+module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn=fn,fn2=fn,r2=0,spiel=spiel,center=false,2D=false,end=false,fase=false,fillet,help)
 {
+  2D=is_parent(needs2D)?true:2D;
     fillet=is_list(fillet)?fillet:[fillet,fillet];
     fase=is_bool(fase)?fase?1:0:fase;
     end=is_bool(end)?end?1:0:end;
     angle=grad?grad:angle;
     spiel=is_list(spiel)?spiel:[spiel,spiel];
     center=center?true:false;
+  $info=false;
     
     if(is_undef(dia)&&l&&!2D){
         difference(){
-            linear_extrude(height=l,$fn=fn,convexity=5,center=center)
+            Tz(fase&&$preview?.05:0)linear_extrude(height=l -(fase&&$preview?.1:0),$fn=fn,convexity=5,center=center)
             {
                 difference()
                 {
@@ -6813,7 +6785,7 @@ module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn=fn,fn2=fn,r2=0,spie
         
         
         
-       if(end==2)R(x=-90)T(y=center?0:-l/2) MKlon(ty=l/2)RotEx(grad=90,cut=1,fn=fn)Kehle(a=a,ax=ax,rad=rad,spiel=spiel,2D=true,fn2=fn2);
+       if(end==2)R(x=-90)T(y=center?0:-l/2) MKlon(ty=l/2)RotEx(grad=90,cut=1,fn=fn)Kehle(a=a,ax=ax,rad=rad,spiel=spiel,2D=true,fn2=fn2,help=false);
        if(end==-2)R(x=-90)T(y=center?0:-l/2) MKlon(ty=l/2)R(90,0,90)RotEx(grad=90,cut=1,fn=fn)Kehle(a=ax,ax=a,rad=rad,spiel=spiel,2D=true,fn2=fn2);    
        if(end==1)Tz(center?-l/2:0)R(-90)RotEx(grad=90,cut=1,fn=fn)Kehle(a=a,ax=ax,rad=rad,spiel=spiel,2D=true,fn2=fn2);     
     }
@@ -6824,7 +6796,7 @@ module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn=fn,fn2=fn,r2=0,spie
         }
 // dia   
     if(!is_undef(dia)&&!2D){rotate(center?-180-angle/2:0)difference(){
-        rotate_extrude(angle=angle,$fn=fn,convexity=5)
+        rotate(fase&&$preview?.05:0)rotate_extrude(angle=angle-(fase&&$preview?.1:0),$fn=fn,convexity=5)
             difference()
             {
                 T(dia/2)translate([-spiel[0],-spiel[1]])square([sin(-90+ax)*rad+rad+spiel[0],sin(a-90)*rad+rad+spiel[1]]);
@@ -6849,17 +6821,14 @@ module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn=fn,fn2=fn,r2=0,spie
         
      if(end>0) T(dia/2,+minVal*sign(dia)) rotate(dia<0?0:-90) RotEx(grad=90,cut=1,fn=fn)Kehle(a=a,ax=ax,rad=rad,spiel=spiel,2D=true,fn2=fn2);
       if(end==2) rotate(angle)T(dia/2,-minVal*sign(dia))rotate(dia<0?-90:0) RotEx(grad=90,cut=1,fn=fn)Kehle(a=a,ax=ax,rad=rad,spiel=spiel,2D=true,fn2=fn2); 
-     if(end<0) T(dia/2,minVal*sign(dia)) rotate(-90) R(-90,dia<0?-180:-90)RotEx(grad=90,cut=1,fn=fn)Kehle(a=ax,ax=a,rad=rad,spiel=spiel,2D=true,fn2=fn2);
-      if(end==-2) rotate(angle)T(dia/2,-minVal*sign(dia))R(dia<0?-180:90)R(y=90) RotEx(grad=90,cut=1,fn=fn)Kehle(a=ax,ax=a,rad=rad,spiel=spiel,2D=true,fn2=fn2);          
+     if(end<0) T(dia/2,minVal*sign(dia)) rotate(-90) R(-90,dia<0?-180:-90)RotEx(grad=90,cut=1,fn=fn)Kehle(a=ax,ax=a,rad=rad,spiel=[spiel.y,spiel.x],2D=true,fn2=fn2);
+      if(end==-2) rotate(angle)T(dia/2,-minVal*sign(dia))R(dia<0?-180:90)R(y=90) RotEx(grad=90,cut=1,fn=fn)Kehle(a=ax,ax=a,rad=rad,spiel=[spiel.y,spiel.x],2D=true,fn2=fn2);          
     
         
     }
     }
- if(help){
-    echo(str("<H3><font color='",helpMColor,"' <b>Help Kehle(rad=",rad,",dia=",dia,",l=",l,",angle=",angle,",grad=",grad,",a=",a,",ax=",ax,", fn=",fn,",fn2=",fn2,",r2=",r2,",spiel=",spiel,",center=",center,",help, 2D=",2D, ", end=",end," ,fase=",fase," ,fillet=",fillet,");"));
- } 
-        
-    
+HelpTxt("Kehle",["rad",rad,"dia",dia,"l",l,"angle",angle,"grad",grad,"a",a,",ax=",ax,"fn",fn,"fn2",fn2,"r2",r2,"spiel",spiel,"center",center, "2D",2D,"end",end,"fase",fase,"fillet",fillet],help);
+
 }
 
 
@@ -7832,8 +7801,8 @@ module Ring(h=5,rand,d=10,r,cd=1,id=6,ir,grad=360,rcenter,center=false,fn=fn,nam
     ir=is_undef(ir)?id/2:ir;
     rcenter=is_undef(rcenter)?!abs(cd):rcenter;
     rand=is_undef(rand)?r-ir:rand*sign(cd==0?1:cd);
-    if(2D||!h)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,fn=fn,rot=90,center=center,name=0,help=0);
-        else rotate([h>0?0:180])linear_extrude(abs(h),center=center,convexity=5)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,center=center,fn=fn,rot=90,name=0,help=0);
+    if(2D||!h)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,fn=fn,rot=0,center=center,name=0,help=0);
+        else rotate([h>0?0:180])linear_extrude(abs(h),center=center,convexity=5)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,center=center,fn=fn,rot=0,name=0,help=0);
     
 if(name)echo(str(is_bool(name)?"":"<b>",name," Ring Aussen∅= ",rcenter?d+abs(rand):rand>0?d:d-rand*2,"mm — Mitte∅= ",rcenter?d:d-rand,"mm — Innen∅= ",rcenter?d-abs(rand):rand>0?d-(rand*2):d,"mm groß und ",2D||!h?"2D":str(h," hoch")));    
  
@@ -7939,8 +7908,8 @@ module PilleOLD(l=10,d=5,fn=fn,fn2=36,center=true,name,s=0,rad,rad2,loch=false,h
     
  if(!loch)Tz(center?-l/2:0)rotate_extrude(convexity=5,$fn=fn)polygon(concat(
      
-    Kreis(rand=0,grad=90,r=rad2,center=false,rot=0,t=[d/2-rad2,l-rad2],fn=fn2/4),
-    Kreis(rand=0,grad=90,r=rad,rot=+90,center=false,t=[d/2-rad,rad],fn=fn2/4),     
+    kreis(rand=0,grad=90,r=rad2,center=false,rot=0,t=[d/2-rad2,l-rad2],fn=fn2/4),
+    kreis(rand=0,grad=90,r=rad,rot=+90,center=false,t=[d/2-rad,rad],fn=fn2/4),     
     [[0,0]],
     [[0,l]]
     
@@ -7952,8 +7921,8 @@ module PilleOLD(l=10,d=5,fn=fn,fn2=36,center=true,name,s=0,rad,rad2,loch=false,h
  //if(fn%4)echo("<font size=7 color=red>FN nicht teilbar durch 4");
  
  if(loch)Tz(center?-l/2:0)rotate_extrude(convexity=5,$fn=fn)polygon(concat(
-    Kreis(rand=0,grad=90,r=rad,rot=+90,center=false,t=[d/2-rad,rad],fn=fn2/4),//unten 
-    Kreis(rand=0,grad=90,r=rad2,center=false,rot=0,t=[d/2-rad2,l-rad2],fn=fn2/4)//oben
+    kreis(rand=0,grad=90,r=rad,rot=+90,center=false,t=[d/2-rad,rad],fn=fn2/4),//unten 
+    kreis(rand=0,grad=90,r=rad2,center=false,rot=0,t=[d/2-rad2,l-rad2],fn=fn2/4)//oben
     
     ),
     //paths=[[for(i=[0:floor(fn/4)])i,for(i=[floor(fn/2)+1:-1:floor(fn/4)+1])i]],
@@ -8562,6 +8531,52 @@ v2019.5
 310|21 FIX Anschluss
 311|21 FIX Grid ub FIX v3() CHG Bezier CHG parentList CHG SBogen 
 312|21 FIX Strebe
+
+313|21  Reordering modules ADD teiler FIX Help txt ADD MO fix missing obj warnings
+314|21  ADD Example Fix Linear infotxt
+315|21  CHG Anordnen Add center CHG Pfeil  add center add inv CHG Calliper CHG Pivot
+316|21  ADD 3Projection CHG Scale CHG Halb CHG Rand add help
+317|21  CHG WStern help CHG Caliper CHG GT2Pull ADD gcode CHG Tri, Quad, Kreis
+318|21  CHG Tri90, Linse, Pivot, Star, 7Seg, DBogen
+319|21  ADD b() CHG PCBcase
+320|21  CHG view to viewportSize
+321|21  CHG Kehle ADD KBS REN KreisSeg↦TorusSeg
+324|21  ADD scaleGrad CHG RotEx $fa
+325|21 !CHG Kreis rotate 180 for center==true ⇒ CHG Quad ⇒ Egg ⇒ WKreis ⇒ GT ⇒ RSternFill ⇒ Tri CHG LinEx CHG Bezier CHG Ttorus CHG Torus CHG Rundrum CHG Pivot CHG Bogen
+326|21  CHG CyclGetriebe CHG Pivot CHG Kreis CHG Klammer CHG KBS add top
+327|21  CHG HypKehle/HypKehleD ADD Isopshere Add pPos
+3272|21 FIX  Issue  #2
+328|21  CHG $helpM use  CHG HelpTxt CHG Quad CHG Rundrum  CHG n↦name
+3281|21 CHG KBS CHG CHG $info
+3282|21 CHG Quad Add tangent + Fixes
+329|21  CHG Polar Prisma help info CHG Anordnen FIX Bogen(2D) SBogen CHG Kontaktwinkel CHG b(add bool) Add $tab
+330|21  FIX HypKehle ADD VarioFill CHG Color CHG InfoTxt CHG Flower CHG Cycloid FIX DBogen FIX Kegel info/help Kegelmantel
+331|21  CHG Abzweig CHG Kontaktwinkel
+332|21  CHG Linear CHG Surface help Scale 2D
+333|21  ADD easterEgg
+334|21  FIX Bezier FIX Line
+335|21  FIX Strebe FIX Rundrum ADD is_parent( needs2D )CHG VarioFill
+336|21  FIX Vollwelle grad2=90 FIX Strebe assert CHG Nut CHG negRed CHG Quad CHG Tri add c
+337|21  FIX SBogen 2D CHG Anschluss FIX Bogen CHG Bezier CHG gcode CHG Ttorus
+338|21  CHG Color $idxON  CHG Bezier hull=false
+339|21  FIX Ttorus  diverse $tab / $info fixes HypKehle Polar Linear Grid DBogen CHG SBogen
+340|21  ADD m CHG div tab info CHG InfoTxt FIX WaveEx
+341|21  FIX Pfeil d FIX Quad
+346|21  ADD mPoints CHG m add s
+349|21  CHG Bezier
+350|21  ADD function Quad ADD function octa ADD OctaH
+351|21  ADD function Stern CHG Torus End true for children CHG Sichel CHG Spirale
+354|21  CHG HexGrid info FIX Strebe
+355|21  CHG Bogen CHG Pille CHG GewindeV3 help
+356|21  FIX Servokopf FIX Glied CHG HypKehleD CHG TorusSeg
+357|21  CHG Rohr/Bogen  CHG OctaH CHG TorusSeg REN ⇒ RingSeg CHG Gewinde version undef⇒ new FIX V2
+358|21  CHG Box help CHG Gewinde CHG OctaH
+359|21  ADD Points Add Helper help CHG help menu
+360|21  CHG Anordnen
+361|21  CHG Vollwelle CHG fVollwelle Add tMitte  CHG multiple (help) Menu HelpTxt Buchtung KreisSeg
+362|21  CHG RotEx fn CHG Halbrund help
+363|21  CHG func stern quad bezier kreis CHG Kehle help fix end spiel CHG Buchtung help 
+364|21  FIX Ring REP Kreis kreis
 
 
 */
