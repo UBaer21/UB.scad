@@ -1,6 +1,7 @@
 include<ub.scad>; //⇒ v.gd/ubaer or https://github.com/UBaer21/UB.scad
 /*[Hidden]*/
-useVersion=21.362;//(sites.google.com/site/ulrichbaer)
+designVersion=1.0;
+useVersion=22.000;//(sites.google.com/site/ulrichbaer)
 assert(Version>=useVersion,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 /*[Basics]*/
 nozzle=.2;
