@@ -1,5 +1,5 @@
 # UB.scad
-This [library](https://raw.githubusercontent.com/UBaer21/UB.scad/main/libraries/ub.scad) is a full 3Dprinting workflow solution for [openSCAD](https://www.openscad.org) v.21 and above.
+This [library](https://raw.githubusercontent.com/UBaer21/UB.scad/main/libraries/ub.scad) (right click save as) is a full 3Dprinting workflow solution for [openSCAD](https://www.openscad.org) v.21 and above.
 There are a lot of settings available but most is using  pre configuration - so you can start with the [template](https://github.com/UBaer21/UB.scad/blob/main/examples/Template/TempUB.scad) but also just with `include<ub.scad>`. [Some Examples](https://github.com/UBaer21/UB.scad/blob/main/examples/UBexamples)
 
 <img src="https://github.com/UBaer21/UB.scad/blob/main/Images/Examples.png" height="275">
