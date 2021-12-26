@@ -1,12 +1,19 @@
-include<ub.scad>
+include<ub.scad> // ub version β22.004
 
 // Threads
 
 Gewinde(preset="M5",h=20);
 T(-10)Gewinde(dn=10,p=2,innen=true,h=20);
 
+T(10)Schnitt()Gewinde(dn=10,p=2,kern=8,winkel=30,ratio=1,name="Trapezgewinde");
+T(20)Schnitt()Gewinde(dn=10,p=2,kern=8,winkel=30,ratio=1,rund=1,name="Rundgewinde");
 
-T(10)Gewinde(  // Thread module
+T(30)Schnitt(){p=2;
+  Gewinde(dn=10,p=p,kern=10 -0.86*p*2,winkel=[30,3],breite=p*0.264,rad2=p*0.125,name="Buttress",start=1);
+}
+T(20,15)Schnitt()Gewinde(dn=10,p=10,g=3,kern=5,wand=2,winkel=25,rad1=.15,rad2=0.85,h=25,help=1,name="Auger");
+
+T(0,-10)Gewinde(  // Thread module
   p=1,        // Pitch per revolution
   dn=6,       // Diameter nominal
   kern=4.78, //  Core diameter
@@ -30,7 +37,9 @@ T(10)Gewinde(  // Thread module
   tz=0,     //  move thread z
   konisch=0, // tapered thread angle
   center=1,  // center thread
-  spiel=0.15, // clearance for presets
+  rund=false, // round thread
+  ratio=undef,// ratio between threads and space
+  spiel=0.15, // clearance for presets only inner threads
   name=undef, // name for info
   help=true  // help
 );
