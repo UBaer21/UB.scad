@@ -32,6 +32,9 @@ name="object";     // used in modules for showing name or number - if 0 no info 
 Changelog (archive at the very bottom)
 
 000|22 prepare release CHG VarioFill
+001|22 CHG MKlon
+002|22 CHG Line 
+004|22 FIX Gewinde CHG Vollwelle CHG Caliper CHG GewindeV3
 
 
 */
@@ -99,7 +102,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.000;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.004;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -578,7 +581,7 @@ echo    ("
 ••• b(n); switches bool in num and vica versa (works on vectors) •••\n
 ••• scaleGrad(grad=45, h=1,r=1) scale factor for extrusions •••\n
 ••• is_parent(needs2D) search parentlist for string or list of strings (parent module needing polygon children) \n
-••• m(r=[0,0,0], t=[0,0,0], s=[1,1,1]) mulmatrix vector*concat(point,[1]) for rotation and translation •••\n
+••• m(r=[0,0,0], t=[0,0,0], s=[1,1,1])// multmatrix vector*concat(point,[1]) for rotation and translation •••\n
 ••• mPoints(points,r,t,s) use with 2D&3D point / points •••\n
 ••• tetra(r) tetrahedron points •••\n
 ••• octa(r,n,d)  octaheadron points (subdiv n) ••• \n
@@ -600,7 +603,7 @@ echo    ("•••• Linear(es=1,s=100,e=2,x=1,y=0,z=0,r=0,re=0,center=0,cx=0,
 echo    ("•••• Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name)dr=delta element rotation  ••");
 echo    ("•••• Grid(es=[10,10,10],e=[2,2,1],center=true) ••");
 echo    ("•••• HexGrid ()");   
-echo    ("•••• Klon(tx=10,ty=0,tz=0,rx=0,ry=0,rz=0) Objekt ••• Mklon(tx=10,ty=0,tz=0,rx=0,ry=0,rz=0,mx=0,my=0,mz=0) Objekt  ••");
+echo    ("•••• Klon(tx=10,ty=0,tz=0,rx=0,ry=0,rz=0) Objekt ");
 echo    ("•••• Halb(i=0,x=0,y=0,z=1,2D=0)Objekt      ••");
 echo    ("•••• Drehpunkt(rx=0,ry=0,rz=0,x=0,y=0,z=0,messpunkt=1)Objekt      ••");
 echo    ("•••• Rundrum(x=+40,y=30,r=10,eck=4,twist=0,grad=0,spiel=0.005,fn=fn,name) polygon RStern(help=1)polygon ••");
@@ -611,21 +614,19 @@ echo    ("•••• RotEx(grad=360,fn=fn,center=false)  ••");
 echo    ("•••• Rand(rand=n(1),center=false,fn=fn,delta=false,chamfer=false)  ••");
 echo    ("•••• Elipse(x=2,y=2,z=0,fn=36)Object••");
 echo    ("•••• Ttorus(r=20,twist=360,angle=360,fn=fn)3D-Objekt      ••");
-//echo    ("•••• GewindeV1(d=20,s=1.5,w=5,g=1,fn=3,r=0,gd=1.75,detail=5,tz=0,n=1) steigung,windung,gänge,gangdurchmesser      ••");
 echo    ("•••• Gewinde(help=1)••");
 echo    ("•••• GewindeV3(dn=5,h=10,kern=0,p=1,w=0,profil=0,gh=0.56,g=1,name,fn=36)••");
 echo    ("•••• Kontaktwinkel(help=1) Objekt  ••"); 
 echo    ("•••• Bezier(p0=[+0,+10,0],p1=[15,-5,0],p2=[15,+5,0],p3=[0,-10,0],w=1,max=1.0,min=+0.0,fn=50,ex=0,pabs=false,messpunkt=5,name) Objekt •••••");
-
 echo    ("•••• Laser3D(h=4,layer=10,var=0.002,name,on=-1)3D-Objekt ••");
 
 echo    ("\n
-•••• Bogen(help=1) opt Polygon   ••\n
-•••• SBogen(help=1) opt Polygon   ••\n
-•••• Row(help=1) opt. Objekt ••\n
-//•••• Anordnung(help=1) Objekte ••\n
-•••• Bevel(help=1) Objekt ••\n
-•••• Scale(help=1) Objekt ••\n
+•••• MKlon() //Objekt  •• \n
+•••• Bogen(help=1)// opt Polygon   ••\n
+•••• SBogen(help=1)// opt Polygon   ••\n
+•••• Row(help=1)// opt. Objekt ••\n
+•••• Bevel(help=1)// Objekt ••\n
+•••• Scale(help=1)// Objekt ••\n
 
 ");
 
@@ -636,6 +637,7 @@ echo    ("\n
 if(!help2D)echo("❌••••• Polygon List off — use» help2D=true; •••••");
 if (help2D){
 echo    ("•••••• Polygons ••••••\n
+•• Kreis();\n 
 •• Trapez(h=2.5,x1=6,x2=3.0,d=1,x2d=0,fn=36,name);\n
 •• Tri(grad=60,l=20,h=0,r=0,messpunkt=0,center=+0,top=1,tang=1,fn=fn,name,help=helpM);\n
 •• Tri90(grad,a,b,c,help=1);\n
@@ -692,11 +694,10 @@ echo    ("•••••••••• BasisObjekte:   •••••••�
 •• [37] Kehle(rad=2.5,dia=0,l=20,angle=360,fn=fn,spiel=spiel,fn2=fn,r2=0);\n
 ••  REcke(help=1);\n
 ••  HypKehle(help=1);\n
-••HypKehleD();\n
+••  HypKehleD();\n
 
 •• [46] Text(text=“»«”,size=5,h=0,cx=0,cy=0,cz=0,center=0,font=“Bahnschrift:style=bold”);\n
 •• [47] W5(kurv=15,arms=3,detail=.3,h=50,tz=+0,start=0.7,end=13.7,topdiameter=1,topenddiameter=1,bottomenddiameter=+2);\n
-
 
 •• [50] Rohr(grad=90,rad=5,d=8,l1=10,l2=12,fn=fn,fn2=fn,rand=n(2),name=0);\n
 •• [51] Dreieck(h=10,ha=10,ha2=ha,s=1,name=1,c=0,2D=0,grad=0);//  s=skaliert  c=center\n
@@ -1015,7 +1016,7 @@ module MKlon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,mx,my,mz,help=false)
 {
     mx=is_undef(mx)?sign(abs(tx)):mx;
     my=is_undef(my)?sign(abs(ty)):my;
-    mz=is_undef(mz)?sign(abs(tz)):mz;
+    mz=is_undef(mz)?!mx&&!my?1:sign(abs(tz)):mz;
   
   $idx=0;  
     translate([tx,ty,tz])rotate([rx,ry,rz])children();
@@ -1198,7 +1199,7 @@ module Points(points,color,size,hull=true,loop=25,start=0,mark,help){
   lp=len(points);
   cMark=["Chartreuse","Aqua","Magenta","LightSkyBlue"];
   size=is_undef(size)?$vpd/100:size;
-  if($preview){
+  %if($preview){
 
 
     for (i=[0:is_list(points[0])?lp-1:0])translate(is_list(points[0])?points[i]:points){
@@ -1238,13 +1239,9 @@ module Schnitt(on=$preview,r=0,x=0,y=0,z=-0.01,rx=0,ry=0,sizex=500,sizey=500,siz
         union()children();
       if((on&&$preview)||on==2)  translate([x,y,z])rotate([rx,ry,r])color([1,0,0,1])translate([center>0?-sizex/2:0,abs(center)==1?-sizey/2:-sizey,center>1||center<0?-sizez/2:0])cube([sizex,sizey,sizez],center=false);
     }
-  if (on==2&&!$preview)
-      {
-         Echo("   »»»»»»»»»»»»»»––SCHNITT in render! ––««««««««««««««« ",color="warning");
-        // echo(" «««««««««««««««««««––SCHNITT––»»»»»»»»»»»»»»»»»»»»»»»»»»»» "); 
-        // echo("   »»»»»»»»»»»»»»»»»»––SCHNITT––««««««««««««««««««««««««««« ");
-         echo();
-      }
+
+Echo("»»»»––SCHNITT in render! ––«««« \n",color="warning",condition=on==2);
+
 MO(!$children);     
 }
 
@@ -1541,13 +1538,14 @@ else HelpTxt("Help",["titel",titel,"string",string,"help",help],help=1);
 
 
 
-module Caliper(l=20,in=1,s=$vpd/15,center=true,messpunkt=true,translate=[0,0,0],end=1,h=1.1,render=false,l2,txt,help){
+module Caliper(l=20,in=1,s,center=true,messpunkt=true,translate=[0,0,0],end=1,h=1.1,render=false,l2,txt,size=$vpd/15,help){
     
+    s=s?s:size;
     txt=is_undef(txt)?str(l,"mm "):txt;
     center=is_bool(center)?center?1:0:center;
     textl=in>1?s/3:s/4*(len(str(txt)));// end=0 use own def
     line=s/20;
-    //l2=is_undef(l2)?s:ls;
+    //l2=is_undef(l2)?s:l2;
     
     
     if($preview||render)translate(translate)translate(in>1?center?[0,0]:[0,l/2]:center?[0,0]:[l/2,0]){
@@ -1569,7 +1567,7 @@ module Caliper(l=20,in=1,s=$vpd/15,center=true,messpunkt=true,translate=[0,0,0],
         else Col(1)union(){
             s=s==$vpd/15?5:s;
             line=s/20;
-            l2=is_undef(l2)?s:ls;
+            l2=is_undef(l2)?s:l2;
             textl=in>1?s/3:s/4*len(txt);
             // text line
         rotate(in?in==2?90:in==3?-90:180:0)MKlon(tx=l/2)T(-(l-textl)/4,0)square([(l-textl)/2,line],center=true);
@@ -1596,7 +1594,7 @@ Pivot(messpunkt=messpunkt,p0=translate,active=[1,1,1,1,norm(translate)]);
     HelpTxt("Caliper",[
     "l",l,
     "in",in,
-    "s",s,
+    "size",size,
     "center",center,
     "messpunkt",messpunkt,
     "translate",translate,
@@ -2735,6 +2733,8 @@ cyl=true,
 tz=0,
 konisch=0,
 center=true,
+rund=false,
+ratio,
 spiel=.15,
 name,
 help,
@@ -2743,33 +2743,34 @@ s,w=0,g=1,rot2=0,r1=0,detail=fn,name,preset=0,translate=[0,0,0],rotate=[0,0,0],d
 ){
     
  iso_Gewinde=[ //name,pSteigung,dn
-    
-    ["M1",0.25,1],
-    ["M1.2",0.25,1.2],    
-    ["M1.6",0.35,1.5],
-    ["M2",0.4,2],
-    ["M2.5",0.45,2.5],    
-    ["M3",0.5,3],
-    ["M4",0.7,4],
-    ["M5",0.8,5],
-    ["M6",1,6],
-    ["M7",1,7],
-    ["M8",1.25,8],
-    ["M9",1.25,9],
-    ["M10",1.5,10],
-    ["M12",1.75,12], 
-    ["M14",2,14],      
-    ["M16",2,16],    
-    ["M20",2.5,20],     
-    ["M24",3,24],     
-    ["M30",3.5,30],     
+  ["M1",0.25,1],
+  ["M1.2",0.25,1.2],
+  ["M1.6",0.35,1.5],
+  ["M2",0.4,2],
+  ["M2.5",0.45,2.5],
+  ["M3",0.5,3],
+  ["M3.5",0.6,3.5],
+  ["M4",0.7,4],
+  ["M4.5",0.75,4.5],
+  ["M5",0.8,5],
+  ["M6",1,6],
+  ["M7",1,7],
+  ["M8",1.25,8],
+  ["M9",1.25,9],
+  ["M10",1.5,10],
+  ["M12",1.75,12],
+  ["M14",2,14],
+  ["M16",2,16],
+  ["M20",2.5,20],
+  ["M24",3,24],
+  ["M30",3.5,30]
 ] ;
 
 
 other_Gewinde=[//search0, pSteigung,dn,winkel,name
 ["search","p-Steigung[1]","dn[2]","kern[3]","breite[4]","rad1[5]","rad2[6]","winkel[7]","name[8]"], // Spalten
-[1,1.814,20.955,20.955-0.640327*1.814*2,undef,0.13732908*1.814,0.13732908*1.814,55,"½-Zoll"],//halb Zoll
-[2,1.814,26.441,26.441-0.640327*1.814*2,undef,0.13732908*1.814,0.13732908*1.814,55,"¾-Zoll"],// 3/4 Zoll
+["BSW1",1.814,20.955,20.955-0.640327*1.814*2,undef,0.13732908*1.814,0.13732908*1.814,55,"½-Zoll"],//halb Zoll
+["BSW2",1.814,26.441,26.441-0.640327*1.814*2,undef,0.13732908*1.814,0.13732908*1.814,55,"¾-Zoll"],// 3/4 Zoll
 ["Flasche",3.18,27.43,24.95,.05,.4,.4,65,"PCO-28"],// Flasche 28mmHalsring
 ["Flasche2",4,27.43,24.95,.05,.4,.4,65,"PCO-28 P4"],// Flasche Badeschaum
 ];
@@ -2794,7 +2795,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
         dn=iso_Gewinde[zeile][2]+(innen?spiel*2:0),
         grad=grad,h=h,winkel=60,name=iso_Gewinde[zeile][0],
         innen=innen,wand=wand,mantel=mantel,cyl=cyl,tz=tz,start=start,
-        end=end,fn=fn,fn2=fn2,center=center,spiel=spiel,profil=profil,help=help);
+        end=end,fn=fn,fn2=fn2,center=center,rund=rund,ratio=ratio,spiel=spiel,profil=profil,help=help);
     if($children)difference(){
       children();
         if(innen)Tz(center?tz-iso_Gewinde[zeile][1]/2:
@@ -2815,7 +2816,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
             winkel=other_Gewinde [zeile][7],
             wand=wand,mantel=mantel,innen=innen,grad=grad,h=h,
             start=start,end=end,center=center,profil=profil,fn2=fn2,
-            fn=fn,cyl=cyl,tz=tz,spiel=spiel,
+            fn=fn,cyl=cyl,tz=tz,rund=rund,ratio=ratio,spiel=spiel,
             name=other_Gewinde[zeile][8],
             help=help);
             
@@ -2851,6 +2852,8 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
                 tz=tz,
                 konisch=konisch,
                 center=center,
+                rund=rund,
+                ratio=ratio,
                 spiel=spiel,
                 name=name,
                 g=g,
@@ -2893,19 +2896,22 @@ cyl=true,
 tz=0,
 konisch=0,
 center=true,
-spiel=.1,//unused
+rund=false,
+ratio,
+spiel=.1,//unused used at Gewinde innen=true
 g=1,// only for  autosize
 name,
 help
 ){
-    winkel=90-winkel/2;
+  halbWinkel=is_list(winkel)?winkel:[winkel/2,winkel/2];
+  Kwinkel=[90-halbWinkel[0],90-halbWinkel[1]];// Komplement winkel
+    //winkel=is_list(winkel)?[90-winkel[0],90-winkel[1]]:[90-winkel/2,90-winkel/2];
+    
     gver=pow(g,1.5);//autocalc for g
     center=is_num(center)?center:center==true?1:0;
     start=round(start);
     end=is_undef(end)?start:round(end);
-    rad1=is_undef(rad1)?p/20/g:rad1;
-    rad2=is_undef(rad2)?p/10/g:rad2;
-    breite=is_undef(breite)?max(p/8-sin(winkel)*rad1*2,0)/g:breite;
+
     kern=is_undef(kern)?innen?round((dn-p*1.08/gver)*100)/100:round((dn-p*1.225/gver*+1)*100)/100:kern;
     dn=is_undef(dn)?innen?round((kern+p*1.08/gver)*100)/100:round((kern+p*1.225/gver)*100)/100:dn;
     wand=is_undef(mantel)?innen?wand:wand>kern/2?0:wand:abs(mantel-kern)/2;
@@ -2915,25 +2921,63 @@ help
     mantel=is_undef(mantel)?innen?d2-wand*2:wand?kern-wand*2:kern/2+0.0001:innen?-max(mantel,0.0001):max(mantel,0.0001);//innenloch /aussenmantel
     winkelP=atan(p/((d1+d2)/2*PI));//Steigungswinkel
     profilkorrekturY=korrektur?1/sin(90+winkelP):1;
-    gb=is_undef(gb)?p/profilkorrekturY:gb;
-    gangH=(d1-d2)/2;
+    gb=is_undef(gb)?p/profilkorrekturY:gb; // gangBreite axial
+    gangH=(d1-d2)/2; // gang Höhe radial (H)
     h=grad*p/360+p;
+    flankenBreite=[tan(halbWinkel[0])*gangH,tan(halbWinkel[1])*gangH];
     
+    breite=is_undef(ratio)||!ratio?is_undef(breite)?gb/8/g:
+                                                    breite:
+                                   (gb-flankenBreite[0]-flankenBreite[1])/2*b(ratio,false);
+
+
+    breite2=gb -breite -flankenBreite[0] -flankenBreite[1];
+
+    rad1Max=min(breite /2/tan(Kwinkel[0]/2),breite /2/tan(Kwinkel[1]/2));
+    rad2Max=min(breite2/2/tan(Kwinkel[0]/2),breite2/2/tan(Kwinkel[1]/2));
+    
+    Echo(str(name," Gewinde rad1 zu groß",rad1,">",rad1Max,),color="red",
+      condition=is_num(rad1)&&rad1>rad1Max);
+    Echo(str(name," Gewinde rad2 zu groß",rad2,">",rad2Max,),color="red",
+      condition=is_num(rad2)&&rad2>rad2Max);                
+
+    rad1=min(rad1Max,rund?rad1Max:
+              is_undef(rad1)?p/20/g:
+                             rad1);
+
+    rad2=min(rad2Max,rund?rad2Max:
+              is_undef(rad2)?p/10/g:
+                             rad2);
+
     step=180/max(start,end,1);
-    
+
+
 InfoTxt(innen?" Innengewinde ":" Außengewinde ",[
 "dn",dn,//"(",innen?d2:d1,")
  "Steigung",p,
  "Kern",kern,
  "Mantel",mantel,
- "Winkel",(winkel-90)*-2,
+ "Winkel",winkel[0]==winkel[1]?halbWinkel[0]*2:halbWinkel,
  "Gangwinkel",winkelP,
  "h",h,
 str(grad/360," Windungen ("),str(grad,"°)"),
 "Ganghöhe",gangH]
 ,name);
-    
-Echo(str(name,"Gewinde breite=",breite," rad1(",rad1,")>p/16= ",p/16),condition=breite==0&&rad1>p/16);//,if (breite==0&&rad1>p/16)echo(str("<b><font color=red>",name," Gewinde breite=0 rad1>p/16= ",p/16));
+
+ /*tangYold=[rad1*sin(winkel[0])-tan(90-winkel[0])*(rad1-cos(winkel[0])*rad1), 
+           rad1*sin(winkel[1])-tan(90-winkel[1])*(rad1-cos(winkel[1])*rad1)];//*/
+  tangY=[tan(Kwinkel[0]/2)*rad1,tan(Kwinkel[1]/2)*rad1];
+
+
+Echo(str(name," Gewinde Überlappung! breite2",negRed(breite2)),color=breite==0?"warning":"red",condition=0>=breite2);
+//Echo(str(name," Gewinde Zero breite2",negRed(breite2)),color="red",condition=0==breite2);
+
+Echo(str(name," Gewinde breite=",breite," is bigger (",(tangY[0]+tangY[1]),
+  ") rad1(",rad1,"),rad1 max=",rad1Max,
+  " p/16= ",p/16),condition=tangY[0]+tangY[1]>breite);
+  
+//,if (breite==0&&rad1>p/16)echo(str("<b><font color=red>",name," Gewinde breite=0 rad1>p/16= ",p/16));
+
 HelpTxt("Gewinde",
 ["p",p
 ,"dn",dn
@@ -2941,7 +2985,7 @@ HelpTxt("Gewinde",
 ,"breite",breite
 ,"rad1",rad1
 ,"rad2",rad2
-,"winkel",winkel
+,"winkel",halbWinkel[0]==halbWinkel[1]?halbWinkel[0]*2:halbWinkel
 ,"wand",wand
 ,"mantel",abs(mantel)
 ,"h",h
@@ -2958,12 +3002,17 @@ HelpTxt("Gewinde",
 ,"tz",tz
 ,"konisch",konisch
 ,"center",center
+,"rund",rund
+,"ratio",ratio
 ,"spiel",spiel
 ,"name",name   
 ],help);
 
 points=[
-    for(i=[0:max(start+1,end+1,5)])vollwelle(fn=fn2,l=gb,h=start?gangH*(0.5+sin(i*step-90)/2):gangH,r=rad1,r2=rad2,mitte=breite,grad=start?max(winkel*sin(i*.5*step+0),1):winkel,grad2=[-konisch,konisch],extrude=d2/2,x0=mantel/2,xCenter=-1)   
+    for(i=[0:max(start+1,end+1,5)])vollwelle(fn=fn2,l=gb,h=start?gangH*(0.5+sin(i*step-90)/2):gangH,r=rad1,r2=rad2,tMitte=breite,
+      grad=start?[max(Kwinkel[0]*sin(i*.5*step+0),1),max(Kwinkel[1]*sin(i*.5*step+0),1)]:
+                 Kwinkel,
+      grad2=[-konisch,konisch],extrude=d2/2,x0=mantel/2,xCenter=-1)   
     ];
  
 profilnr=start;
@@ -3025,9 +3074,8 @@ pointsALL=RotEx(grad);//3D
 if(profil)!Linear(x=0,y=1,es=p)polygon(points=pointskorr); 
 else Tz(center?center<0?-p/2+tz:tz:tz+p/2)color(innen?"slategrey":"gold"){
        R(90,0,90) polyhedron(points=pointsALL,faces=facesALL,convexity=5);
-    if(cyl)Tz(-p/2)linear_extrude(h,convexity=5,scale=1+h*tan(konisch)/(d2/2))Kreis(r=d2/2,rand=innen?max(wand,+0.0001):mantel<0.01?0:wand,fn=fn,name=0);//Ring(h=h,rand=wand,d=abs(d2),cd=innen?-1:1);
+    if(cyl)Tz(-p/2)linear_extrude(h,convexity=5,scale=1+h*tan(konisch)/(d2/2))Kreis(r=d2/2-.000001,rand=innen?max(wand,+0.0001):mantel<0.01?0:wand,fn=fn,name=0);//Ring(h=h,rand=wand,d=abs(d2),cd=innen?-1:1);
     }
-
 }
 
 
@@ -3512,10 +3560,10 @@ let(
     r2=is_undef(r2)?r:r2,
 
  //r mittelpunkt verschiebung für tangenten Kontakt
-    tangY=[r*sin(grad[0])-tan(90-grad[0])*(r-cos(grad[0])*r), 
-           r*sin(grad[1])-tan(90-grad[1])*(r-cos(grad[1])*r)],
+/* tangY=[r*sin(grad[0])-tan(90-grad[0])*(r-cos(grad[0])*r), 
+           r*sin(grad[1])-tan(90-grad[1])*(r-cos(grad[1])*r)],//*/
            
-    mitte=max(0,is_undef(tMitte)?mitte:tMitte- tangY[0] -tangY[1] ),
+    mitte=max(0,is_undef(tMitte)?mitte:tMitte - tan(grad[0]/2)*r - tan(grad[1]/2)*r),
     w=grad[0]-90,//del=echo(w,grad[0]-90),
     wOben=(2*grad[1]-180)/2,
     hR=r-sin(90-grad[0])*r,
@@ -3582,8 +3630,10 @@ module Vollwelle(r=1,r2,grad=+60,grad2=+0,h,l,extrude=+5,center=true,xCenter=0,f
   
   
    //r mittelpunkt verschiebung für tangenten Kontakt
-    tangY=[r*sin(grad[0])-tan(90-grad[0])*(r-cos(grad[0])*r), 
-           r*sin(grad[1])-tan(90-grad[1])*(r-cos(grad[1])*r)];
+    tangY=[tan(grad[0]/2)*r,tan(grad[1]/2)*r];
+   /*[r*sin(grad[0])-tan(90-grad[0])*(r-cos(grad[0])*r), 
+           r*sin(grad[1])-tan(90-grad[1])*(r-cos(grad[1])*r)];//*/
+  
            
     mitte=is_undef(tMitte)?mitte:tMitte- tangY[0] -tangY[1];
   
@@ -4996,6 +5046,7 @@ w=0,//Windungen
 profil=+0.00, //varianz gangbreite
 gh=0.56,//Ganghöhe
 g=1,//Gänge
+scale=1,
 name,
 fn=36,
 help
@@ -5006,20 +5057,21 @@ gh=gh?gh:(dn-kern)/2;
 kern=gh?2*(r-gh):kern;    
 
 p=p?p:(w/360)/h;
-w=p?(h/p)*360:w;
+h=h?h:w/360*p;
+w=w?w:(h/p)*360;
 winkel=atan2((p/2),gh)*2;
 
 InfoTxt("GewindeV3",["dn∅",dn,"Steigung",str(p,"mm/U"),"Kern",kern,"Gangtiefe",gh,"Winkel~",str(winkel -22.5,"°(",winkel,"°)")],name);
 
     difference(){
        if($children) children();
-        Col(6)linear_extrude(height=h,twist=-w,convexity=10,$fn=fn){
+        Col(6)linear_extrude(height=h,twist=-w,convexity=10,scale=scale,$fn=fn){
    if(g>1) Rund((r-gh/2)*+0.5)Polar(g)T(gh/2)scale([1,1.00+profil])circle(r-gh/2,$fn=fn);
    if(g==1)T(gh/2)scale([1,1.00+profil])circle(r-gh/2,$fn=fn);
             
         }
     }
- HelpTxt("GewindeV3",["dn",dn,",h",h,",kern",kern,",p",p,",w",w,", profil",profil,",gh",gh,",g",g,",name",name,",fn",fn],help);
+ HelpTxt("GewindeV3",["dn",dn,"h",h,",kern",kern,"p",p,"w",w,"profil",profil,"gh",gh,"g",g,"scale",scale,"name",name,"fn",fn],help);
 }
 
 
@@ -5836,7 +5888,8 @@ HelpTxt("Bezier",[
 }
 
 
-module Line(p0=[0,0,0],p1=[10,10,0],d=.5,center=false,2D=false){
+
+module Line(p0=[0,0,0],p1=[10,10,0],d=.5,center=false,2D=false,text=false,fn=8,help=false){
   p0=p0[2]==undef?concat(p0,[0]):p0;
   p1=p1[2]==undef?concat(p1,[0]):p1;
 p1t=p1-p0;    
@@ -5847,11 +5900,29 @@ length = norm([x,y,z]);  // radial distance
 b = length?acos(z/length):0; // inclination angle
 c = atan2(y,x);     // azimuthal angle
 
-if(2D)translate(p0)rotate([0,b-90,c])translate([0,center?0:-d/2,0]) square([center?length*2:length,d],center=center?true:false);
-else translate(p0)rotate([0, b, c])
-    cylinder(h=center?length*2:length,d=d,$fn=8,center=center?true:false);
-      
-        
+points=center?[-p1t+p0,p0,p1]:[p0,p1t/2+p0,p1]; // for d=0  1d polyhedron
+
+if(d)
+  if(2D)translate(p0)rotate([0,b-90,c])translate([0,center?0:-d/2,0]) square([center?length*2:length,d],center=center?true:false);
+  else translate(p0)rotate([0, b, c])
+      cylinder(h=center?length*2:length,d=d,$fn=fn,center=center?true:false);
+else polyhedron(points,[[0,1,2]]);
+//Points(points);
+
+  if (text&&$preview)
+    %color("slategrey")translate(center?p0:p0+p1t/2)rotate($vpr)
+      text(str(runden(center?length*2:length,3),"mm"),size=b(text,false));
+  
+HelpTxt("Line",[
+  "p0",p0,
+  "p1",p1,
+  "d",d,
+  "center",center,
+  "2D",2D,
+  "text",text,
+  "fn",fn
+  ],help);  
+  
 }
 
 module LineORG(p0=[0,0,0], p1=[10,10,0], d=.5,center=true) { //from https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Tips_and_Tricks 
