@@ -126,19 +126,19 @@ There are a lot of settings available but most is using  pre configuration - so 
 * `Kathete( hyp, kat)` length
 * `Sehne( n, r, a)` length n-eck/alpha winkel 
 * `RotLang( rot, l, z, e, lz)` [polar vector] (e=elevation)
-* `Bezier( t, p0=[0,0], p1=[-20,20], p2=[20,20], p3=[0,0])` single point  for t=[0:.1:1]
-* `Kreis(r=10, rand=+5, grad=360, grad2=+0, fn=fn, center=true, sek=true, r2=0, rand2=0, rcenter=0, rot=0, t=[0,0])` points circle or arc
-* `KreisXY(r=5, grad=0)` [vector]
+* `bezier( t, p0=[0,0], p1=[-20,20], p2=[20,20], p3=[0,0])` single point  for t=[0:.1:1]
+* `kreis(r=10, rand=+5, grad=360, grad2=+0, fn=fn, center=true, sek=true, r2=0, rand2=0, rcenter=0, rot=0, t=[0,0])` points circle or arc
+* `kreisXY(r=5, grad=0)` [vector]
 * `5gon(b1=20, l1=15, b2=10, l2=30)` points for a pentagon
-* `ZigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)` points 
+* `zigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)` points 
 * `TangentenP(grad, rad, r)` distance tangential point
 * `Hexstring(c=[r, g, b])` #hexcolor 
 * `RotPoints(grad,points)` rotates points 
-* `gradB(b, r)` grad zum Bogenstück b 
-* `gradS(s, r)` grad zur Sehne s 
+* `gradB(b, r)` degree for arc section b 
+* `gradS(s, r)` degree for chord s 
 * `vollwelle()` ⇒ Vollwelle(help=1) points
 * `runden(x, dec=2)` round x at decimal
-* `radiusS(n, s, a)` radius zur Sehne 
+* `radiusS(n, s, a)` radius for chord s on n-gon or for angle 
 * `grad(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)` conversion everything in degree  
 * `inch(inch)` Inch⇒mm  
 * `kreisbogen(r, grad=360)` length of an arc r
