@@ -35,6 +35,9 @@ Changelog (archive at the very bottom)
 001|22 CHG MKlon
 002|22 CHG Line 
 004|22 FIX Gewinde CHG Vollwelle CHG Caliper CHG GewindeV3
+005|22 CHG Gewinde
+006|22 CHG Anschluss FIX Zylinder
+
 
 
 */
@@ -68,7 +71,7 @@ layer=0.08;// one step = 0.04 (8mm/200steps)
 printBed=[220,220];
 //Printposition;
 pPos=[0,0];
-printPos=bed?printBed/2+pPos:[0,0,0];
+printPos=bed?concat(printBed,0)/2+pPos:[0,0,0];
 //global fragment size
 hires=false;
 fn=$fn?$fn:$preview?36:
@@ -102,7 +105,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.004;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.006;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -2871,7 +2874,6 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
 
 
 
-
 module GewindeV4(
 dn=6,
 p=1,
@@ -2926,12 +2928,12 @@ help
     h=grad*p/360+p;
     flankenBreite=[tan(halbWinkel[0])*gangH,tan(halbWinkel[1])*gangH];
     
-    breite=is_undef(ratio)||!ratio?is_undef(breite)?gb/8/g:
+    breite=is_undef(ratio)||!ratio?is_undef(breite)?gb/g/8:
                                                     breite:
-                                   (gb-flankenBreite[0]-flankenBreite[1])/2*b(ratio,false);
+                                   (gb/g-flankenBreite[0]-flankenBreite[1])/2*(b(ratio,false));
 
 
-    breite2=gb -breite -flankenBreite[0] -flankenBreite[1];
+    breite2=gb/g -breite -flankenBreite[0] -flankenBreite[1];
 
     rad1Max=min(breite /2/tan(Kwinkel[0]/2),breite /2/tan(Kwinkel[1]/2));
     rad2Max=min(breite2/2/tan(Kwinkel[0]/2),breite2/2/tan(Kwinkel[1]/2));
@@ -2941,11 +2943,11 @@ help
     Echo(str(name," Gewinde rad2 zu groß",rad2,">",rad2Max,),color="red",
       condition=is_num(rad2)&&rad2>rad2Max);                
 
-    rad1=min(rad1Max,rund?rad1Max:
+    rad1=min(rad1Max,b(rund,false)==1||b(rund,false)==2?rad1Max:
               is_undef(rad1)?p/20/g:
                              rad1);
 
-    rad2=min(rad2Max,rund?rad2Max:
+    rad2=min(rad2Max,b(rund,false)==1||b(rund,false)==3?rad2Max:
               is_undef(rad2)?p/10/g:
                              rad2);
 
@@ -3504,9 +3506,9 @@ module Anschluss(h=10,d1=10,d2=15,rad=5,rad2,grad=30,r1,r2,center=true,fn=fn,fn2
    } else difference(){
         if (wand<0)Anschluss(h=h,r1=r1-wand,r2=r2-wand,rad=rad+(r2>r1?wand:-wand),rad2=rad2+(r2>r1?-wand:wand),grad=grad,center=center,fn=fn,fn2=fn2,grad2=grad2,x0=x0,2D=2D,name=0,help=0);  
 
-        Anschluss(h=center&&wand<0?h*1.01:h,r1=r1,r2=r2,rad=rad,rad2=rad2,grad=grad,center=center,fn=fn,fn2=fn2,grad2=grad2,x0=x0,2D=2D,name=name,help=0);
+       Tz($preview&&!center&&wand<0?h*-0.005:0) Anschluss(h=wand<0&&$preview?h*1.01:h,r1=r1,r2=r2,rad=rad,rad2=rad2,grad=grad,center=center,fn=fn,fn2=fn2,grad2=grad2,x0=x0,2D=2D,name=name,help=0);
 
-        if (wand>0)  Anschluss(h=center&&wand>0?h*1.01:h,r1=r1-wand,r2=r2-wand,rad=rad+(r2>r1?wand:-wand),rad2=rad2+(r2>r1?-wand:wand),grad=grad,center=center,fn=fn,fn2=fn2,grad2=grad2,x0=x0,2D=2D,name=0,help=0);  
+        if (wand>0)Tz($preview&&!center?h*-0.005:0)  Anschluss(h=wand>0&&$preview?h*1.01:h,r1=r1-wand,r2=r2-wand,rad=rad+(r2>r1?wand:-wand),rad2=rad2+(r2>r1?-wand:wand),grad=grad,center=center,fn=fn,fn2=fn2,grad2=grad2,x0=x0,2D=2D,name=0,help=0);  
       
    }  
     
@@ -4373,14 +4375,14 @@ module Zylinder(h=20,r=10,d,fn,fnh,grad=360,grad2=89,f=10,f2=5,f3=0,a=.5,a3=0,fz
     a=is_undef(a)?0:a;
     r=is_undef(d)?is_undef(r)?0:
                             r:
-                d/2;    
+                d/2;
     lambda=is_list(lambda)?lambda:[lambda,lambda];
     f=is_undef(lambda[0])?is_undef(f)?0:
                           f:
-        round(PI*2*r/lambda[0]);
+        round(PI*2*abs(r)/lambda[0]);
     f2=is_undef(lambda[1])?is_undef(f2)?0:
                             f2:
-        round(h/lambda[1]*2)/2;    
+        round(abs(h)/lambda[1]*2)/2;    
     fn=max(is_undef(fn)?f*2:fn,3);
     fnh=max(is_undef(fnh)?f2*2:fnh,1);
 
