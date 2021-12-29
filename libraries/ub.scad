@@ -37,7 +37,7 @@ Changelog (archive at the very bottom)
 004|22 FIX Gewinde CHG Vollwelle CHG Caliper CHG GewindeV3
 005|22 CHG Gewinde
 006|22 CHG Anschluss FIX Zylinder
-
+007|22 FIX Ellipse CHG Points ADD PolyH
 
 
 */
@@ -105,7 +105,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.006;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.007;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -724,6 +724,7 @@ echo    ("•••••••••• BasisObjekte:   •••••••�
 •• SpiralCut(help=1);\n
 •• Isosphere(help=1);\n
 •• OctaH(help=1); /*Octahedron*/\n
+•• PolyH(); /*Polyhedron auto faces */\n
 
 ");
 
@@ -1198,20 +1199,23 @@ module HexGrid(e=[11,4],es=5,center=true,name){
 
 ///∇∇ Helper ∇∇/// (not for creating geometry or objects)
 
-module Points(points,color,size,hull=true,loop=25,start=0,mark,help){
-  lp=len(points);
+
+
+module Points(points,color,size,hull=true,loop=25,start=0,mark,markS,help){
+  lp=assert(points[0],"no point(s) input")len(points);
   cMark=["Chartreuse","Aqua","Magenta","LightSkyBlue"];
   size=is_undef(size)?$vpd/100:size;
+  markS=is_undef(markS)?$vpd/40:markS;// scale marks 
   %if($preview){
 
 
     for (i=[0:is_list(points[0])?lp-1:0])translate(is_list(points[0])?points[i]:points){
-     if(is_num(mark)&&i==mark)color("Chartreuse", alpha=.6)OctaH(.6);
-     if(is_list(mark)) for(j=[0:len(mark)-1])if(i==mark[j])color(cMark[j%len(cMark)], alpha=0.4)OctaH(0.4,$fn=12);
+     if(is_num(mark)&&i==mark)color("Chartreuse", alpha=.6)OctaH(.6*markS);
+     if(is_list(mark)) for(j=[0:len(mark)-1])if(i==mark[j])color(cMark[j%len(cMark)], alpha=0.4)OctaH(0.4*markS,$fn=12);
        
      if(i>=start&&i<start+loop){
-      if(i==start          )color("red",  alpha=.4)sphere(.25,$fn=24);
-      if(i==start +loop -1 )color("blue", alpha=.4)sphere(.25,$fn=24);
+      if(i==start          )color("red",  alpha=.4)sphere(.25*markS,$fn=24);
+      if(i==start +loop -1 )color("blue", alpha=.4)sphere(.25*markS,$fn=24);
 
 
       Color(is_undef(color[0])?1/(lp*1.2)*i:color,is_undef(color[3])?.5:color[3])rotate($vpr){
@@ -1219,13 +1223,13 @@ module Points(points,color,size,hull=true,loop=25,start=0,mark,help){
       rotate([-90,-45,45])cylinder(i==lp-1?size*3.5:size,0,size/5,$fn=3);
     }}}
 
-     if(hull) if(len(points[0])==3)color(alpha=is_bool(hull)?1: hull)
+     if(hull&&lp>2) if(len(points[0])==3)color(alpha=is_bool(hull)?1: hull)
                 hull() polyhedron(points, [[for(i=[0:len(points)-1]) i ]]);
               else if(len(points[0])==2)color(alpha=is_undef(color[3])?.2:color[3])polygon(points);
 
   }
   
-  HelpTxt("Points",["points",[[1,2,3]],"color",color,"size",size,"hull",hull,"loop",loop,"start",start,"mark",mark],help);
+  HelpTxt("Points",["points",[[1,2,3]],"color",color,"size",size,"hull",hull,"loop",loop,"start",start,"mark",mark,"markS",markS],help);
   }
 
  //Points(Kreis(grad=120,fn=6),start=0,loop=6,mark=[2,3,4,12]);
@@ -1284,7 +1288,7 @@ optiE= function(e=[0,0,1])
                     [ceil($children/e),e,1]:
        is_undef(e)?$children:e;
 
-InfoTxt("Anordnung",["e",e,"children",$children],name);    
+InfoTxt("Anordnen",["e",e,"children",$children],name);    
 
 
     
@@ -1328,7 +1332,7 @@ InfoTxt("Anordnung",["e",e,"children",$children],name);
  }  
 
  
-HelpTxt("Anordnung",["es",es,"e",e,"option",option,"axis",axis,"c",c,"r",r,"cl",cl,"rot=",rot,"loop",loop,"center",center,"inverse",inverse,"name",name],help);
+HelpTxt("Anordnen",["es",es,"e",e,"option",option,"axis",axis,"c",c,"r",r,"cl",cl,"rot=",rot,"loop",loop,"center",center,"inverse",inverse,"name",name],help);
 }
 
 
@@ -2070,6 +2074,30 @@ rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
 ///∇∇ Basic Objects ∇∇///
 
 
+//PolyH([for(i=[0:36])[sin(i*10),cos(i*10),0],for(i=[0:36])[sin(i*10),cos(i*10),20]],loop=36,end=false);
+
+module PolyH(points,loop,end=true,help){
+loop=is_undef(loop)||loop<3?1:loop;
+points=assert(!is_undef(points))points;
+fBottom=[[for(i=[loop-1:-1:0])i]];
+fTop=[[for(i=[0:loop-1])i+len(points)-(loop)]];
+fBody=[for(i=[0:len(points)-loop -2])[i,i+1,i+loop +1,i+loop]];
+
+faces=loop>1?end?concat(
+                  fBottom,
+                  fTop,
+                  fBody
+                ):
+                fBody:
+            [[for(i=[0:len(points)-1])i]]
+;
+
+if(loop>1)polyhedron(points,faces,convexity=5);
+  else hull()polyhedron(points,faces,convexity=5);
+
+HelpTxt("PolyH",["points",[[0,0,0],[1,2,3]],"loop",loop,"end",end],help);
+  
+}
 
 
 
@@ -5656,23 +5684,26 @@ module Laser3D(h=4,layer=10,var=0.002,name,on=-1){
 }
 
 
-
 module Ellipse(x=2,y=2,z=0,fn=36,help){
-    
+  
+  //ToDo z rot;
+  //function rota(i)=-atan2(sin(i)*y,cos(i)*x)+90;
+  function rot(i)=atan2(cos(i)*x,sin(i)*y);
    for (n=[0:fn-1]){
      $idx=n;
      i=360/fn*n;
-    j=i+360/fn;   
-    if($children)  Color(1/fn*n)hull(){
-           T(sin(i)*x,cos(i)*y,cos(i)*z)rotate(-i)children();   
+    j=i+360/fn;
+     
+     if($children)  Color(1/fn*n)hull(){
+           T(sin(i)*x,cos(i)*y,cos(i)*z)rotate(rot(i))children();   
            union(){
              $idx=$idx+1;
-             T(sin(j)*x,cos(j)*y,cos(j)*z)rotate(-j)children();   
+             T(sin(j)*x,cos(j)*y,cos(j)*z)rotate(rot(j))children();   
            }
        }
      if(!$children)hull(){
-           T(sin(i)*x,cos(i)*y,cos(i)*z)rotate(-i)circle($fn=36);   
-           T(sin(j)*x,cos(j)*y,cos(j)*z)rotate(-j)circle($fn=36);   
+           T(sin(i)*x,cos(i)*y,cos(i)*z)rotate(rot(i))circle($fn=36);   
+           T(sin(j)*x,cos(j)*y,cos(j)*z)rotate(rot(j))circle($fn=36);   
        }  
        
    }
