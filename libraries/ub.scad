@@ -38,6 +38,7 @@ Changelog (archive at the very bottom)
 005|22 CHG Gewinde
 006|22 CHG Anschluss FIX Zylinder
 007|22 FIX Ellipse CHG Points ADD PolyH
+008|22 FIX Ttorus CHG PolyH CHG RotLang
 
 
 */
@@ -105,7 +106,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.007;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.008;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -131,12 +132,12 @@ function Kathete(hyp,kat)=sqrt(pow(hyp,2)-pow(kat,2));
 function Sehne(n,r,a)=is_undef(a)?2*r*sin(180/n):2*r*sin(a/2);// n-eck oder a=α winkel zum r=radius
 function t3(wert=1,grad=360,delta=0)=sin(($preview?anima?$t:tset:tset)*grad+delta)*wert;
 function RotLang(rot=0,l=10,l2,z,e,lz)=let(
-rot=is_undef(rot)?0:rot,
+rot=is_undef(rot)?0:rot%360,
 l=is_undef(l)?0:l,
 l2=is_undef(l2)?l:l2,
 lz=is_undef(lz)?l:lz
 )
-is_undef(z)?is_undef(e)?[sin(rot)*l,cos(rot)*l2]:[sin(rot)*cos(e)*l,cos(rot)*cos(e)*l2,sin(e)*lz]:[sin(rot)*l,cos(rot)*l,z];
+is_undef(z)?is_undef(e)?[sin(rot)*l,cos(rot)*l2]:[sin(rot)*cos(e%360)*l,cos(rot)*cos(e%360)*l2,sin(e%360)*lz]:[sin(rot)*l,cos(rot)*l,z];
 
 function Bezier(t,p0=[0,0],p1=[-20,20],p2=[20,20],p3=[0,0])=bezier(t,p0,p1,p2,p3);
 function bezier(t,p0=[0,0],p1=[-20,20],p2=[20,20],p3=[0,0])=
@@ -1201,7 +1202,7 @@ module HexGrid(e=[11,4],es=5,center=true,name){
 
 
 
-module Points(points,color,size,hull=true,loop=25,start=0,mark,markS,help){
+module Points(points,color,size,hull=.5,loop=25,start=0,mark,markS,help){
   lp=assert(points[0],"no point(s) input")len(points);
   cMark=["Chartreuse","Aqua","Magenta","LightSkyBlue"];
   size=is_undef(size)?$vpd/100:size;
@@ -1215,11 +1216,11 @@ module Points(points,color,size,hull=true,loop=25,start=0,mark,markS,help){
        
      if(i>=start&&i<start+loop){
       if(i==start          )color("red",  alpha=.4)sphere(.25*markS,$fn=24);
-      if(i==start +loop -1 )color("blue", alpha=.4)sphere(.25*markS,$fn=24);
+      if(i==start +loop-1)color("blue", alpha=.4)sphere(.25*markS,$fn=24);
 
 
       Color(is_undef(color[0])?1/(lp*1.2)*i:color,is_undef(color[3])?.5:color[3])rotate($vpr){
-      translate([0,i==lp-1?size *+2.5:size*1.25])linear_extrude(.1,convexity=3)text(str(i==lp-1?"end":"p",i),size=size,halign="center");
+      translate([0,i==lp-1?size *+2.5:size*1.25])linear_extrude(.01,convexity=3)text(str(i==lp-1?"end":"p",i),size=size,halign="center");
       rotate([-90,-45,45])cylinder(i==lp-1?size*3.5:size,0,size/5,$fn=3);
     }}}
 
@@ -2074,28 +2075,72 @@ rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
 ///∇∇ Basic Objects ∇∇///
 
 
-//PolyH([for(i=[0:36])[sin(i*10),cos(i*10),0],for(i=[0:36])[sin(i*10),cos(i*10),20]],loop=36,end=false);
+/*
+points=[[0,0,-2],for(i=[0:35])[sin(i*10),cos(i*10),0],for(i=[0:35])[sin(i*10),cos(i*10),5],[0,0,7]];
+points1=[for(i=[0:36])[sin(i*10),cos(i*10),0]*1.5,for(i=[0:36])[sin(i*10),cos(i*10),5],for(i=[0:36])[sin(i*10)*0.75,cos(i*10)*1.5,10]];
+pointsE1=[[0,0,-2],for(i=[0:35])[sin(i*10),cos(i*10),0],for(i=[0:35])[sin(i*10),cos(i*10),5]];
+pointsE2=[for(i=[0:35])[sin(i*10),cos(i*10),0],for(i=[0:35])[sin(i*10),cos(i*10),5],[0,0,7]];
 
-module PolyH(points,loop,end=true,help){
+  
+//Points(points1,loop=36,start=36*2);
+//echo(points1[36]);
+
+PolyH(points,loop=36,pointEnd=true,end=true,name="pointy");
+T(10)PolyH(pointsE1,loop=36,pointEnd=1,end=true,name="point∇");
+T(-10)PolyH(pointsE2,loop=36,pointEnd=2,end=true,name="pointΔ");//WIP
+T(0,-10)PolyH(points1,loop=37,pointEnd=0,end=true);
+T(0,10)PolyH(octa(5));
+//*/
+
+module PolyH(points,loop,end=true,pointEnd=false,name,help){
 loop=is_undef(loop)||loop<3?1:loop;
 points=assert(!is_undef(points))points;
-fBottom=[[for(i=[loop-1:-1:0])i]];
-fTop=[[for(i=[0:loop-1])i+len(points)-(loop)]];
-fBody=[for(i=[0:len(points)-loop -2])[i,i+1,i+loop +1,i+loop]];
+lp=len(points);
+loops=pointEnd?pointEnd==1||pointEnd==2?(lp-1)/loop:
+                                        (lp-2)/loop:
+               lp/loop;
+  
+fBottom=[[for(i=[loop -1:-1:0])i]];
+fTop=[[for(i=[0:loop -1])i+lp-(loop)]];
+fBody=loops>1?[for(lev=[0:loops -2],i=[0:loop -1])[
+  i          +loop*lev,
+  (i +1)%loop+loop*lev,
+  (i +1)%loop+loop*(lev+1),
+  i          +loop*(lev+1)
+]]:[];
+
 
 faces=loop>1?end?concat(
                   fBottom,
-                  fTop,
+                  pointEnd==2?[for(i=[0:loop -1])[lp-i -2,lp-1,lp-(i+1)%loop -2]]:fTop,
                   fBody
                 ):
                 fBody:
-            [[for(i=[0:len(points)-1])i]]
+            [[for(i=[0:lp-1])i]]
 ;
 
-if(loop>1)polyhedron(points,faces,convexity=5);
-  else hull()polyhedron(points,faces,convexity=5);
+pointyFaces=(pointEnd==true||pointEnd==1)&&loops>1?[ 
+if(pointEnd==true||pointEnd==1) for(i=[0:loop -1])[(i + 1)%loop + 1,i +1,0],//bottom
+if(pointEnd==true||pointEnd==2) for(i=[0:loop -1])[lp-i -2,lp-1,lp-(i+1)%loop -2],//top  
+for(lev=[0:loops -2],i=[0:loop -1])let(pE=1)[
+  pE + i          +loop*lev,
+  pE + (i +1)%loop+loop*lev,
+  pE + (i +1)%loop+loop*(lev+1),
+  pE + i          +loop*(lev+1)
+]
+]:[];
 
-HelpTxt("PolyH",["points",[[0,0,0],[1,2,3]],"loop",loop,"end",end],help);
+
+if(loop>1)polyhedron(points,(pointEnd==true||pointEnd==1)&&loop>1?pointEnd==1?concat(pointyFaces,fTop):
+                                                                              pointyFaces:
+                                                                 faces,convexity=5);
+  else hull()polyhedron(points,faces,convexity=5);
+    
+InfoTxt("PolyH",["loops",loops,"points",lp],loop>1?name:false);
+InfoTxt("PolyH using hull—",["points",lp],loop==1?name:false);
+  
+
+HelpTxt("PolyH",["points",[[0,0,0],[1,2,3]],"loop",loop,"end",end,"pointEnd",pointEnd,"name",name],help);
   
 }
 
@@ -6080,8 +6125,8 @@ module Ttorus(r=20,twist=360,angle=360,pitch=0,scale=1,r2,fn=fn,help){
     //$helpM=i?0:$helpM; 
     $idx=i;  
    Color(i/fn,$idxON=false) hull(){
-        rotate(i*step)translate([r+rdiff*i,0,i*pitch/360*step]) rotate([0,i*twist/360*step,0])scale([1,1,1]+(scale-[1,1,1])/fn*(i))children();
-        rotate(j*step)translate([r+rdiff*j,0,j*pitch/360*step]) rotate([0,j*twist/360*step,0])union(){
+        rotate(i*step)translate([r+rdiff*i,0,i*pitch/360*abs(step)]) rotate([0,i*twist/360*step,0])scale([1,1,1]+(scale-[1,1,1])/fn*(i))children();
+        rotate(j*step)translate([r+rdiff*j,0,j*pitch/360*abs(step)]) rotate([0,j*twist/360*step,0])union(){
             $info=false;
             $helpM=false;
             $idx=j;
