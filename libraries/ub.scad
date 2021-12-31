@@ -39,6 +39,7 @@ Changelog (archive at the very bottom)
 006|22 CHG Anschluss FIX Zylinder
 007|22 FIX Ellipse CHG Points ADD PolyH
 008|22 FIX Ttorus CHG PolyH CHG RotLang
+009|22 CHG Points add center CHG kreis add z CHG quad add z
 
 
 */
@@ -106,7 +107,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.008;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.009;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -149,7 +150,7 @@ let(
 p0*(omt2*omt) + p1*(3*omt2*t) + p2*(3*omt*t2) + p3*(t2*t);
 
 function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=kreis(r,rand,grad,grad2,fn,center,sek,r2,rand2,rcenter,rot,t);
-function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=
+function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z)=
 let (
 grad2=is_undef(grad2)?grad:grad2,
 r=rcenter?r+rand/2:r,
@@ -161,9 +162,21 @@ fn=max(1,floor(abs(fn))),
 step=grad/fn,
 step2=grad2/fn
 )
+is_num(z)?[
+if(!sek&&!rand&&abs(grad)!=360&&grad)[0+t[0],0+t[1],z], // single points replacement
+if(grad)for(i=[0:fn])
+        let(iw=abs(grad)==360?i%fn:i)
+    [sin(rot+(center?-grad/2-90:0)+iw*step)*r  +t[0],
+     cos(rot+(center?-grad/2-90:0)+iw*step)*r2 +t[1],
+     z],
+if(rand)for(i=[0:fn])
+    let(iw=abs(grad2)==360?i%fn:i)
+    [sin(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r  -rand )+t[0],
+     cos(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r2 -rand2)+t[1],
+    z]
+]:
 [
-
-if(!sek&&!rand&&abs(grad)!=360&&grad||r==0)[0+t[0],0+t[1]],
+if(!sek&&!rand&&abs(grad)!=360&&grad||r==0)[0+t[0],0+t[1]], // single points replacement
 if(r&&grad)for(i=[0:fn])
         let(iw=abs(grad)==360?i%fn:i)
     [sin(rot+(center?-grad/2-90:0)+iw*step)*r+t[0],
@@ -172,10 +185,9 @@ if(rand)for(i=[0:fn])
     let(iw=abs(grad2)==360?i%fn:i)
     [sin(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r-rand)+t[0],
     cos(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r2-rand2)+t[1]]
-
 ];
 
-
+//PolyH([for(i=[0:100])each kreis(z=i/10,r=5+sin(i*3.6)*2)],loop=fn +fn+2);
 
 function kreisXY(r=5,grad=0)=[r*sin(grad),r*cos(grad)];//depreciated use RotLang
 function KreisXY(r=5,grad=0)=kreisXY(r,grad);//depreciated use RotLang
@@ -244,8 +256,8 @@ function kreisbogen(r,grad=360)=PI*r*2/360*grad;
 function fs2fn(r,grad=360,fs=fs,minf=3)=max(minf,PI*r*2/360*grad/fs);
 function clampToX0(points,interval=minVal)=[for(e=points)[abs(e[0])>interval?e[0]:0,e[1]]];
   
-// angle between two points used for Bezier
-  vektorWinkel= function(p1,p2)p1==p2?[0,0,0]:[ 
+// angle between two points used for e.g. Bezier
+  vektorWinkel= function(p1=[0,0,0],p2=[0,0,0])p1==p2?[0,0,0]:[ 
             
             -acos((p2.z-p1.z)/norm(p2-p1))+90,
             0,
@@ -409,21 +421,26 @@ s=is_list(s)?s:
 
 //hull() polyhedron(octa(),[[for(i=[0:len(octa())-1])i]]);
 
-function quad  (x=10,y,r=1,fn=$fn) = 
+function quad  (x=10,y,r=1, z,fn=fn) = 
  let(
  y=is_list(x)?x.y:is_undef(y)?x:y,
  x=is_list(x)?x.x:x,
- r=is_list(r)?r:[r,r,r,r]
+ r=is_list(r)?r:[r,r,r,r],
+ fn=fn/4+0
 ) 
 concat(
-  kreis(t=[ x/2 -r[0],  y/2 -r[0] ],r=r[0],rand=0,grad=90,rot=0,center=false,fn=fn/4),
-  kreis(t=[ x/2 -r[1], -y/2 +r[1] ],r=r[1],rand=0,grad=90,rot=90,center=false,fn=fn/4),
-  kreis(t=[-x/2 +r[2], -y/2 +r[2] ],r=r[2],rand=0,grad=90,rot=180,center=false,fn=fn/4),
-  kreis(t=[-x/2 +r[3],  y/2 -r[3] ],r=r[3],rand=0,grad=90,rot=270,center=false,fn=fn/4)
+  kreis(t=[ x/2 -r[0],  y/2 -r[0] ],r=r[0],rand=0,grad=90,rot=0  , center=false,fn=fn,z=z),
+  kreis(t=[ x/2 -r[1], -y/2 +r[1] ],r=r[1],rand=0,grad=90,rot=90 , center=false,fn=fn,z=z),
+  kreis(t=[-x/2 +r[2], -y/2 +r[2] ],r=r[2],rand=0,grad=90,rot=180, center=false,fn=fn,z=z),
+  kreis(t=[-x/2 +r[3],  y/2 -r[3] ],r=r[3],rand=0,grad=90,rot=270, center=false,fn=fn,z=z)
 );
 
-//polygon(Quad());
-
+/*
+polygon(quad(x=15,fn=16));
+points=[for(i=[0:10])each quad(z=i,r=1.000+sin(i*36-90)*1,fn=36)];
+PolyH(points,loop=fn +4 );
+Points(points,loop=(fn+4)*3,start=(fn+4)*5,hull=0);
+//*/
 
 
 function stern (e=5,r1=10,r2=5,mod=2,delta=+0)=
@@ -560,7 +577,7 @@ echo    ("
 ••• Sehne(n, r, a) length n-eck/alpha winkel •••\n
 ••• RotLang(rot, l, z, e, lz) [vector] (e=elevation)•••\n
 ••• bezier(t, p0=[0,0], p1=[-20,20],p2=[20,20],p3=[0,0]) points   •••\n
-••• kreis(r=10, rand=+5, grad=360,grad2=+0,fn=fn,center=true,sek=true,r2=0,rand2=0,rcenter=0,rot=0,t=[0,0]) points •••\n
+••• kreis(r=10, rand=+5, grad=360,grad2=+0,fn=fn,center=true,sek=true,r2=0,rand2=0,rcenter=0,rot=0,t=[0,0],z=undef) points •••\n
 ///••• kreisXY(r=5, grad=0) [vector]•••\n
 ••• 5gon(b1=20, l1=15, b2=10, l2=30) points •••\n
 ••• ZigZag(e=5, x=50, y=5, mod=2, delta=+0, base=2, shift=0) points •••\n
@@ -589,7 +606,7 @@ echo    ("
 ••• mPoints(points,r,t,s) use with 2D&3D point / points •••\n
 ••• tetra(r) tetrahedron points •••\n
 ••• octa(r,n,d)  octaheadron points (subdiv n) ••• \n
-••• quad(x,y,r)  Quad points ••• \n
+••• quad(x,y,r,fn,z)  Quad points ••• \n
 ••• stern(e=5,r1=10,r2=5,mod=2,delta=+0)  Stern points ••• \n
 
 ");
@@ -1200,9 +1217,9 @@ module HexGrid(e=[11,4],es=5,center=true,name){
 
 ///∇∇ Helper ∇∇/// (not for creating geometry or objects)
 
+//Points(octa(5),loop=4,size=0.4);
 
-
-module Points(points,color,size,hull=.5,loop=25,start=0,mark,markS,help){
+module Points(points,color,size,hull=.5,loop=25,start=0,mark,markS,center=true,help){
   lp=assert(points[0],"no point(s) input")len(points);
   cMark=["Chartreuse","Aqua","Magenta","LightSkyBlue"];
   size=is_undef(size)?$vpd/100:size;
@@ -1218,11 +1235,16 @@ module Points(points,color,size,hull=.5,loop=25,start=0,mark,markS,help){
       if(i==start          )color("red",  alpha=.4)sphere(.25*markS,$fn=24);
       if(i==start +loop-1)color("blue", alpha=.4)sphere(.25*markS,$fn=24);
 
-
-      Color(is_undef(color[0])?1/(lp*1.2)*i:color,is_undef(color[3])?.5:color[3])rotate($vpr){
+      if(!center)
+        Color(is_undef(color[0])?1/(lp*1.2)*i:color,is_undef(color[3])?.5:color[3])rotate($vpr){
       translate([0,i==lp-1?size *+2.5:size*1.25])linear_extrude(.01,convexity=3)text(str(i==lp-1?"end":"p",i),size=size,halign="center");
-      rotate([-90,-45,45])cylinder(i==lp-1?size*3.5:size,0,size/5,$fn=3);
-    }}}
+        rotate([-90,-45,45])cylinder(i==lp-1?size*3.5:size,0,size/5,$fn=3);
+        }
+      else Color(is_undef(color[0])?1/(lp*1.2)*i:color,is_undef(color[3])?.5:color[3])rotate(vektorWinkel(points[i],[0,0,points[i].z])+[90,0,0]){
+      translate(i==lp-1?[0,size *+3.5,size*3.5]:i==start+loop-1?[0,size*2.25,size*0.65]:[0,size*1.25,size*0.65])linear_extrude(.01,convexity=3)text(str(i==lp-1?"end":"p",i),size=size,valign="center",halign="center");
+       rotate([i==start+loop-1?-45:-35,0,0])rotate(30)cylinder(i==lp-1?size*3.5:i==start+loop-1?size*1.5:size,0,size/5,$fn=3);
+       }
+    }}
 
      if(hull&&lp>2) if(len(points[0])==3)color(alpha=is_bool(hull)?1: hull)
                 hull() polyhedron(points, [[for(i=[0:len(points)-1]) i ]]);
@@ -1230,7 +1252,7 @@ module Points(points,color,size,hull=.5,loop=25,start=0,mark,markS,help){
 
   }
   
-  HelpTxt("Points",["points",[[1,2,3]],"color",color,"size",size,"hull",hull,"loop",loop,"start",start,"mark",mark,"markS",markS],help);
+  HelpTxt("Points",["points",[[1,2,3]],"color",color,"size",size,"hull",hull,"loop",loop,"start",start,"mark",mark,"markS",markS,"center",center],help);
   }
 
  //Points(Kreis(grad=120,fn=6),start=0,loop=6,mark=[2,3,4,12]);
