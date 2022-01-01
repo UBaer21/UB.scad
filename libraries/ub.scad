@@ -40,6 +40,7 @@ Changelog (archive at the very bottom)
 007|22 FIX Ellipse CHG Points ADD PolyH
 008|22 FIX Ttorus CHG PolyH CHG RotLang
 009|22 CHG Points add center CHG kreis add z CHG quad add z
+011|22 FIX Box Prisma FIX Gewinde
 
 
 */
@@ -107,7 +108,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.009;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.011;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -3033,9 +3034,9 @@ help
     rad1Max=min(breite /2/tan(Kwinkel[0]/2),breite /2/tan(Kwinkel[1]/2));
     rad2Max=min(breite2/2/tan(Kwinkel[0]/2),breite2/2/tan(Kwinkel[1]/2));
     
-    Echo(str(name," Gewinde rad1 zu groß",rad1,">",rad1Max,),color="red",
+    Echo(str(name," Gewinde rad1 zu groß",rad1,">",rad1Max),color="red",
       condition=is_num(rad1)&&rad1>rad1Max);
-    Echo(str(name," Gewinde rad2 zu groß",rad2,">",rad2Max,),color="red",
+    Echo(str(name," Gewinde rad2 zu groß",rad2,">",rad2Max),color="red",
       condition=is_num(rad2)&&rad2>rad2Max);                
 
     rad1=min(rad1Max,b(rund,false)==1||b(rund,false)==2?rad1Max:
@@ -6360,7 +6361,9 @@ module Prisma(x1=12,y1,z=6,c1=5,s=1,x2,y2,x2d=0,y2d=0,c2=0,vC=[0,0,1],cRot=0,fnC
     helpZ=z;
     x=is_list(x1)?x1[0]:x1;
     y=is_list(x1)?x1[1]:is_undef(y1)?x1:y1;
-    z=is_undef(x1[2])?z:x1[2];
+    hErr=s/2-cos(90/ceil(fnS/2))*s/2; // missing sphere piece
+    z=is_undef(x1[2])?z+hErr*2:x1[2]+hErr*2;
+    
     
     cylinderh=c1?minVal:0;
     
@@ -6396,7 +6399,7 @@ CubeFaces = [
   [6,7,3,2],  // back
   [7,4,0,3]]; // left
   
-    translate([0,0,vC[0]||vC[1]?c1?c1/2:s/2:s/2+minVal/2-(center?z/2:0)])minkowski(){
+    translate([0,0,vC[0]||vC[1]?c1?c1/2:s/2:s/2+minVal/2-(center?z/2:hErr)])minkowski(){
         polyhedron( CubePoints, CubeFaces,convexity=5 );
         rotate(a=90,v=vC)rotate(cRot)cylinder(c2?max(z-s-minVal,minVal):minVal,d1=c1-s,d2=cylinderd2-s,center=c2?false:true,$fn=fnC);
         sphere(d=s,$fn=fnS);//OctaH(d=s,n=fnS);//
@@ -6600,11 +6603,14 @@ module Box(x=8,y,z=5,d2,c=3.5,s=1.5,eck=4,outer=true,fnC=36,fnS=24,help){
                   outer?d2:
                         Umkreis(eck,d2-red)+red;
 
+  hErr=s/2-cos(90/ceil(fnS/2))*s/2; // missing sphere piece
+  z=z+hErr*2;
 
-  T(z=s/2+(z-s)/2)  minkowski(){
+  T(z=z/2-hErr)  minkowski(){
     if(is_num(y))cube([x -red, y -red, z-s-minVal],center=true);
         else cylinder(h=z -s -minVal, d1=x -red, d2=d2 -red, $fn=eck, center=true);
     if(c>s)cylinder(minVal,d=c-s,center=true,$fn=fnC);
+    //OctaH(d=s,n=fnS);
     sphere(d=s,$fn=fnS);
     }
     
