@@ -41,8 +41,8 @@ Changelog (archive at the very bottom)
 008|22 FIX Ttorus CHG PolyH CHG RotLang
 009|22 CHG Points add center CHG kreis add z CHG quad add z
 011|22 FIX Box Prisma FIX Gewinde
-012|22 CHG Rosette Add id od FIX spelling help
-013|22 
+012|22 CHG Rosette Add id od FIX spelling help CHG Anorden (fix for 2021.1)
+0121|22 FIX Anordnen FIX SRing FIX Knochen
 
 
 */
@@ -110,7 +110,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.012;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.0121;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -1357,16 +1357,16 @@ InfoTxt("Anordnen",["e",e,"children",$children],name);
     }
  }
  
- if(option==4) Grid(e=e,es=es,center=center,name=false)IDX($idx)children($idx%$children);
+ if(option==4) Grid(e=e,es=es,center=center,name=false)IDX($idx,$children)children($idx%$children);
    
- module IDX(idx){
+ module IDX(idx,childrn){
    $info=name;
    $idxON=true;
-   $idx=inverse?(loop?e.x*e.y*e.z:$children -1)-(idx[0]+e.x*idx[1]):(idx[0]+e.x*idx[1]);
+   $idx=inverse?(loop?e.x*e.y*e.z:childrn -1)-(idx[0]+e.x*idx[1]):(idx[0]+e.x*idx[1]);
    rotate(rot)
-     if(is_undef(c)&&(loop?true:idx.x+e.x*idx.y+e.x*e.y*idx.z<$children))children();
+     if(is_undef(c)&&(loop?true:idx.x+e.x*idx.y+e.x*e.y*idx.z<childrn))children();
      else Color(([idx.x/(e.x -1),idx.y/(e.y -1),idx.z/e.z]+[ 0,0,cl])){
-     if(loop?true:idx.x+e.x*idx.y+e.x*e.y*idx.z<$children)children();
+     if(loop?true:idx.x+e.x*idx.y+e.x*e.y*idx.z<childrn)children();
     }
   }
 
@@ -2787,7 +2787,6 @@ HelpTxt("Rosette",[
 }
 
 
-
 module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d,center=true,name,help){
  shift=is_list(shift)?shift:[shift,-shift];
  l=is_list(l)?l:[l/2,l/2]; 
@@ -2808,10 +2807,10 @@ module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d,center=true,name,help){
 if(d)translate(center.y?center.y<0?[0,d/2]:
                                 [0,0]:
                 [0,-d/2]){
-    kreis(d=d,rand=b[0],b=-l[0],center=false,rcenter=true,rot=-90); 
+    Kreis(d=d,rand=b[0],b=-l[0],center=false,rcenter=true,rot=-90); 
     
         translate([0,d/2])polygon(points);
-//    intersection(){
+//    intersection(){ // bend arrow head option
 //        square(50);
 //        difference(){
 //            sca=0.4;
@@ -3390,7 +3389,7 @@ module SRing(e=4,id=3.5,od=10,h=.8,rand=n(3),reduction=.5,schlitz=-17,help){
 $info=false;
 intersection(){
     LinEx(h,.2,scale=1.05)Rund(0.3)difference(){
-       kreis(od/2);
+       Kreis(od/2);
        Rund(0.5) Stern(e,od/2-rand,id/2-reduction-1,mod=100,delta=schlitz);
        rotate(180+180/e)intersection_for(i=[0:e-1])rotate(i*360/e)T(reduction)Kreis(id/2,fn=e*15);
     }
@@ -7532,13 +7531,13 @@ module Knochen(l=+15,d=3,d2=5,b=0,fn=fn,help)
 {
   HelpTxt("Knochen",["l",l,"d",d,"d2",d2,"b",b,"fn",fn],help);
     f=50/fn*0.3;
-    function m(x)=d+pow(1.5,x);
+    function mf(x)=d+pow(1.5,x);
     for(i=[-l:f:+5])
     {
         hull()
         {
-        R(i*b)T(z=i)scale([d2/m(i),1,1])R(i*b)cylinder(.01,d=m(i),$fn=fn);
-        R((i+f)*b)T(z=i+f)scale([d2/m(i+f),1,1])R((i+f)*b)cylinder(.01,d=m(i+f),$fn=fn);
+        R(i*b)T(z=i)scale([d2/mf(i),1,1])R(i*b)cylinder(.01,d=mf(i),$fn=fn);
+        R((i+f)*b)T(z=i+f)scale([d2/mf(i+f),1,1])R((i+f)*b)cylinder(.01,d=mf(i+f),$fn=fn);
         }
     }
 
