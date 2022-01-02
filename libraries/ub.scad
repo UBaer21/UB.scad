@@ -41,6 +41,8 @@ Changelog (archive at the very bottom)
 008|22 FIX Ttorus CHG PolyH CHG RotLang
 009|22 CHG Points add center CHG kreis add z CHG quad add z
 011|22 FIX Box Prisma FIX Gewinde
+012|22 CHG Rosette Add id od FIX spelling help
+013|22 
 
 
 */
@@ -108,7 +110,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.011;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.012;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -556,7 +558,7 @@ echo    ("•••••••••• Helper:   •••••••••�
 • SCT(help=1) output sin cos tan\n
 • Caliper(help=1) measure \n
 • Points(help=1) numbers points\n
-• Anorden(help=1) arranges \n
+• Anordnen(help=1) arranges \n
 • InfoTxt(help=1) output Infotxt \n
 • HelpTxt(help=1) output helptxt \n
 • Echo(help=1) output txt \n
@@ -1295,7 +1297,8 @@ module 3Projection(s=10,cut=true,active=[1,1,1],help){
 
 //Arranges (and color) list of children for display
 module Anordnen(es=10,e,option=1,axis=1,c=0,r,cl=.5,rot=0,loop=true,center=true,inverse=false,name,help){
-   
+
+option=option==3&&version()==[2021, 1, 0]?4:option;
 optiE= function(e=[0,0,1])
     let (sqC=sqrt($children))
     e.x*e.y==$children?
@@ -1305,12 +1308,12 @@ optiE= function(e=[0,0,1])
     optiE([ceil(sqC),e.y+1,1]);
     
 //echo(optiE());
-    e=option==3?is_undef(e)?optiE():
-                    is_list(e)?
-                        e.z?e:
-                        concat(e,1):
-                    [ceil($children/e),e,1]:
-       is_undef(e)?$children:e;
+    e=option==3||option==4?is_undef(e)?optiE():
+                                      is_list(e)?
+                                          e.z?e:
+                                          concat(e,1):
+                                      [ceil($children/e),e,1]:
+                         is_undef(e)?$children:e;
 
 InfoTxt("Anordnen",["e",e,"children",$children],name);    
 
@@ -1346,14 +1349,26 @@ InfoTxt("Anordnen",["e",e,"children",$children],name);
      //idx=$idx;
      //$idx=0;
      $idxON=true;
-     
      rotate(rot)
      if(is_undef(c)&&(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children))children(childINDX%$children);
      else Color(([$idx.x/(e.x -1),$idx.y/(e.y -1),$idx.z/e.z]+[ 0,0,cl])){
      if(loop?true:$idx.x+e.x*$idx.y+e.x*e.y*$idx.z<$children)children(childINDX%$children);
      //text(str([$idx.x/(e.x-1), $idx.y/(e.y-1), $idx.z/e.z]+[ 0,0,cl]),size=2);
+    }
  }
- }  
+ 
+ if(option==4) Grid(e=e,es=es,center=center,name=false)IDX($idx)children($idx%$children);
+   
+ module IDX(idx){
+   $info=name;
+   $idxON=true;
+   $idx=inverse?(loop?e.x*e.y*e.z:$children -1)-(idx[0]+e.x*idx[1]):(idx[0]+e.x*idx[1]);
+   rotate(rot)
+     if(is_undef(c)&&(loop?true:idx.x+e.x*idx.y+e.x*e.y*idx.z<$children))children();
+     else Color(([idx.x/(e.x -1),idx.y/(e.y -1),idx.z/e.z]+[ 0,0,cl])){
+     if(loop?true:idx.x+e.x*idx.y+e.x*e.y*idx.z<$children)children();
+    }
+  }
 
  
 HelpTxt("Anordnen",["es",es,"e",e,"option",option,"axis",axis,"c",c,"r",r,"cl",cl,"rot=",rot,"loop",loop,"center",center,"inverse",inverse,"name",name],help);
@@ -2720,11 +2735,14 @@ HelpTxt("Scale",["v",v,
 MO(!$children);
 }
 
+
 module Rosette(
 r1=10,
 r2=15,
 ratio=2,
 wall=0.4,
+id,
+od,
 fn=fn,
 rotations,
 name,
@@ -2733,10 +2751,18 @@ help
 $info=0;
 $helpf=0;
 $messpunkt=0;
-function rotations(ratio=ratio,n=1)=ratio==0?1:n/ratio%1?rotations(ratio,n+1):n/ratio;//ganzzahliger Wert
+function rotations(ratio=ratio,n=1,max=150)=ratio==0?1:n/ratio%1&&n<max?rotations(ratio,n+1):n/ratio;//ganzzahliger Wert
 rotations=is_undef(rotations)?rotations():rotations;
-points=abs(ratio)>1?abs(fn*ratio*rotations):abs(rotations*fn);    
+points=abs(ratio)>1?abs(fn*ratio*rotations):abs(rotations*fn);
+calc=is_num(id)&&is_num(od)?1:0;
+mr=calc? abs(id)<abs(od)?(od-id)/4:(id-od)/4:
+         0;
 
+r1=calc? mr - wall/2 * (sign(id)==sign(od)?sign(id):0) :
+         r1;
+  
+r2=calc? mr+ (abs(id)<abs(od)?id/2:od/2) +wall/2 * (sign(id)!=sign(od)?sign(abs(id)<abs(od)?id:od):0):
+         r2;
 
 for (i=[0:points-1]){ 
      $idx=i;
@@ -2746,16 +2772,18 @@ for (i=[0:points-1]){
      rotate((i+1)*360*rotations/points)translate([r1,0])rotate((i+1)*360*rotations*ratio/points)translate([r2,0])if($children)children($children>1?1:0);else circle(d=wall,$fn=12);
      }
  }
-InfoTxt("Rosette",["Rotations",rotations,"Punkte",points],name); 
+InfoTxt("Rosette",["Rotations",rotations,"Punkte",points,"id",-wall+abs((abs(r2)-abs(r1))*2),"od",wall+abs((abs(r1)+abs(r2))*2)],name); 
 HelpTxt("Rosette",[ 
-    "r1",r1,
-    "r2",r2,
-    "ratio",ratio,
-    "wall",wall,
-    "fn",fn,
-    "rotations",rotations,
-    "name",name
-    ], help);
+  "r1",r1,
+  "r2",r2,
+  "ratio",ratio,
+  "wall",wall,
+  "id",id,
+  "od",od,
+  "fn",fn,
+  "rotations",rotations,
+  "name",name
+  ], help);
 }
 
 
