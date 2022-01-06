@@ -43,6 +43,8 @@ Changelog (archive at the very bottom)
 011|22 FIX Box Prisma FIX Gewinde
 012|22 CHG Rosette Add id od FIX spelling help CHG Anorden (fix for 2021.1)
 0121|22 FIX Anordnen FIX SRing FIX Knochen
+013|22 CHG Rosette autocalc
+015|22 FIX Gewinde
 
 
 */
@@ -110,7 +112,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.0121;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.015;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -2751,8 +2753,12 @@ help
 $info=0;
 $helpf=0;
 $messpunkt=0;
-function rotations(ratio=ratio,n=1,max=150)=ratio==0?1:n/ratio%1&&n<max?rotations(ratio,n+1):n/ratio;//ganzzahliger Wert
-rotations=is_undef(rotations)?rotations():rotations;
+function rotations(ratio=ratio,n=1,max=500)=ratio==0?1:n/ratio%1&&n/ratio<max?rotations(ratio,n+1):n/ratio;//ganzzahliger Wert
+  
+autocalcRot=rotations();
+  
+Echo(str(name," Rosette rotations auto calc (",autocalcRot>=500?"over500 calc stopped":autocalcRot,") > 30 ↦ clamped to 30"),color="warning",condition=autocalcRot>25);
+rotations=is_undef(rotations)?min(25,autocalcRot):rotations;
 points=abs(ratio)>1?abs(fn*ratio*rotations):abs(rotations*fn);
 calc=is_num(id)&&is_num(od)?1:0;
 mr=calc? abs(id)<abs(od)?(od-id)/4:(id-od)/4:
@@ -2953,8 +2959,10 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
     
   }
   
-      else{Polar(g,name=0,r=innen?g%2?0:180/g:0){
+      else{ info=$info;
+        Polar(g,r=innen?g%2?0:180/g:0,name=false){
         $tab=$tab-1;
+        $info=info;
         GewindeV4(p=p,
                 dn=dn,
                 kern=kern,
@@ -2994,7 +3002,6 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
             }
     
 }
-
 
 
 module GewindeV4(
@@ -3042,7 +3049,11 @@ help
     wand=is_undef(mantel)?innen?wand:wand>kern/2?0:wand:abs(mantel-kern)/2;
     d1=innen?-kern:dn;//Gewindespitzen
     d2=innen?-dn:kern;//Gewindetäler
-    grad=is_undef(h)?grad-(grad%(360/fn)):(h-p)/p*360-(((h-p)/p*360)%(360/fn));//windungen
+    grad=max(//windungen
+      is_undef(h)?grad-(grad%(360/fn)):(h-p)/p*360-(((h-p)/p*360)%(360/fn)),
+    360/fn*(start+end))
+    ;
+  
     mantel=is_undef(mantel)?innen?d2-wand*2:wand?kern-wand*2:kern/2+0.0001:innen?-max(mantel,0.0001):max(mantel,0.0001);//innenloch /aussenmantel
     winkelP=atan(p/((d1+d2)/2*PI));//Steigungswinkel
     profilkorrekturY=korrektur?1/sin(90+winkelP):1;
