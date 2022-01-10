@@ -45,6 +45,9 @@ Changelog (archive at the very bottom)
 0121|22 FIX Anordnen FIX SRing FIX Knochen
 013|22 CHG Rosette autocalc
 015|22 FIX Gewinde
+016|22 CHG RingSeg FIX Kassette help CHG Superellipse
+019|22 CHG Schnitt size
+020|22 CHG KBS CHG Prisma CHG Box CHG Pille
 
 
 */
@@ -112,7 +115,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.015;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.020;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -1266,12 +1269,16 @@ module Points(points,color,size,hull=.5,loop=25,start=0,mark,markS,center=true,h
 
 
 // Cutaway children for preview
-module Schnitt(on=$preview,r=0,x=0,y=0,z=-0.01,rx=0,ry=0,sizex=500,sizey=500,sizez=500,center=0)
+module Schnitt(on=$preview,r=0,x=0,y=0,z=-0.01,rx=0,ry=0,sizex=viewportSize,sizey=viewportSize,sizez=viewportSize,center=0)
 {
+  sizex=is_undef(sizex)?bed?printBed:500:sizex;
+  sizey=is_undef(sizey)?bed?printBed:500:sizey;
+  sizez=is_undef(sizez)?bed?printBed:500:sizez;
+  
     center=is_bool(center)?center?1:0:center;
     if($children)difference()
     {
-        union()children();
+      union()children();
       if((on&&$preview)||on==2)  translate([x,y,z])rotate([rx,ry,r])color([1,0,0,1])translate([center>0?-sizex/2:0,abs(center)==1?-sizey/2:-sizey,center>1||center<0?-sizez/2:0])cube([sizex,sizey,sizez],center=false);
     }
 
@@ -1817,8 +1824,6 @@ module ZigZag(e=5,es=0,x=50,y=7,mod=2,delta=+0,base=2,shift=0,center=true,name,h
 
 
 
-
-
 module Rundrum(x=+40,y,r=10,eck=4,twist=0,grad=90,grad2=90,spiel=0.005,fn=fn,name,help){
     
 $info=name;
@@ -1828,6 +1833,7 @@ $fa=fa;
 $fs=fs;
 $fn=fn;
   // WIP
+  Echo("Angle with different radii not implemeted yet",condition=(r1!=r2||r2!=r3||r3!=r4)&&(grad2!=90||grad!=90));
     r1=is_list(r)?r[0]:r;
     r2=is_list(r)?r[1]:r;
     r3=is_list(r)?r[2]:r;
@@ -2216,9 +2222,9 @@ h=is_undef(knobH)?2:knobH;// knob height
 
     
 ks=is_undef(dist)?8.0:dist; // spacing
-rand=1.45;
-bh=is_undef(bh)?9.5:bh;// block height
-roof_thickness=1.05;    
+rand=1.5;
+bh=is_undef(bh)?9.6:bh;// block height
+roof_thickness=1;//1.05
 pin_diameter=3;        //pin for bottom blocks with width or length of 1
 post_diameter=6.5;
 reinforcing_width=1.5;
@@ -2245,7 +2251,7 @@ e=is_list(e)?e:[e,e];
     }
  }
 InfoTxt("KBS",["size",str(
-    str(e.x*d+rand*2,"×",e.y*d+rand*2,e.z?str("×",e.z*bh):"")
+    str(d+rand*2+ks*(e.x-1),"×",d+rand*2+ks*(e.y-1),e.z?str("×",e.z*bh):"")
     ,grad?str(" diff ",grad,"° bei h=2mm ",tan(grad)*2):
        ""
     )],name);
@@ -2309,22 +2315,25 @@ rad=1.0,
 r=10,
 spiel=.5,
 fn=fn,
+fn2,
 name,
 help
 ){
-  HelpTxt("RingSeg",["grad",grad,"size",size,"h",h,"rad",rad,"r",r,"spiel",spiel,"fn",fn,"name",name],help);  
+  HelpTxt("RingSeg",["grad",grad,"size",size,"h",h,"rad",rad,"r",r,"spiel",spiel,"fn",fn,"fn2",fn2,"name",name],help);  
   $info=name;  
     rad2=rad+spiel;//spiel
 
-h=is_undef(h)?size:h;
+h=assert(is_num(size))is_undef(h)?size:h;
    winkel2=asin(rad2/(r+size/2-rad));
    winkel1=asin(rad2/(r-size/2+rad));
+
+fn2=is_undef(fn2)?fn:fn2;
+fnS=fn2;
   
-fnS=fn;
 union(){
   $helpM=false;
 difference(){
-   Torus(grad=grad,end=+0,trx=r,d=size,fn=fn)Quad(size,h,r=rad,fn=fn);
+   Torus(grad=grad,end=+0,trx=r,d=size,fn=fn)Quad(size,h,r=rad,fn=fn2);
   //base part
    linear_extrude(h+5,center=true,convexity=5)polygon([
      [0,0],
@@ -4231,7 +4240,9 @@ help
 2D=is_parent(needs2D)&&!$children?2D?b(2D,false):
                                  1:
                               b(2D,false);
-
+  
+  
+fn2=is_list(fn2)?fn2:[fn2,fn2];
 r=is_undef(r)?d/2:r;
 rad=is_undef(rad)?2*r<l?r*[1,1]:l/2*[1,1]:is_list(rad)?rad*sign(r):[rad,rad]*sign(r);
 rad2=is_undef(rad2)?!is_undef(rad[1])?rad[1]:r<l?r:l-rad[0]:rad2*sign(r);
@@ -4251,8 +4262,8 @@ if(l+ausgleich+ausgleich2-rad[0]-rad2<0) echo(str("<font color=red><b>Pille zu k
 points=concat([
 if(!loch)[0,0],
 if(!loch)[0,l]],
-rad2==0?[[d/2,l]]:Kreis(r=rad2,rand=0,grad=grad2,t=[d/2-rad2,l-rad2+ausgleich2],fn=fn2,center=false,rot=90-grad2),
-rad[0]==0?[[d/2,0]]:Kreis(r=rad[0],rand=0,grad=rgrad,t=[d/2-rad[0],rad[0]-ausgleich],fn=fn2,center=false,rot=90)
+rad2==0?[[d/2,l]]:Kreis(r=rad2,rand=0,grad=grad2,t=[d/2-rad2,l-rad2+ausgleich2],fn=fn2[1],center=false,rot=90-grad2),
+rad[0]==0?[[d/2,0]]:Kreis(r=rad[0],rand=0,grad=rgrad,t=[d/2-rad[0],rad[0]-ausgleich],fn=fn2[0],center=false,rot=90)
 
 );
 
@@ -4619,7 +4630,14 @@ HelpTxt("Flower",["e",e,"n",n,"r",r,"r2",r2,"min",min,"fn",fn,"name",name],help)
 
 
 module Superellipse(n=4,r=10,n2,r2,n3,n31,n32,r3,fn=fn,fnz,name,help){
-    r2=is_undef(r2)?r:r2;
+    
+  
+  r2=is_undef(r2)?is_list(r)?r.y:
+                             r:
+                  r2;
+  r3=is_num(r.z)?r.z:r3;
+  r=is_list(r)?r.x:r;
+  
     n11=is_list(n)?n[0]:n;
     n12=is_list(n)?n[1]:n;
     n13=is_list(n)?n[2]:n;
@@ -4630,18 +4648,20 @@ module Superellipse(n=4,r=10,n2,r2,n3,n31,n32,r3,fn=fn,fnz,name,help){
     n23=is_list(n2)?n2[2]:n2;
     n24=is_list(n2)?n2[3]:n2;    
    
-    n3=is_undef(n3)?is_list(n)?n[0]:n:n3;
-    n31=is_undef(n31)?n3:n31;
-    n32=is_undef(n32)?n3:n32;
+    n3i=is_undef(n3)?is_list(n)?n[0]:n:n3;
+    n31=is_undef(n31)?is_list(n3)?n3[1]:n3i:n31;
+    n32=is_undef(n32)?is_list(n3)?n3[2]:n3i:n32;
+    n3=is_undef(n3)?is_list(n)?n[0]:n:is_list(n3)?n3[0]:n3;
+    
     fnz=is_undef(fnz)?fn:fnz;
-  if(name)echo(str(is_string(name)?"<H3>":"",name," Superellipse n=[",n11,",",n12,",",n13,",",n14,"] ",is_undef(r3)?"is 2D":"is elipsoid 3D"));  
+  InfoTxt("Superellipse",["n",str(n,is_undef(r3)?" is 2D":" is elipsoid 3D")],name);  
   
   if(is_undef(r3))  
     polygon([for(f=[0:fn])let(i=f%fn*360/fn)each[
     if(i<=90)[r*pow(sin(i),2/n11),r2*pow(cos(i),2/n21)],
     if(i>90&&i<=180)[r*pow(abs(sin(i)),2/n12),-r2*pow(abs(cos(i)),2/n22)],
     if(i>180&&i<=270)[-r*pow(abs(sin(i)),2/n13),-r2*pow(abs(cos(i)),2/n23)],
-    if(i>270&&i)[-r*pow(abs(sin(i)),2/n14),r2*pow(abs(cos(i)),2/n24)],    
+    if(i>270&&i)[-r*pow(abs(sin(i)),2/n14),r2*pow(abs(cos(i)),2/n24)],
     ]
     ]);
   else{
@@ -6399,7 +6419,7 @@ module Prisma(x1=12,y1,z=6,c1=5,s=1,x2,y2,x2d=0,y2d=0,c2=0,vC=[0,0,1],cRot=0,fnC
     helpZ=z;
     x=is_list(x1)?x1[0]:x1;
     y=is_list(x1)?x1[1]:is_undef(y1)?x1:y1;
-    hErr=s/2-cos(90/ceil(fnS/2))*s/2; // missing sphere piece
+    hErr=s/2-cos(90/ceil(fnS/2))*s/2+.00001; // missing sphere piece
     z=is_undef(x1[2])?z+hErr*2:x1[2]+hErr*2;
     
     
@@ -6641,7 +6661,7 @@ module Box(x=8,y,z=5,d2,c=3.5,s=1.5,eck=4,outer=true,fnC=36,fnS=24,help){
                   outer?d2:
                         Umkreis(eck,d2-red)+red;
 
-  hErr=s/2-cos(90/ceil(fnS/2))*s/2; // missing sphere piece
+  hErr=s/2-cos(90/ceil(fnS/2))*s/2+.00001; // missing sphere piece
   z=z+hErr*2;
 
   T(z=z/2-hErr)  minkowski(){
@@ -6786,10 +6806,11 @@ s= h/(rU*PI*2*(twist/360));
 } 
 
 
+
 module Kassette(r1=2,r2,size=20,h=0,gon=3,fn=fn,fn2=36,r=+0,grad=90,grad2=90,spiel=0.003,mitte=true,sizey=0,basis=1,2D=false,name,help)
 {
   r2=is_undef(r2)?r1:r2;  
-HelpTxt("Kassette",["r1",r1,"r2",r2,"size",size,"h",h,"gon",gon,"fn",fn,",fn2=",fn2,"r",r,"grad",grad,"spiel",spiel,"mitte",mitte,"sizey",sizey,"basis",basis,"2D",2D,"name",name],help);
+HelpTxt("Kassette",["r1",r1,"r2",r2,"size",size,"h",h,"gon",gon,"fn",fn,",fn2=",fn2,"r",r,"grad",grad,"grad2",grad2,"spiel",spiel,"mitte",mitte,"sizey",sizey,"basis",basis,"2D",2D,"name",name],help);
     if(help){
       echo("r1 r2 size — radius unten, oben und durchmesser");
       echo("h gon fn fn2 r — höhenzusatz, ecken, fn, fn2 des profils und eckradius"); 
