@@ -1,4 +1,4 @@
 {
     "key" : "ub",
-    "content" : "include<ub.scad>//->http://v.gd/ubaer or https://github.com/UBaer21/UB.scad\n/*[Hidden]*/\n\tuseVersion=22.002;\n\tdesignVersion=1.0;\n\tvp=false;\n\tbed=true;\n\t$info=true;\n\tnozzle=.2;\n/*[ ^~^ ]*/\n"
+    "content" : "include<ub.scad>//->http://v.gd/ubaer or https://github.com/UBaer21/UB.scad\n/*[Hidden]*/\n\tuseVersion=22.022;\n\tdesignVersion=1.0;\n\tvp=false;\n\tbed=true;\n\t$info=true;\n\tnozzle=.2;\n/*[ ^~^ ]*/\n"
 }
