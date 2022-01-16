@@ -48,6 +48,7 @@ Changelog (archive at the very bottom)
 016|22 CHG RingSeg FIX Kassette help CHG Superellipse
 019|22 CHG Schnitt size
 020|22 CHG KBS CHG Prisma CHG Box CHG Pille
+021|22 CHG Pille FIX m chg v3 chg stern CHG Buchtung CHG Schnitt size
 
 
 */
@@ -115,7 +116,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.020;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.021;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -272,7 +273,7 @@ function clampToX0(points,interval=minVal)=[for(e=points)[abs(e[0])>interval?e[0
             atan2(p2.y-p1.y,p2.x-p1.x)-90
             ];
 
-v3= function(v)is_num(v.y)?is_num(v.z)?len(v)==3?v:  // make everything to a vector3
+function v3( v ) =is_num(v.y)?is_num(v.z)?len(v)==3?v:  // make everything to a vector3
                                           [v.x,v.y,v.z]:
                             concat(v,[0]):
                   concat(v,[0,0]);
@@ -328,15 +329,15 @@ is_list(parent)?is_num(search(parent,parentList())[i])?true:
 */
 
 
-// WIP  rot sequence wrong
-m = function (r=[0,0,0], t=[0,0,0], t2=[15,0,0], s=[1,1,1])
+
+m = function (r=[0,0,0], t=[0,0,0], s=[1,1,1])//t2=[0,0,0],
 let(
 s=is_num(s)?[s,s,s]:
             len(s)==2?concat(s,[1]):
                       s,
-r=is_num(r)?[0,0,r]:r,
-t=len(t)==2?concat(t,[0]):t,
-t2=len(t2)==2?concat(t2,[0]):t2,
+r=is_num(r)?[0,0,r]:len(r)==3?r:v3(r),
+t=is_list(t)?len(t)==2?concat(t,[0]):len(t) == 3?t:v3(t):v3(t),
+//t2=len(t2)==2?concat(t2,[0]):t2,
 
   rx = function (x)[
   [1,     0,      0, t.x],
@@ -360,21 +361,21 @@ t2=len(t2)==2?concat(t2,[0]):t2,
   ],
   
   
-
+/*
   mt = function (t2=[0,0,0])[
   [1, 0, 0, t2.x],
   [0, 1, 0, t2.y],
   [0, 0, 1, t2.z],
   [0, 0, 0, 0]
   ],
-  
-  ms = function (s=[ 1, 1, 1])[
+ */ 
+  ms = function (s=[ 1, 1, 1],t=t)[
   [s.x, 0, 0, t.x],
   [0, s.y, 0, t.y],
   [0, 0, s.z, t.z],
   [0, 0, 0, 0]
   ],
-  out=rx(r.x)*ry(r.y)*rz(r.z)//*ms(s)*mt(t2)
+  out=rz(r.z)*ry(r.y)*rx(r.x)*ms(s)//*mt(t2)*
 )
 out;
 
@@ -394,6 +395,9 @@ out=
 )is_list(points[0])?out:out[0];
 
   /*
+    rot=[+27,+28,+75];
+    sc=[1.3,0.4,1.3];
+    tr=[14,15,13];
 p=[
    [-10,  0,  0], 
    [ 10,  0,  0], 
@@ -405,9 +409,10 @@ p=[
 
 a=[[for (i=[0:len(p)-1])i]];
 
-polyhedron(p2,a);
+T(0)Color(alpha=.5)scale(1.0001)hull()polyhedron(p2,a);
+rotate(rot)translate(tr)scale(sc)hull()polyhedron(p,a);
 
-p2=mPoints(p,t=[+20,0],r=[0,0,45],s=[2,0.5]);
+p2=mPoints(mPoints(p,t=tr,r=rot,s=sc),t=[0,0]);
 
 //*/
 
@@ -451,14 +456,22 @@ Points(points,loop=(fn+4)*3,start=(fn+4)*5,hull=0);
 //*/
 
 
-function stern (e=5,r1=10,r2=5,mod=2,delta=+0)=
-let(schritt=360/(e*mod))
+function stern (e=5,r1=10,r2=5,mod=2,delta=+0,z)=
+let(
+  schritt=360/(e*mod))
+  is_num(z)?
+    [for(i=[0:e*mod])
+    i%mod<mod/2+round(delta)?[sin(i*schritt%360)*r1,cos(i*schritt%360)*r1,z]:
+                             [sin(i*schritt%360)*r2,cos(i*schritt%360)*r2,z]
+    ]:
     [for(i=[0:e*mod])
       i%mod<mod/2+round(delta)?[sin(i*schritt%360)*r1,cos(i*schritt%360)*r1]:
                                [sin(i*schritt%360)*r2,cos(i*schritt%360)*r2]
     ];
 
-//polygon(Stern());
+
+
+//polygon(stern());
 
 function tetra(r=1)=
   let(
@@ -1269,11 +1282,11 @@ module Points(points,color,size,hull=.5,loop=25,start=0,mark,markS,center=true,h
 
 
 // Cutaway children for preview
-module Schnitt(on=$preview,r=0,x=0,y=0,z=-0.01,rx=0,ry=0,sizex=viewportSize,sizey=viewportSize,sizez=viewportSize,center=0)
+module Schnitt(on=$preview,r=0,x=0,y=0,z=-0.01,rx=0,ry=0,sizex,sizey,sizez,center=0)
 {
-  sizex=is_undef(sizex)?bed?printBed:500:sizex;
-  sizey=is_undef(sizey)?bed?printBed:500:sizey;
-  sizez=is_undef(sizez)?bed?printBed:500:sizez;
+  sizex=is_undef(sizex)?bed?printBed.x:max(viewportSize,50):sizex;
+  sizey=is_undef(sizey)?bed?printBed.y:max(viewportSize,50):sizey;
+  sizez=is_undef(sizez)?bed?100:max(viewportSize,50):sizez;
   
     center=is_bool(center)?center?1:0:center;
     if($children)difference()
@@ -3494,12 +3507,22 @@ HelpTxt("SpiralCut",[
 }
 
 
-module Buchtung(size=[10,5],l=10,r=2.5,rmin=0,center=true,fn=15,fn2=fn,phase=360,deltaPhi=-90,help){
+
+module Buchtung(size=[10,5],l=10,r=2.5,rmin=0,center=true,fn=fn,fn2=fn,phase=360,deltaPhi=-90,help){
     
     size=is_list(size)?size:[size,size];
     rmin=is_list(rmin)?rmin:[rmin,rmin,rmin,rmin];
     r=is_list(r)?r:[r,r,r,r];
-    
+  
+  points=[
+      for (i=[0:fn])
+        let(
+          zscale=l/(fn),
+          rscale=r-rmin)
+        each quad(size,r=(1+sin(i*phase/fn+deltaPhi))/2*rscale+rmin,z=i*zscale,fn=fn2)
+        ];
+  
+/*
     for (i=[0:fn-1]){
       
         j=i+1;
@@ -3515,7 +3538,12 @@ module Buchtung(size=[10,5],l=10,r=2.5,rmin=0,center=true,fn=15,fn2=fn,phase=360
           linear_extrude(minVal,scale=0)Quad(size,r=(1+sin(j*phase/fn+deltaPhi))*rscale/2+rmin,fn=fn2);
           }
         }
-    }    
+    }
+//*/
+
+translate(center?[0,0,-l/2]:[0,0.0,0]+size/2)PolyH(points,loop=floor(fn2/4)*4+4,name=false);
+
+    
 HelpTxt("Buchtung",[
     "size",size,
     "l",l,
@@ -4224,7 +4252,7 @@ HelpTxt("Welle",[
 
 module Pille(
 l=10,
-d=+5,
+d,//+5,
 rad,
 rad2,
 r,
@@ -4243,9 +4271,13 @@ help
   
   
 fn2=is_list(fn2)?fn2:[fn2,fn2];
-r=is_undef(r)?d/2:r;
-rad=is_undef(rad)?2*r<l?r*[1,1]:l/2*[1,1]:is_list(rad)?rad*sign(r):[rad,rad]*sign(r);
-rad2=is_undef(rad2)?!is_undef(rad[1])?rad[1]:r<l?r:l-rad[0]:rad2*sign(r);
+r=is_undef(r)?is_undef(d)?l/2:d/2:r;
+rad=is_undef(rad)?2*r<l?r*[1,1]:l/2*[1,1]:is_list(rad)?rad*sign(r):[rad,rad?rad:undef]*sign(r);
+
+rad2=is_undef(rad2)?is_num(rad[1])?rad[1]:
+                                   r<l?r:
+                                       l-rad[0]:
+                    rad2*sign(r);
 d=is_undef(r)?abs(d):abs(r*2);
 deltaRx=max(0,rad[0]-d/2);
 deltaRy=Kathete(rad[0],deltaRx);
