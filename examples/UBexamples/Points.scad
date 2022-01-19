@@ -1,7 +1,7 @@
 include<ub.scad>//->http://v.gd/ubaer or https://github.com/UBaer21/UB.scad
 /*[Hidden]*/
-  useVersion=22.020;
-  designVersion=1.0;
+  useVersion=22.022;
+  designVersion=1.1;
   $info=true;
   
 /*[ Points ]*/
@@ -72,3 +72,21 @@ T(-85) {
 }
 
 }
+
+// path extrude
+T(-110)union(){
+profile=kreis(d=3,rand=0);
+points=pathPoints(profile,path=wStern(r=7,a=1,fn=5*25,rot=90,z=0),open=false);
+
+PolyH(points,loop=len(profile),end=false);
+
+bezierpath=[for(i=[0:.01:1]) ( bezier(i,p0=[-5,0,0]))];
+//polygon(bezierpath);
+points2=pathPoints(profile,path=bezierpath,open=true);
+
+T(0,15)PolyH(points2,loop=len(profile),end=true);
+
+
+}
+
+
