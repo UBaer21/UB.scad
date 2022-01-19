@@ -14,14 +14,14 @@
         "keyword3" : "#859900",
         "keyword-custom1" : "Chartreuse",
         "keyword-custom2" : "Orange",
-        "keyword-custom3" : "Indigo",
+        "keyword-custom3" : "Aquamarine",
         "keyword-custom4" : "Skyblue",
         "keyword-custom5" : "MediumOrchid",
         "keyword-custom6" : "SeaGreen",
         "keyword-custom7" : "HotPink",
         "keyword-custom8" : "DarkTurquoise",
         "keyword-custom9" : "DarkKhaki",
-        "keyword-custom10" : "BlueViolet",
+        "keyword-custom10" : "Gold",
         "keyword-custom11" : "Magenta",
 	
         "commentline" : "#657b83",
@@ -56,16 +56,16 @@
         "edge" : "#d33682"
     },
     "keywords" : {
-        "keyword-custom1" : "Konstanten PI PHI inch gradC gw tw twF fs2fn",
-        "keyword-custom2" : "Unknown true false undef b Hexstring parentList gcode is_parent",
+        "keyword-custom1" : "Konstanten PI PHI inch gradC gw tw twF fs2fn h r r1 r2 d d1 d2 dia dn ir or id od center size grad rot x y z e es fn fn2 spiel help wand rand rad bed info nozzle layer name pPos printPos useVersion loop start end twist i j p0 p1 p2 p3",
+        "keyword-custom2" : "Spezial true false undef b Hexstring parentList gcode is_parent",
         "keyword-custom3" : "NummerFunktionen n l Inkreis Umkreis Hypotenuse Kathete Sehne gradB gradS runden radiusS kreisbogen scaleGrad teiler",
-        "keyword-custom4" : "Punktefunktionen RotLang bezier kreis 5gon zigZag TangentenP vollwelle vektorWinkel v3 m mPoints tetra octa quad stern",
-        "keyword-custom5" : "Modifier Schnitt Anordnen T Tz R M Col Color Linear Polar Grid HexGrid Klon MKlon Halb Drehpunkt Rund Rand Scale",
+        "keyword-custom4" : "Punktefunktionen path points RotLang bezier kreis 5gon zigZag TangentenP vollwelle vektorWinkel v3 m mPoints pathPoints tetra octa quad stern wStern",
+        "keyword-custom5" : "Modifier T Tz R M Linear Polar Grid HexGrid Klon MKlon Halb Drehpunkt Rund Rand Scale",
         "keyword-custom6" : "Generator Rundrum LinEx LinEx2 RotEx Elipse Ttorus Bevel Row",
-        "keyword-custom7" : "Helper SCT Caliper Points Echo InfoTxt HelpTxt 3Projection Pivot Line",
-        "keyword-custom8" : "Objekte RStern Kextrude Gewinde GewindeV3 Kontaktwinkel Bezier Laser3D Bogen SBogen VorterantQ Reuleaux Kugelmantel Kegel MK Kegelmantel Torus Torus2 WaveEx Pille Strebe WStrebe Twins Kehle REcke HypKehle HypKehleD Text W5 Rohr Dreieck Freiwinkel Sinuskoerper Kassette Surface Box Spirale Prisma Ccube Disphenoid Zylinder Anschluss RingSeg Buchtung SpiralCut Isosphere OctaH PolyH",
-        "keyword-custom9" : "2Dobjekte Kreis Trapez Tri Tri90 Quad Linse Bogendreieck Stern ZigZag Superellipse Flower Seg7 WStern WKreis RSternFill Cycloid SQ Vollwelle CycloidZahn Nut DBogen Pfeil Rosette GT Egg VarioFill Welle Area Sichel",
-        "keyword-custom10" : "Produkte",
-        "keyword-custom11" : "Keyword11"
+        "keyword-custom7" : "Helper Col Color Schnitt Anordnen SCT Caliper Points Echo InfoTxt HelpTxt 3Projection Pivot Line",
+        "keyword-custom8" : "Objekte Ring RStern Kextrude Gewinde GewindeV3 Kontaktwinkel Bezier Laser3D Bogen SBogen VorterantQ Reuleaux Kugelmantel Kegel MK Kegelmantel Torus Torus2 Coil WaveEx Pille Strebe WStrebe Twins Kehle REcke HypKehle HypKehleD Text W5 Rohr Dreieck Freiwinkel Sinuskoerper Kassette Surface Box Spirale Prisma Ccube Disphenoid Zylinder Anschluss RingSeg Buchtung SpiralCut Isosphere OctaH PolyH",
+        "keyword-custom9" : "Polygone Kreis Trapez Tri Tri90 Quad Linse Bogendreieck Stern ZigZag Superellipse Flower Seg7 WStern WKreis RSternFill Cycloid SQ Vollwelle CycloidZahn Nut DBogen Pfeil Rosette GT Egg VarioFill Welle Area Sichel",
+        "keyword-custom10" : "Produkte Gardena Servotraeger Knochen Glied DGlied0 DGlied1 Luer Bitaufnahme Imprint Achshalter Achsenklammer Vorterantrotor Tugel ReuleauxIntersect Glied3 Gelenk Balg Tring Servokopf Halbrund Riemenscheibe Cring PCBcase Klammer Pin CyclGetriebe SRing DRing BB Abzweig GT2Pulley KBS",
+        "keyword-custom11" : "Keyword11 doesnt work"
     }
 }
