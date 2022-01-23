@@ -3331,6 +3331,7 @@ r2,
 od,
 id,
 grad=3*360,
+p,
 pitch=10,
 points,
 twist=0,
@@ -3350,14 +3351,14 @@ iFN=round(fn*grad/360*max(1,twist/360/3))-1;
 
 path=[for(i=[0: iFN ])
 let(deg=grad/iFN,
-p=pitch/360*deg,
+p=is_undef(p)?pitch/360*deg:p/360*deg,
 rDiff=(r2-r)/iFN
 )
 
 [sin(i*deg)*(r+rDiff*i),cos(i*deg)*(r+rDiff*i),p*i]];
 PolyH(pathPoints(points,path,twist=twist,scale=scale,open=open),
 loop=len(points),name=false);
-HelpTxt("Coil",["r",r,"d",d,"r2",r2,"od",od,"id",id,"grad",grad,"pitch",pitch,"points","kreis(d=d)","twist",twist,"scale",scale,"fn",fn,"fn2",fn2,"open",open],help);
+HelpTxt("Coil",["r",r,"d",d,"r2",r2,"od",od,"id",id,"grad",grad,"pitch",is_undef(p)?pitch:p,"points","kreis(d=d)","twist",twist,"scale",scale,"fn",fn,"fn2",fn2,"open",open],help);
 }
 
 
@@ -6087,6 +6088,7 @@ HelpTxt("Strebe",["h",h,"d",d,"d2",d2,"rad",rad,"rad2",rad2,"sc",sc,"grad",grad,
 }
 
 
+
 module Bezier(
 p0=[+0,+10,0],
 p1=[15,-10,0],
@@ -6116,7 +6118,7 @@ help
     //echo(search(["RotEx"],parentList())[0],parentList());
   
   messpunkt=is_bool(messpunkt)?messpunkt?pivotSize:0:messpunkt;//$info?messpunkt:0;
-  3D=len(p0)==3||is_list(points)||d?true:false;
+  3D=is_list(points)||d&&!$children?true:false;
   p0=v3(p0);
   p3=v3(p3);  
   p1=v3(pabs?p1*w:v3(p1)*w+p0);  
