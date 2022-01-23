@@ -41,3 +41,5 @@ $helpM=true;
 //SpiralCut(help=1);
 //Isosphere(help=1);
 //OctaH(help=1); /*Octahedron*/
+//Coil();
+//Bezier(d=1);

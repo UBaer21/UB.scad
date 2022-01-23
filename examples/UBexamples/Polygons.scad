@@ -30,3 +30,5 @@ $helpM=true;
 // Egg();
 // VarioFill();
 // Welle();
+// Tdrop();
+// Bezier();

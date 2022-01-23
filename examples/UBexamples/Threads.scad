@@ -16,11 +16,11 @@ T(20,15)Schnitt()Gewinde(dn=10,p=10,g=3,kern=5,wand=2,winkel=25,rad1=.15,rad2=0.
 T(0,-10)Gewinde(  // Thread module
   p=1,        // Pitch per revolution
   dn=6,       // Diameter nominal
-  kern=4.78, //  Core diameter
+  kern=4.78, //  Core diameter (⇐ dn)
   breite=0.0383975, // thickness of end rounding
-  rad1=0.05,  // rounding radius 1
-  rad2=0.1,  //  rounding radius 2
-  winkel=60,  // inclusive thread angle e.g 29 for ACME or 55 for BSW
+  rad1=0.05,  // rounding radius 1 (⇐ p g rund breite)
+  rad2=0.1,  //  rounding radius 2 (⇐ p g rund breite)
+  winkel=60,  // inclusive thread angle e.g 29 for ACME or 55 for BSW can be list [10,40] for buttress
   wand=1,     // wall thickness (⇐ mantel)
   mantel=2.78, // inner or outer shell diameter (↦ wand)
   h=4.5, // height (↦ grad)
@@ -37,9 +37,9 @@ T(0,-10)Gewinde(  // Thread module
   tz=0,     //  move thread z
   konisch=0, // tapered thread angle
   center=1,  // center thread
-  rund=false, // round thread
-  ratio=undef,// ratio between threads and space
-  spiel=0.15, // clearance for presets only inner threads
+  rund=false, // round thread (↦ rad1 rad2)
+  ratio=undef,// ratio between threads and space (↦ breite)
+  spiel=0.15, // clearance only for presets inner threads
   name=undef, // name for info
   help=true  // help
 );
