@@ -5,7 +5,7 @@
 
 include<ub.scad> 
 /*[Hidden]*/
-useVersion=21.359;//⇒ v.gd/ubaer
+useVersion=22.022;//⇒ v.gd/ubaer
 assert(Version>=useVersion,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 nozzle=.2;
 bed=false;
@@ -132,8 +132,8 @@ union(){// Line line between P0 P1
 }
 
 union(){// Points numbers Points
-  points=mPoints(tetra(4),r=[65,-50,-5]);
-    T(objPos/2)Points(points,color=[undef,undef,undef,1],size=1.5,hull=.4);
+  points=mPoints(tetra(4),r=[40,+5,40]);
+    T(objPos/2)Points(points,color=[undef,undef,undef,1],size=1.5,markS=3,loop=4,hull=.4,center=false);
     //T(objPos/2)hull()polyhedron(points,[[0,1,2,3]]);
     Txt("Points(points)"); 
 }
@@ -441,8 +441,12 @@ $textPos=[-7,-8.5];
      union(){ // Arc
       Bogen(2D=true,messpunkt=5);
       Txt("Bogen"); 
-    }     
+    } 
     
+     union(){ // Tdrop for horizontal holes
+      Tdrop(d=12);
+      Txt("Tdrop"); 
+    }     
     
     
   /* 
@@ -493,7 +497,13 @@ objPos=[4,4];
 //  T(objPos)Rundrum(10,6,r=[2.5,4,1,0],help=0)rotate(30)circle(1,$fn=6);
 //  Txt("Rundrum()circle()"); 
 //}
-  
+
+
+union(){// Coil
+    T(objPos-[0,2])R(-45)Coil(r=4,d=1,pitch=2);
+    Txt("Coil(points=kreis())"); 
+} 
+ 
 union(){ // Bow
   T(objPos){
     T(-5){
@@ -542,8 +552,8 @@ union(){// linear extrude2
 
 
 union() { //Bezier
-    T(objPos)Bezier(p0=[0,+5],p1=[10,+0],p2=[-9,+3],p3=[10,-5],messpunkt=3)R(90)cylinder(.1,d1=1,d2=0);
-    Txt("Bezier()R(90)cylinder()"); 
+    T(objPos)Bezier(p0=[0,+3],p1=[10,+0],p2=[-9,+3],p3=[10,-5],d=1.2,messpunkt=4);//R(90)cylinder(.1,d1=1,d2=0);
+    Txt("Bezier(points=kreis())"); 
 }
 
 
