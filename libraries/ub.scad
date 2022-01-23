@@ -49,6 +49,8 @@ Changelog (archive at the very bottom)
 019|22 CHG Schnitt size
 020|22 CHG KBS CHG Prisma CHG Box CHG Pille
 021|22 CHG Pille FIX m chg v3 chg stern CHG Buchtung CHG Schnitt size
+022|22 CHG Kassette ADD pathPoints CHG kreis ADD Coil ADD wStern CHG vektorWinkel CHG Halb CHG Superellipse CHG Glied ADD SGlied CHG Prisma ADD Tdrop CHG Bezier
+Release
 
 
 */
@@ -116,7 +118,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.021;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.022;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -159,10 +161,11 @@ let(
 p0*(omt2*omt) + p1*(3*omt2*t) + p2*(3*omt*t2) + p3*(t2*t);
 
 function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=kreis(r,rand,grad,grad2,fn,center,sek,r2,rand2,rcenter,rot,t);
-function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z)=
+function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d)=
 let (
 grad2=is_undef(grad2)?grad:grad2,
-r=rcenter?r+rand/2:r,
+r=is_num(d)?rcenter?(d+rand)/2:d/2:
+            rcenter?r+rand/2:r,
 rand2=is_undef(rand2)?rand:rand2,
 r2=r2?
     rcenter?r2+rand2/2:r2
@@ -263,12 +266,13 @@ function gradC(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)=grad+h/24*360+min/6
 function inch(inch)=inch*25.4;
 function kreisbogen(r,grad=360)=PI*r*2/360*grad;
 function fs2fn(r,grad=360,fs=fs,minf=3)=max(minf,PI*r*2/360*grad/fs);
-function clampToX0(points,interval=minVal)=[for(e=points)[abs(e[0])>interval?e[0]:0,e[1]]];
+function clampToX0(points,interval=minVal)=is_list(points[0])?[for(e=points)[abs(e[0])>interval?e[0]:0,e[1]]]:
+    [abs(points[0])>interval?points[0]:0,points[1]];
   
 // angle between two points used for e.g. Bezier
   vektorWinkel= function(p1=[0,0,0],p2=[0,0,0])p1==p2?[0,0,0]:[ 
             
-            -acos((p2.z-p1.z)/norm(p2-p1))+90,
+            -acos((v3(p2).z-v3(p1).z)/norm(p2-p1))+90,
             0,
             atan2(p2.y-p1.y,p2.x-p1.x)-90
             ];
@@ -416,6 +420,16 @@ p2=mPoints(mPoints(p,t=tr,r=rot,s=sc),t=[0,0]);
 
 //*/
 
+function pathPoints(points=[[0,0,0],[0,10,0],[10,0,0]],path=[[0,0,0],[0,+10,10]],twist=0,scale=1,open=true)=
+  let(pathLen=len(path)-1,
+      scale=is_list(scale)?scale:[scale,scale])
+  [for (i=[0:pathLen],j=[0:len(points)-1])
+    mPoints ( v3( mPoints(points[j],r=i*twist/pathLen) ) ,
+      r=vektorWinkel( path[ open? max(0,i-1): (i==0?pathLen -1:i-1)], path[open?min(i+1,pathLen):(i+1)%pathLen])+[-90,0,0],
+      s=[1+i*(-1+scale.x)/pathLen,1+i*(-1+scale.y)/pathLen])
+    + v3(path[i])];
+
+
 
 
 function octa   (s=1) =
@@ -473,6 +487,17 @@ let(
 
 //polygon(stern());
 
+
+function wStern(f=5,r=1.65,a=.25,r2,fn=fn,rot=0,z)=
+let(step=360/fn,
+    a=is_undef(r2)?a:(r2-r)/2,
+    r=is_undef(r2)?r:r+a)
+[for(i=[0:fn])let(i=i%fn)is_undef(z)?
+          [(r+a*cos(f*i*step+rot))*sin(i*step),(r+a*cos(f*i*step+rot))*cos(i*step)]:
+          [(r+a*cos(f*i*step+rot))*sin(i*step),(r+a*cos(f*i*step+rot))*cos(i*step),z]];
+
+// polygon (wStern(f=5,r=1.65,a=.25,rot=180));
+
 function tetra(r=1)=
   let(
   r=is_list(r)?r:[r,r,r,r]
@@ -485,12 +510,41 @@ for(i=[0:2])[sin(120*i)*sin(tw)*r[i+1],cos(120*i)*sin(tw)*r[i+1],cos(tw)*r[i+1]]
 //hull()polyhedron(tetra(),[[0,1,2,3]]);
 
 
+function superellipse(n=2.5,r=10,z,fn=fn)=
+let(
+  r2=is_undef(r2)?is_list(r)?r.y:
+                             r:
+                  r2,
+  r=is_list(r)?r.x:r,
+  
+    n11=is_list(n)?n[0]:n,
+    n12=is_list(n)?n[1]:n,
+    n13=is_list(n)?n[2]:n,
+    n14=is_list(n)?n[3]:n,
+    n2=is_undef(n2)?n:n2,
+    n21=is_list(n2)?n2[0]:n2,
+    n22=is_list(n2)?n2[1]:n2,
+    n23=is_list(n2)?n2[2]:n2,
+    n24=is_list(n2)?n2[3]:n2
+   )
+is_undef(z)?[for(f=[0:fn])let(i=f%fn*360/fn)each[
+    if(i<=90)[r*pow(sin(i),2/n11),r2*pow(cos(i),2/n21)],
+    if(i>90&&i<=180)[r*pow(abs(sin(i)),2/n12),-r2*pow(abs(cos(i)),2/n22)],
+    if(i>180&&i<=270)[-r*pow(abs(sin(i)),2/n13),-r2*pow(abs(cos(i)),2/n23)],
+    if(i>270&&i)[-r*pow(abs(sin(i)),2/n14),r2*pow(abs(cos(i)),2/n24)],
+    ]
+    ]:
+    [for(f=[0:fn])let(i=f%fn*360/fn)each[
+    if(i<=90)[r*pow(sin(i),2/n11),r2*pow(cos(i),2/n21),z],
+    if(i>90&&i<=180)[r*pow(abs(sin(i)),2/n12),-r2*pow(abs(cos(i)),2/n22),z],
+    if(i>180&&i<=270)[-r*pow(abs(sin(i)),2/n13),-r2*pow(abs(cos(i)),2/n23),z],
+    if(i>270&&i)[-r*pow(abs(sin(i)),2/n14),r2*pow(abs(cos(i)),2/n24),z],
+    ]
+    ];
 
 
-
-
-
-
+//polygon(superellipse(r=[5,2]));
+//Coil(points=superellipse(r=[3,2],n=3.5));
 
 
 
@@ -625,10 +679,13 @@ echo    ("
 ••• is_parent(needs2D) search parentlist for string or list of strings (parent module needing polygon children) \n
 ••• m(r=[0,0,0], t=[0,0,0], s=[1,1,1])// multmatrix vector*concat(point,[1]) for rotation and translation •••\n
 ••• mPoints(points,r,t,s) use with 2D&3D point / points •••\n
+••• pathPoints(points,path,twist,scale) •••\n
 ••• tetra(r) tetrahedron points •••\n
 ••• octa(r,n,d)  octaheadron points (subdiv n) ••• \n
 ••• quad(x,y,r,fn,z)  Quad points ••• \n
-••• stern(e=5,r1=10,r2=5,mod=2,delta=+0)  Stern points ••• \n
+••• stern(e=5,r1=10,r2=5,mod=2,delta=+0,z)  Stern points ••• \n
+••• wStern(f=5,r=1.65,a=.25,r2,fn=fn,rot=0,z)  ••• \n
+••• superellipse(n=2.5,r=10,z,fn=fn) ••• \n
 
 ");
     
@@ -708,6 +765,7 @@ echo    ("•••••• Polygons ••••••\n
 •• Egg(help=1);\n
 •• VarioFill(help=1);\n
 •• Welle(help=1);\n
+•• Tdrop(help=1);\n
 
 ");
 }
@@ -764,6 +822,7 @@ echo    ("•••••••••• BasisObjekte:   •••••••�
 •• Isosphere(help=1);\n
 •• OctaH(help=1); /*Octahedron*/\n
 •• PolyH(); /*Polyhedron auto faces */\n
+•• Coil();
 
 ");
 
@@ -778,7 +837,7 @@ echo    ("•••••••••• Produkt Objekte:   ••••••�
 echo    ("•• [42] Gardena(l=10,d=10) ••••"); 
 echo    ("•• [43] Servotraeger(SON=1) ••• Servo(r,narbe) ••••");
 echo    ("•• [44] Knochen(l=+15,d=3,d2=5,b=0,fn=36)   ••••");
-echo    ("•• [38] Glied(l=12,spiel=0.5,la=+1.5,fn=20) ••• [39][40]DGlied0/1(l1=12,l2=12,la=+1.5) ••••");   
+echo    ("•• [38] Glied(l=12,spiel=0.5,la=+1.5,fn=20) •• SGlied(help=1) •• DGlied(help=1) •• [39][40]DGlied0/1(l=12,l1,l2,la=0) ••••");
 echo    ("•• [41] Luer(male=1,lock=1,slip=1) ••••"); 
 echo    ("•• [45] Bitaufnahme(l=10,star=true)••••");
 echo    ("•• [48] Imprint(txt1=1,radius=20,abstand=7,rotz=-2,h=l(2),rotx=0,roty=0,stauchx=0,stauchy=0,txt0=›,txt2=‹,size=5,font=DejaVusans:style=bold)        ••••");
@@ -1112,8 +1171,9 @@ module Klon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,help=false){
 
 
 // Cuts away half of Object at [0,0,0]
-module Halb(i=0,x=0,y=0,z=0,2D=0,size=max(100,viewportSize))
+module Halb(i=0,x=0,y=0,z=0,2D=0,size=max(400,viewportSize*5),help=false)
 {
+
     if(!2D){
        if(i)difference()
        {
@@ -1140,6 +1200,7 @@ module Halb(i=0,x=0,y=0,z=0,2D=0,size=max(100,viewportSize))
       }
   } 
  MO(!$children); 
+ HelpTxt("Halb",["i",i,"x",x,"y",y,"z",z,"2D",2D,"size",size],help);
 }
 
 
@@ -1284,9 +1345,9 @@ module Points(points,color,size,hull=.5,loop=25,start=0,mark,markS,center=true,h
 // Cutaway children for preview
 module Schnitt(on=$preview,r=0,x=0,y=0,z=-0.01,rx=0,ry=0,sizex,sizey,sizez,center=0)
 {
-  sizex=is_undef(sizex)?bed?printBed.x:max(viewportSize,50):sizex;
-  sizey=is_undef(sizey)?bed?printBed.y:max(viewportSize,50):sizey;
-  sizez=is_undef(sizez)?bed?100:max(viewportSize,50):sizez;
+  sizex=is_undef(sizex)?bed?printBed.x:max(viewportSize*5,150):sizex;
+  sizey=is_undef(sizey)?bed?printBed.y:max(viewportSize*5,150):sizey;
+  sizez=is_undef(sizez)?bed?100:max(viewportSize*5,150):sizez;
   
     center=is_bool(center)?center?1:0:center;
     if($children)difference()
@@ -1692,6 +1753,32 @@ module SCT(a=90){
 ///∇∇ Polygons ∇∇///
 
 
+
+module Tdrop(r=1,d,grad,cut=true,name,help){
+
+kgrad=is_undef(grad)?atan(layer/(nozzle/1.75)):90-grad;
+delta=is_bool(cut)?nozzle-layer:cut; // added cut
+
+r=is_num(d)?d/2:r;
+h=cos(kgrad)*r;
+x=sin(kgrad)*r;
+h2=cut==false?h+tan(kgrad)*x:min(r+delta,h+tan(kgrad)*x);
+x2=cut==false? 0:x - (h2-h)/tan(kgrad);
+
+
+points=[
+//[-x,h],
+//[ x,h],
+each kreis(rand=0,r=r,grad=360-kgrad*2,center=true,rot=-90),
+if(x2>minVal)[- x2,h2],
+clampToX0([ x2,h2])
+];
+
+if(messpunkt)%Tz(.1)color("green",.25)circle(r=r,$fn=fn);
+polygon(points);
+InfoTxt("Tdrop",["grad",90-kgrad,"cut",cut],name);
+HelpTxt("Tdrop",["r",r,"d",d,"grad",grad,"cut",cut,"name",name],help);
+}
 
 module VarioFill(
 l=15,
@@ -2151,7 +2238,7 @@ T(0,-10)PolyH(points1,loop=37,pointEnd=0,end=true);
 T(0,10)PolyH(octa(5));
 //*/
 
-module PolyH(points,loop,end=true,pointEnd=false,name,help){
+module PolyH(points,loop,end=true,pointEnd=false,convexity=5,name,help){
 loop=is_undef(loop)||loop<3?1:loop;
 points=assert(!is_undef(points))points;
 lp=len(points);
@@ -2192,14 +2279,14 @@ for(lev=[0:loops -2],i=[0:loop -1])let(pE=1)[
 
 if(loop>1)polyhedron(points,(pointEnd==true||pointEnd==1)&&loop>1?pointEnd==1?concat(pointyFaces,fTop):
                                                                               pointyFaces:
-                                                                 faces,convexity=5);
-  else hull()polyhedron(points,faces,convexity=5);
+                                                                 faces,convexity=convexity);
+  else hull()polyhedron(points,faces,convexity=convexity);
     
 InfoTxt("PolyH",["loops",loops,"points",lp],loop>1?name:false);
 InfoTxt("PolyH using hull—",["points",lp],loop==1?name:false);
   
 
-HelpTxt("PolyH",["points",[[0,0,0],[1,2,3]],"loop",loop,"end",end,"pointEnd",pointEnd,"name",name],help);
+HelpTxt("PolyH",["points",[[0,0,0],[1,2,3]],"loop",loop,"end",end,"pointEnd",pointEnd,"name","convexity",convexity,name],help);
   
 }
 
@@ -3234,6 +3321,43 @@ else Tz(center?center<0?-p/2+tz:tz:tz+p/2)color(innen?"slategrey":"gold"){
        R(90,0,90) polyhedron(points=pointsALL,faces=facesALL,convexity=5);
     if(cyl)Tz(-p/2)linear_extrude(h,convexity=5,scale=1+h*tan(konisch)/(d2/2))Kreis(r=d2/2-.000001,rand=innen?max(wand,+0.0001):mantel<0.01?0:wand,fn=fn,name=0);//Ring(h=h,rand=wand,d=abs(d2),cd=innen?-1:1);
     }
+}
+
+
+module Coil(
+r=20,
+d=5,
+r2,
+od,
+id,
+grad=3*360,
+pitch=10,
+points,
+twist=0,
+scale=1,
+fn=fn,fn2=36,
+open=true,
+help){
+
+d=is_num(od)&&is_num(id)?(od-id)/2 : d;
+r=is_undef(points)?is_num(od)?(od-d)/2:is_num(id)?(id+d)/2:r:r;
+r2=is_undef(r2)?r:r2;
+points=is_undef(points)?kreis(d=d,rand=0,fn=fn2):points;
+
+Echo("Coil using points od id or d can't compute",color="warning",condition=points&&od||points&&id);
+Echo("Coil intersecting",color="warning",condition=!points&&norm([(r-r2)/grad*360,pitch])<d);
+iFN=round(fn*grad/360*max(1,twist/360/3))-1;
+
+path=[for(i=[0: iFN ])
+let(deg=grad/iFN,
+p=pitch/360*deg,
+rDiff=(r2-r)/iFN
+)
+
+[sin(i*deg)*(r+rDiff*i),cos(i*deg)*(r+rDiff*i),p*i]];
+PolyH(pathPoints(points,path,twist=twist,scale=scale,open=open),
+loop=len(points),name=false);
+HelpTxt("Coil",["r",r,"d",d,"r2",r2,"od",od,"id",id,"grad",grad,"pitch",pitch,"points","kreis(d=d)","twist",twist,"scale",scale,"fn",fn,"fn2",fn2,"open",open],help);
 }
 
 
@@ -4680,10 +4804,11 @@ module Superellipse(n=4,r=10,n2,r2,n3,n31,n32,r3,fn=fn,fnz,name,help){
     n23=is_list(n2)?n2[2]:n2;
     n24=is_list(n2)?n2[3]:n2;    
    
-    n3i=is_undef(n3)?is_list(n)?n[0]:n:n3;
-    n31=is_undef(n31)?is_list(n3)?n3[1]:n3i:n31;
-    n32=is_undef(n32)?is_list(n3)?n3[2]:n3i:n32;
-    n3=is_undef(n3)?is_list(n)?n[0]:n:is_list(n3)?n3[0]:n3;
+    //n3i=is_undef(n3)?is_list(n)?n[0]:n:n3;
+    n3=is_undef(n3)?is_list(n)?[n[0],n[0]]:[n,n]:is_list(n3)?n3:[n3,n3];
+    n31=is_undef(n31)?n3:is_list(n31)?n31:[n31,n31];
+    n32=is_undef(n32)?n3:is_list(n32)?n32:[n32,n32];
+    
     
     fnz=is_undef(fnz)?fn:fnz;
   InfoTxt("Superellipse",["n",str(n,is_undef(r3)?" is 2D":" is elipsoid 3D")],name);  
@@ -4701,15 +4826,15 @@ module Superellipse(n=4,r=10,n2,r2,n3,n31,n32,r3,fn=fn,fnz,name,help){
        let(i=f%fn*360/fn,j=fz*180/fnz)
     each[
     
-    if(i<=90&&j<=90)[r*pow(sin(i),2/n11)*pow(sin(j),2/n31),r2*pow(cos(i),2/n21)*pow(sin(j),2/n32),r3*pow(cos(j),2/n3)],
-    if(i>90&&i<=180&&j<=90)[r*pow(abs(sin(i)),2/n12)*pow(sin(j),2/n31),-r2*pow(abs(cos(i)),2/n22)*pow(sin(j),2/n32),r3*pow(cos(j),2/n3)],
-    if(i>180&&i<=270&&j<=90)[-r*pow(abs(sin(i)),2/n13)*pow(sin(j),2/n31),-r2*pow(abs(cos(i)),2/n23)*pow(sin(j),2/n32),r3*pow(cos(j),2/n3)],
-    if(i>270&&i&&j<=90)[-r*pow(abs(sin(i)),2/n14)*pow(sin(j),2/n31),r2*pow(abs(cos(i)),2/n24)*pow(sin(j),2/n32),r3*pow(cos(j),2/n3)],
+    if(i<=90&&j<=90)        [r*pow(sin(i),2/n11)*pow(sin(j),2/n31[1]),r2*pow(cos(i),2/n21)*pow(sin(j),2/n32[1]),r3*pow(cos(j),2/n3[1])],
+    if(i>90&&i<=180&&j<=90) [r*pow(abs(sin(i)),2/n12)*pow(sin(j),2/n31[1]),-r2*pow(abs(cos(i)),2/n22)*pow(sin(j),2/n32[1]),r3*pow(cos(j),2/n3[1])],
+    if(i>180&&i<=270&&j<=90)[-r*pow(abs(sin(i)),2/n13)*pow(sin(j),2/n31[1]),-r2*pow(abs(cos(i)),2/n23)*pow(sin(j),2/n32[1]),r3*pow(cos(j),2/n3[1])],
+    if(i>270&&i&&j<=90)     [-r*pow(abs(sin(i)),2/n14)*pow(sin(j),2/n31[1]),r2*pow(abs(cos(i)),2/n24)*pow(sin(j),2/n32[1]),r3*pow(cos(j),2/n3[1])],
        
-    if(i<=90&&j>90)[r*pow(sin(i),2/n11)*pow(sin(j),2/n31),r2*pow(cos(i),2/n21)*pow(sin(j),2/n32),-r3*pow(abs(cos(j)),2/n3)],
-    if(i>90&&i<=180&&j>90)[r*pow(abs(sin(i)),2/n12)*pow(sin(j),2/n31),-r2*pow(abs(cos(i)),2/n22)*pow(sin(j),2/n32),-r3*pow(abs(cos(j)),2/n3)],
-    if(i>180&&i<=270&&j>90)[-r*pow(abs(sin(i)),2/n13)*pow(sin(j),2/n31),-r2*pow(abs(cos(i)),2/n23)*pow(sin(j),2/n32),-r3*pow(abs(cos(j)),2/n3)],
-    if(i>270&&i&&j>90)[-r*pow(abs(sin(i)),2/n14)*pow(sin(j),2/n31),r2*pow(abs(cos(i)),2/n24)*pow(sin(j),2/n32),-r3*pow(abs(cos(j)),2/n3)],   
+    if(i<=90&&j>90)         [r*pow(sin(i),2/n11)*pow(sin(j),2/n31[0]),r2*pow(cos(i),2/n21)*pow(sin(j),2/n32[0]),-r3*pow(abs(cos(j)),2/n3[0])],
+    if(i>90&&i<=180&&j>90)  [r*pow(abs(sin(i)),2/n12)*pow(sin(j),2/n31[0]),-r2*pow(abs(cos(i)),2/n22)*pow(sin(j),2/n32[0]),-r3*pow(abs(cos(j)),2/n3[0])],
+    if(i>180&&i<=270&&j>90) [-r*pow(abs(sin(i)),2/n13)*pow(sin(j),2/n31[0]),-r2*pow(abs(cos(i)),2/n23)*pow(sin(j),2/n32[0]),-r3*pow(abs(cos(j)),2/n3[0])],
+    if(i>270&&i&&j>90)      [-r*pow(abs(sin(i)),2/n14)*pow(sin(j),2/n31[0]),r2*pow(abs(cos(i)),2/n24)*pow(sin(j),2/n32[0]),-r3*pow(abs(cos(j)),2/n3[0])],
     
       
     ]
@@ -4775,6 +4900,8 @@ module WaveEx(grad=0,h=50,r=5,ry,f=0,fy,a=1,ay,fv=0,fvy,tf=0,trx=20,try,tfy=0,tf
   
 
 }
+
+
 
 
 module WStern(f=5,r=1.65,a=.25,r2,fn=fn,fv=0,name,help){
@@ -5960,7 +6087,6 @@ HelpTxt("Strebe",["h",h,"d",d,"d2",d2,"rad",rad,"rad2",rad2,"sc",sc,"grad",grad,
 }
 
 
-
 module Bezier(
 p0=[+0,+10,0],
 p1=[15,-10,0],
@@ -5970,13 +6096,16 @@ w=1,//weighting
 max=1.0,
 min=+0.0,
 fn=50,
+fn2=fn,
 ex,//extrude X
 pabs=false, //p1/p2 absolut/relativ p0/p3
 messpunkt=true,
 mpRot,
 twist=0,
+scale=1,
 hull=true,
 points,
+d,
 name,
 help
 
@@ -5985,9 +6114,9 @@ help
                             mpRot:
                     mpRot;
     //echo(search(["RotEx"],parentList())[0],parentList());
-  twist=v3(twist);
+  
   messpunkt=is_bool(messpunkt)?messpunkt?pivotSize:0:messpunkt;//$info?messpunkt:0;
-  3d=len(p0)==3||is_list(points)?true:false;
+  3D=len(p0)==3||is_list(points)||d?true:false;
   p0=v3(p0);
   p3=v3(p3);  
   p1=v3(pabs?p1*w:v3(p1)*w+p0);  
@@ -5999,6 +6128,7 @@ help
 
 
     if($children){
+        twist=v3(twist);
         $helpM=0;
         $info=is_undef(name)?is_undef($info)?false:$info:name; 
         step=((max-min)/fn);
@@ -6008,21 +6138,21 @@ help
             $tab=true;
             $idx=t;
             if (hull) Color(1/(max-step)*t,$idxON=false)hull(){
-                translate(Bezier(t,p0,p1,p2,p3))rotate($rot)children();
+                translate(Bezier(t,p0,p1,p2,p3))rotate($rot)scale(1-(1-scale)/(max-step)*t)children();
                  union(){
                     $idx=t+step;
                     $rot=t>=max-step?vektorWinkel(p2,p3)+twist: // last segment
                                      vektorWinkel(Bezier(t+step,p0,p1,p2,p3),Bezier(t+step*2,p0,p1,p2,p3))+twist/(max-step)*(t+step);
-                    translate(Bezier(t+step,p0,p1,p2,p3))rotate($rot)children();
+                    translate(Bezier(t+step,p0,p1,p2,p3))rotate($rot)scale(1-(1-scale)/(max-step)*(t+step))children();
                 }
              }
             else Color(1/(max-step)*t,$idxON=false)
-              translate(Bezier(t,p0,p1,p2,p3))rotate($rot)children();
+              translate(Bezier(t,p0,p1,p2,p3))rotate($rot)scale(1-(1-scale)/(max-step)*t)children();
             
         }
     
 }
-    if(!$children){
+    if(!$children&&3D==false){
     if (is_undef(ex)) polygon([for (t=[min:((max-min)/fn):(max+(max-min)/fn)-((max-min)/fn)])Bezier(t,
             [p0[0],p0[1]],
             [p1[0],p1[1]],        
@@ -6042,6 +6172,22 @@ help
         
  
     }
+    
+    if(3D){
+      points=is_undef(points)?kreis(d=d,rand=0,fn=fn2):points;
+      loop=len(points);
+      path=[for (t=[min:((max-min)/fn):(max+(max-min)/fn)-((max-min)/fn)])Bezier(t,
+            [p0[0],p0[1]],
+            [p1[0],p1[1]],        
+            [p2[0],p2[1]],       
+            [p3[0],p3[1]]        
+           )];
+     PolyH(pathPoints(points=points,path=path,scale=scale,twist=twist),loop=loop);
+    
+    
+    }
+    
+    
     
     if(messpunkt){
         ex=is_undef(ex)?0:ex;
@@ -6066,14 +6212,16 @@ HelpTxt("Bezier",[
   "w/*weighting*/",w,
   "max",max,
   "min",min,
-  ",fn",fn,
+  "fn",fn,
+  "fn2",fn2,
   "ex/*extrude X*/",ex,
   "pabs/*p1/p2 absolut/relativ */",pabs, 
   "messpunkt",messpunkt,
   "mpRot",mpRot,
   "twist",twist,
   "hull",hull,
-  "points",points,
+  "points",points?"points":undef,
+  "d/*for 3D*/",d,
   "name",name]
   ,help);
 }
@@ -6449,11 +6597,13 @@ module Prisma(x1=12,y1,z=6,c1=5,s=1,x2,y2,x2d=0,y2d=0,c2=0,vC=[0,0,1],cRot=0,fnC
     helpX2=x2;
     helpY2=y2;    
     helpZ=z;
+    
+    
     x=is_list(x1)?x1[0]:x1;
     y=is_list(x1)?x1[1]:is_undef(y1)?x1:y1;
     hErr=s/2-cos(90/ceil(fnS/2))*s/2+.00001; // missing sphere piece
     z=is_undef(x1[2])?z+hErr*2:x1[2]+hErr*2;
-    
+    c1=min(c1,x,y);
     
     cylinderh=c1?minVal:0;
     
@@ -6849,7 +6999,8 @@ HelpTxt("Kassette",["r1",r1,"r2",r2,"size",size,"h",h,"gon",gon,"fn",fn,",fn2=",
       echo(" spiel mitten sizey name— , spielüberlappung Innenpolygon, mitten loch bei gon=2 und y-weite bei gon=4, name=name für Info"); 
     }
 
-sizey=sizey?sizey:size;
+sizey=sizey?sizey:is_list(size)?size.y:size;
+size=is_list(size)?size.x:size;
 
     r1I=min(r1,size/2-2*r2);//unten innen radius when mitte=1
     points=concat(
@@ -7607,22 +7758,39 @@ module Knochen(l=+15,d=3,d2=5,b=0,fn=fn,help)
 
 }
 
+module DGlied(sym,l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,rand=n(1.5),freiwinkel=20,help){
+if (sym) DGlied1(l=l,l1=l1,l2=l2,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
+else DGlied0(l=l,l1=l1,l2=l2,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
 
-
-module DGlied0(l1=12,l2=12,la=0,d=3,spiel=.5,rand=n(1.5),freiwinkel=20)
-{
-    Glied(l1,la=la,spiel=spiel,d=d,rand=rand,freiwinkel=freiwinkel);
-    mirror([0,1,0])Glied(l2,la=la,spiel=spiel,d=d,rand=rand,freiwinkel=freiwinkel);
+HelpTxt("DGlied",["sym",sym,"l",l,"l1",l1,"l2",l2,"spiel",spiel,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
 }
 
-module DGlied1(l1=12,l2=12,la=0,d=3,spiel=.5,rand=n(1.5),freiwinkel=20)
+module DGlied0(l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,rand=n(1.5),freiwinkel=20)
 {
-    mirror([+0,1,0])T(0,-l1)Glied(l1,la=la,spiel=spiel,d=d,rand=rand,freiwinkel=freiwinkel);
-    T(0,-l2)Glied(l2,la=la,d=d,spiel=spiel,rand=rand,freiwinkel=freiwinkel);
+l1=is_undef(l1)?is_list(l)?l[0]:l:l1;
+l2=is_undef(l2)?is_list(l)?l[1]:l:l2;
+    Glied(l1,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
+    mirror([0,1,0])Glied(l2,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
+}
+
+module DGlied1(l=12,l1,l2,la=0,d=3,h=5,spiel=0.4,rand=n(1.5),freiwinkel=20)
+{
+l1=is_undef(l1)?is_list(l)?l[0]:l:l1;
+l2=is_undef(l2)?is_list(l)?l[1]:l:l2;
+    mirror([+0,1,0])T(0,-l1)Glied(l1,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
+    T(0,-l2)Glied(l2,la=la,d=d,h=h,spiel=spiel,rand=rand,freiwinkel=freiwinkel);
 }
 
 
 
+module SGlied(sym=0,l=12,la=-.5,d=3,h=5,spiel=0.4,rand=n(1.5),freiwinkel=30,help){
+
+T(0,l/2){
+Halb(!sym,x=1)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=sym?freiwinkel:90);
+Halb(sym,x=1)rotate(180)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=sym?freiwinkel:90);
+}
+HelpTxt("SGlied",["sym",sym,"l",l,"spiel",spiel,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
+}
 /*
 Schnitt(center=true,z=3){
 Glied(l=31,d=3,la=+0);
@@ -7632,11 +7800,12 @@ rotate(20+180)T(0,-31)Glied(l=31,d=3,la=+0);
 
 
 
-module Glied(l=12,spiel=0.5,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name=0,help)
+module Glied(l=12,spiel=0.4,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name=0,help)
 
 {
-    hFreiraum=h/2;
-    hSteg=h/2-n(1);
+    hFreiraum=h/2+nozzle /2;
+    hSteg=h/2 - nozzle /2;
+    
     $info=false;
     $helpM=false;
     
@@ -7661,7 +7830,7 @@ module Glied(l=12,spiel=0.5,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name
         
         T(0,l)//kopfstück
         {
-            lkopf=l-(d-.5)/tan(freiwinkel)+la-2;
+            lkopf=l-(d-.5)/tan(freiwinkel)+la -1;
             
             T(0,-lkopf/2,h/2) minkowski()
             {
@@ -7690,10 +7859,10 @@ module Glied(l=12,spiel=0.5,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name
        
         
         
-        translate([0,l])cylinder(h*2,d=d+rand*2+spiel,$fn=0,$fs=0.5);// space for ring of other
+        translate([0,l])cylinder(h*2,d=d+rand*2+spiel*4,$fn=0,$fs=0.5);// space for ring of other
         cylinder(h*2,d=d+2*spiel,$fn=fn,center=true);
         Freiwinkel();
-        Tz(h/2)Pille(l=hSteg+n(1),d=d+1+2*spiel,rad=1,fn=fn); 
+        Tz(h/2)Pille(l=hFreiraum,d=d+1+2*spiel,rad=1,fn=fn); 
     }
     
     T(0,0)union()//B ring
@@ -7706,7 +7875,7 @@ module Glied(l=12,spiel=0.5,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name
                 //T(0,3.2)R(z=33)cylinder(5,d=3,$fn=3);
                 
             }
-            Tz(h/2)cylinder(hSteg+spiel,d=d+rand*2+2*spiel,center=true);//Pille(l=hSteg+n(1),d=d+rand*2+2*spiel +1,rad=1,fn=fn); 
+            Tz(h/2)cylinder(hFreiraum,d=d+rand*2+2*spiel,center=true);//Pille(l=hSteg+n(1),d=d+rand*2+2*spiel +1,rad=1,fn=fn); 
             color("red")Freiwinkel(); 
                          /*     * T(+2.9,-1.40,2.5)R(z=46)minkowski()
                             {
@@ -7735,12 +7904,12 @@ module Glied(l=12,spiel=0.5,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name
  T(0,+0.5){
   R(z=+w) T(+0,+25-d/2,h/2)minkowski()
             {
-                cube([200,+50-.8*2,hFreiraum-2*.8],true);
+                cube([200,+50-.8*2,hFreiraum-2*0.8],true);
                 sphere(0.8,$fn=fn);
             }    
   R(z=-w) T(+0,+25-d/2,h/2)minkowski()
             {
-                cube([200,+50-.8*2,hFreiraum-2*.8],true);
+                cube([200,+50-.8*2,hFreiraum-2*0.8],true);
                 sphere(0.8,$fn=fn);
             }      
 
