@@ -51,7 +51,10 @@ Changelog (archive at the very bottom)
 021|22 CHG Pille FIX m chg v3 chg stern CHG Buchtung CHG Schnitt size
 022|22 CHG Kassette ADD pathPoints CHG kreis ADD Coil ADD wStern CHG vektorWinkel CHG Halb CHG Superellipse CHG Glied ADD SGlied CHG Prisma ADD Tdrop CHG Bezier
 Release
-
+033|22 CHG DRing CHG DBogen CHG Strebe CHG Ttorus CHG Glied CHG Kreis ADD wall CHG n()
+036|22 ADD star CHG SpiralCut CHG Gewinde CHG Bevel
+037|22 CHG star ADD Star
+038|22 
 
 */
 
@@ -75,7 +78,7 @@ vp=$preview?false:true;
 //Project name
 name=undef;
 //Düsen ∅
-nozzle=0.6;
+nozzle=0.4;
 
 //Layer hight
 layer=0.08;// one step = 0.04 (8mm/200steps)
@@ -118,7 +121,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.022;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.037;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -136,7 +139,9 @@ assert(useVersion?Version>=useVersion:true,str("lib version ",Version," detected
 assert(version()[0]>2019,"Install current http://openscad.org version");
 
 function l(x)=x*layer;
-function n(x)=sign(x)*(abs(x)*nozzle+0.015);// 0.015 padding for slicer
+function n(x,nozzle=nozzle)=sign(x)*(abs(x)*nozzle + 0.05*nozzle); /*(x==1?0.05*nozzle:
+                                                          - layer*(1-PI/4) * (x-1)*0)); 0.05*nozzle padding for slicer */
+
 function Inkreis(eck,rU)=cos(180/eck)*rU;
 function Umkreis(eck,rI)=rI/cos(180/eck);
 function Hypotenuse(a,b)=sqrt(pow(a,2)+pow(b,2));
@@ -149,7 +154,9 @@ l=is_undef(l)?0:l,
 l2=is_undef(l2)?l:l2,
 lz=is_undef(lz)?l:lz
 )
-is_undef(z)?is_undef(e)?[sin(rot)*l,cos(rot)*l2]:[sin(rot)*cos(e%360)*l,cos(rot)*cos(e%360)*l2,sin(e%360)*lz]:[sin(rot)*l,cos(rot)*l,z];
+is_undef(z)?is_undef(e)?[sin(rot)*l,cos(rot)*l2]:
+                        [sin(rot)*cos(e%360)*l,cos(rot)*cos(e%360)*l2,sin(e%360)*lz]:
+            [sin(rot)*l,cos(rot)*l,z];
 
 function Bezier(t,p0=[0,0],p1=[-20,20],p2=[20,20],p3=[0,0])=bezier(t,p0,p1,p2,p3);
 function bezier(t,p0=[0,0],p1=[-20,20],p2=[20,20],p3=[0,0])=
@@ -546,14 +553,34 @@ is_undef(z)?[for(f=[0:fn])let(i=f%fn*360/fn)each[
 //polygon(superellipse(r=[5,2]));
 //Coil(points=superellipse(r=[3,2],n=3.5));
 
+// wall calculates perimeter number according to nozzle size for "soll"mm
+
+function wall(soll=.5,min=1.75,even=false,nozzle=nozzle)=
+  let (
+    perimeterHi=ceil(soll/nozzle),
+    perimeterLow=floor(soll/nozzle),
+    walls=max(min,even?perimeterHi%2?perimeterLow:perimeterHi : round(soll/nozzle))
+    )
+  (is_undef($idx)||$idx==0)&&$info?echo(perimeterShells=walls,soll=soll,ist=n(walls,nozzle=nozzle))n(walls,nozzle=nozzle):n(walls,nozzle=nozzle);
+  
+  
+
+function star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z)=
+let(
+  grad=is_num(grad)?[grad/2,grad/2]:grad,
+  grad2=is_undef(grad2)?grad:is_num(grad2)?[grad2/2,grad2/2]:grad2,
+  fn=max(1,fn),
+  
+  deg=360/(e*2),
+  winkel=((radial?[1,1]*90/e+ [grad.x,grad.y]:grad))/fn,
+  winkel2=((radial?[1,1]*90/e - [grad.x,grad.y]:grad2))/fn,
+  )
+[for(i=[0:e*2 -1], w=[0:1], ifn=[1:fn])  RotLang((deg*i)%360 + ( i%2?  w?winkel[0]*ifn: -winkel[1]*(fn-ifn+1) :
+                                                                      w?winkel2[0]*ifn:-winkel2[1]*(fn-ifn+1) ),
+                                                 i%2?r1:r2,z=z)];
 
 
-
-
-
-
-
-
+//polygon(star());
 
 
 ///////////////////////////////////////////////////////
@@ -686,6 +713,9 @@ echo    ("
 ••• stern(e=5,r1=10,r2=5,mod=2,delta=+0,z)  Stern points ••• \n
 ••• wStern(f=5,r=1.65,a=.25,r2,fn=fn,rot=0,z)  ••• \n
 ••• superellipse(n=2.5,r=10,z,fn=fn) ••• \n
+••• star(e=5,r1=10,r2=8,grad=[0,0],radial=true) ••• \n
+••• wall(soll,min=1.75,even=false,nozzle=nozzle) adapt to line width (nozzle) ••• \n
+
 
 ");
     
@@ -766,6 +796,7 @@ echo    ("•••••• Polygons ••••••\n
 •• VarioFill(help=1);\n
 •• Welle(help=1);\n
 •• Tdrop(help=1);\n
+•• Star(help=1);\n
 
 ");
 }
@@ -1753,6 +1784,15 @@ module SCT(a=90){
 ///∇∇ Polygons ∇∇///
 
 
+module Star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,help){
+polygon(star(e=e,r1=r1,r2=r2,grad=grad,grad2=grad2,radial=radial,fn=fn,z=undef));
+
+HelpTxt("Star",["e",e,"r1",r1,"r2",r2,"grad",grad,"grad2",grad2,"radial",radial,"fn",fn],help);
+
+}
+
+
+
 
 module Tdrop(r=1,d,grad,cut=true,name,help){
 
@@ -1893,13 +1933,13 @@ module Kreis(r=10,rand=0,grad=360,grad2,fn=fn,center=true,sek=false,r2=0,rand2,r
     
     HelpTxt("Kreis",["r",r,"rand",rand,"grad",grad,"grad2",grad2,"fn",fn,"center",center,"sek",sek,"r2",r2,"rand2",rand2,"rcenter",rcenter,"rot",rot,"t",t,"name",name,"d",d,", b",b],help);
     
-    if(name){
-        if(!rcenter){
-        if(rand>0)echo(str(name," Kreis id=",2*(r-abs(rand))," od=",2*r));
-        if(rand<0)echo(str(name," Kreis id=",2*r," od=",2*(r+abs(rand)))); 
-        }
-        else if(rand)echo(str(name," Kreis id=",2*r-abs(rand)," od=",2*r+abs(rand)));   
+
+    if(!rcenter){
+      if(rand>0)InfoTxt("Kreis",["id",2*(r-abs(rand)),"od",2*r],name);
+      if(rand<0)InfoTxt("Kreis",["id",2*r,"od",2*(r+abs(rand))],name); 
     }
+    else if(rand)InfoTxt("Kreis",["id",2*r-abs(rand)," od=",2*r+abs(rand)],name);   
+
 }
 
 
@@ -2982,7 +3022,7 @@ help,
 
 s,w=0,g=1,rot2=0,r1=0,detail=fn,name,preset=0,translate=[0,0,0],rotate=[0,0,0],d=0,gd=0,r=0,help,endMod=true,new
 ){
-    
+  $info=is_undef($info)?false:$info;
  iso_Gewinde=[ //name,pSteigung,dn
   ["M1",0.25,1],
   ["M1.2",0.25,1.2],
@@ -3009,11 +3049,11 @@ s,w=0,g=1,rot2=0,r1=0,detail=fn,name,preset=0,translate=[0,0,0],rotate=[0,0,0],d
 
 
 other_Gewinde=[//search0, pSteigung,dn,winkel,name
-["search","p-Steigung[1]","dn[2]","kern[3]","breite[4]","rad1[5]","rad2[6]","winkel[7]","name[8]"], // Spalten
+["search","p-Steigung[1]","dn[2]","kern[3]","breite[4]","rad1[5]","rad2[6]","winkel[7]","name[8]","grad[9]"], // Spalten
 ["BSW1",1.814,20.955,20.955-0.640327*1.814*2,undef,0.13732908*1.814,0.13732908*1.814,55,"½-Zoll"],//halb Zoll
 ["BSW2",1.814,26.441,26.441-0.640327*1.814*2,undef,0.13732908*1.814,0.13732908*1.814,55,"¾-Zoll"],// 3/4 Zoll
-["Flasche",3.18,27.43,24.95,.05,.4,.4,65,"PCO-28"],// Flasche 28mmHalsring
-["Flasche2",4,27.43,24.95,.05,.4,.4,65,"PCO-28 P4"],// Flasche Badeschaum
+["Flasche"    ,3.18, 27.43,24.95, 1, 0.4, 0.4, 45,"PCO-28",810],// Flasche 28mmHalsring
+["Flasche2"   ,4.00, 27.43,24.95, 1, 0.4, 0.4, 45,"PCO-28 P4"],// Flasche Badeschaum
 ];
 
 
@@ -3055,7 +3095,9 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
             rad1=is_undef(rad1)?other_Gewinde [zeile][5]:rad1,
             rad2=is_undef(rad1)?other_Gewinde [zeile][6]:rad2,
             winkel=other_Gewinde [zeile][7],
-            wand=wand,mantel=mantel,innen=innen,grad=grad,h=h,
+            wand=wand,mantel=mantel,innen=innen,
+            grad=is_undef(grad)?other_Gewinde [zeile][9]:grad,
+            h=h,
             start=start,end=end,center=center,profil=profil,fn2=fn2,
             fn=fn,cyl=cyl,tz=tz,rund=rund,ratio=ratio,spiel=spiel,
             name=other_Gewinde[zeile][8],
@@ -3362,6 +3404,7 @@ HelpTxt("Coil",["r",r,"d",d,"r2",r2,"od",od,"id",id,"grad",grad,"pitch",is_undef
 }
 
 
+
 module DBogen(
 grad=25,
 x=50,
@@ -3371,7 +3414,7 @@ base=+0,
 fn,
 fs=fs,
 messpunkt=false, 
-spiel=minVal,
+spiel=.001,
 name,
 help
 ){
@@ -3458,7 +3501,7 @@ module DRing(d=4,id=20,r=.5,l=0,grad=180,fn=fn,center=true,name,help){
       union(){
         $info=false;
         //RotEx(180,fn=fn/2)T((id+d)/2+r)children();
-        T(y=-l)MKlon(tx=id/2)rotate(-90)RotEx(90,fn=fn/8)T(d/2+r[0])children();
+        T(y=-l)MKlon(tx=id/2)rotate(-90)RotEx(90,fn=fn/4)T(d/2+r[0])children();
         T(y=-d/2-r[0]-l)R(90,0,-90)linear_extrude(id,center=true)children();
         if(l)MKlon((id+d)/2+r[0])R(90)linear_extrude(l,center=false)children(); 
       }
@@ -3466,14 +3509,14 @@ module DRing(d=4,id=20,r=.5,l=0,grad=180,fn=fn,center=true,name,help){
     else{
     //RotEx(180,fn=fn/2)T((id+d)/2+r[0]) circle(d=d,$fn=fn);
      DBogen(fn=fn/2,grad=grad,x=(id+d)+r[0]*2,rad2=max(r[1],.0001))circle(d=d,$fn=fn);   
-    T(y=-l)MKlon(tx=id/2)rotate(-90)RotEx(90,fn=fn/8)T(d/2+r[0])circle(d=d,$fn=fn);
+    T(y=-l)MKlon(tx=id/2)rotate(-90)RotEx(90,fn=fn/4)T(d/2+r[0])circle(d=d,$fn=fn);
     if(l)MKlon((id+d)/2+r[0])R(90)linear_extrude(l,center=false) circle(d=d,$fn=fn);
     T(y=-d/2-r[0]-l)R(90,0,-90) linear_extrude(id,center=true) circle(d=d,$fn=fn);
         
     }
   if(name)%T(y=-d-r[0]-l-$vpd/100)Caliper(id,messpunkt=0);
   }    
-  if(name)echo(str(is_string(name)?"<H3>":"",name," DRing dist=",id+r[0]*2+d,"mm innen h=",l+2*r[0]+id/2,"mm"));   
+InfoTxt("DRing",["dist",id+r[0]*2+d,"mm innen h=",str(l+2*r[0]+id/2,"mm")],name);
 HelpTxt("DRing",[
   "d",d,
   "id",id,
@@ -3564,6 +3607,11 @@ HelpTxt("SRing",[
 ,help);
 }
 
+/*
+Bevel(5){
+cube(5);
+R(180)VarioFill(dia=0,spiel=[.5,0],l=.5,fn=7);
+}//*/
 
 module Bevel(z=0,r=.5,on=!$preview,grad=45,fillet=0,fn=12,messpunkt=messpunkt,help){
   
@@ -3571,19 +3619,22 @@ module Bevel(z=0,r=.5,on=!$preview,grad=45,fillet=0,fn=12,messpunkt=messpunkt,he
  
 
     if(on)difference(){
-    children();
+    children(index=0);
     minkowski(convexity=5){
         difference(){
+          $info=false;
+          $idx=1;
             Tz(z>0?500+z-diff:-500+z+diff) cube(1000,true);
-            children();
-        }  
-        if(!fillet)R(z>0?0:180)Kegel(d1=0,d2=r*2,fn=fn,grad=grad,name=false);
+            children(index=0);
+        }
+        if($children==2) Tz(z>0?diff:-diff)R(z>0?180:0)children (1);
+        else if(!fillet)R(z>0?0:180)Kegel(d1=0,d2=r*2,fn=fn,grad=grad,name=false);
         else Tz(z>0?r:-r)R(z>0?180:0)RotEx(cut=1,fn=fn)Kehle(2D=true,rad=r,fn2=fn);    
     }
 }else
-children();
+children(index=0);
 
-if (messpunkt){       
+if (messpunkt&&$children<2){       
 %Grid(e=[2,2,1],es=is_bool(messpunkt)?10:messpunkt,name=false)Tz(z)if(!fillet)color("orange",alpha=.75){
     R(z>0?180:0)Kegel(d2=0,d1=r*2,fn=fn,grad=grad,name=false);
     R(z>0?0:180)cylinder(.5,r=r*1,$fn=fn);
@@ -3595,7 +3646,13 @@ if (messpunkt){
     R(z>0?0:180)cylinder(.5,r=r*1,$fn=fn);
 }
         else color("green",alpha=.75)R(z>0?180:0)Tz(-r+diff)RotEx(cut=1,fn=fn)Kehle(2D=true,rad=r,fn2=fn,spiel=0.5);             
-}           
+}
+if($children==2)%Tz(z){Grid(e=[2,2,1],es=is_bool(messpunkt)?10:messpunkt,name=false)
+  R(z>0?180:0)color("chartreuse",alpha=.75)children(index=1);
+  R(z>0?180:0)color("chartreuse",alpha=.75)children(index=1);
+  
+  }
+  
 HelpTxt("Bevel",[     
      "z",z, 
      "r",r,
@@ -3608,14 +3665,20 @@ HelpTxt("Bevel",[
  
 }
 
-module SpiralCut(layer=l(1),h=12,x=.025,ir=1,or=5,winkel,name,help){
+
+
+module SpiralCut(layer=l(1),h=12,x=.025,ir=1,or=5,t=0,winkel,name,help){
  
+ t=is_num(t)?[0,0,t]:t;
  winkel=is_undef(winkel)? 360-360/PHI:winkel ;
  cuts=ceil(h/layer)-1;   
  
- for(i=[0:cuts]){
-     rotate(i*winkel)T(-x/2,ir,i*layer)cube([x,or-ir,layer]);   
-    }
+ difference(){
+  children();
+  translate(t)for(i=[0:cuts]){
+   rotate(i*winkel)T(-x/2,ir,i*layer)cube([x,or-ir,layer]);   
+  }
+  }
     
 InfoTxt("SpiralCut",["Winkel",winkel,"Layer",layer,"Cuts",cuts],name);
  
@@ -3625,6 +3688,7 @@ HelpTxt("SpiralCut",[
    "x",x,
    "ir",ir,
    "or",or,
+   "t",t,
    "winkel",winkel,
    "name",name],
     help);
@@ -6025,6 +6089,7 @@ HelpTxt("WStrebe",["grad",grad,"grad2",grad2,"h",h,"d",d,"d2",d2,"rad",rad,"rad2
 
 module Strebe(h=20,d=5,d2,rad=4,rad2,sc=0,grad=0,skew=0,single=false,angle=360,spiel=spiel,fn=fn,fn2=fn/4,center=false,name,2D=false,help){
     
+    fn2=is_list(fn2)?fn2:[fn2,fn2];
     rad2=is_undef(rad2)?is_list(rad)?rad[1]:
                             rad:
                    rad2;
@@ -6063,21 +6128,21 @@ if (2D || is_parent(needs2D))//search(["Rundrum"], parentList())[0] )
     if(grad2>90) Echo(str("Strebe ∅",d2,"mm is d2=",(d2/2-rad2+sin(grad2)*rad2)*2),color="warning");
     Echo(str("Strebe too short h=",h,"<",rad,"+",rad2," for rad"),color="warning",condition=h<(rad+rad2));
    points= concat(
-    2D==2?[[0,h+spiel]]:single?[[-d2/2,h]]:Kreis(fn=fn2,rand=0,r=rad2,grad=-grad2,rot=+grad2,center=false,sek=true,t=[-d2/2-abs(sin(winkel))*rad2,h-rad2]),
+    2D==2?[[0,h+spiel]]:single?[[-d2/2,h]]: kreis(fn=fn2[1],rand=0,r=rad2,grad=-grad2,rot=+grad2,center=false,sek=true,t=[-d2/2-abs(sin(winkel))*rad2,h-rad2]), // open L
     
     2D==2?[[+0,h+spiel]]:[[single?-d2/2:-d2/2-rad2,h+spiel]],
     
     [[single?d2/2:d2/2+rad2,h+spiel]],
     
-    single?[[d2/2,h]]:Kreis(fn=fn2,rand=0,r=rad2,grad=-grad2,rot=0,center=false,sek=true,t=[d2/2+abs(sin(winkel))*rad2,h-rad2]),
+    single?[[d2/2,h]]: kreis(fn=fn2[1],rand=0,r=rad2,grad=-grad2,rot=0,center=false,sek=true,t=[d2/2+abs(sin(winkel))*rad2,h-rad2]),// open R
     
-    kreis(fn=fn2,rand=0,r=rad,grad=-grad1,rot=grad1-180,center=false,sek=true,t=[d/2+abs(sin(winkel))*rad,rad]),
+    kreis(fn=fn2[0],rand=0,r=rad,grad=-grad1,rot=grad1-180,center=false,sek=true,t=[d/2+abs(sin(winkel))*rad,rad]), // unten R
     
     [[d/2+rad,0-spiel]],
     
     2D==2?[[0,-spiel]]:[[-d/2-rad,0-spiel]],
     
-    2D==2?[[+0,0]]:Kreis(fn=fn2,rand=0,r=rad,grad=-grad1,rot=180,center=false,sek=true,t=[-d/2-abs(sin(winkel))*rad,rad]));
+    2D==2?[[+0,0]]:kreis(fn=fn2[0],rand=0,r=rad,grad=-grad1,rot=180,center=false,sek=true,t=[-d/2-abs(sin(winkel))*rad,rad]));// unten L
     
     scale([sc,1])polygon(points,convexity=5); 
 
@@ -6399,6 +6464,7 @@ module Ttorus(r=20,twist=360,angle=360,pitch=0,scale=1,r2,fn=fn,help){
    } 
     
 MO(!$children);
+Echo("use Coil()",color="info",condition=!$children);
     
 HelpTxt("Ttorus",[
   "r",r,
@@ -7794,19 +7860,20 @@ Halb(sym,x=1)rotate(180)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,fre
 HelpTxt("SGlied",["sym",sym,"l",l,"spiel",spiel,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
 }
 /*
-Schnitt(center=true,z=3){
-Glied(l=31,d=3,la=+0);
-rotate(20+180)T(0,-31)Glied(l=31,d=3,la=+0);
+Schnitt(0,center=true,z=3){
+Glied(l=31,d=3,la=-1,spielZ=0);
+rotate(30+180)T(0,-31)Glied(l=31,d=3,la=-1,spielZ=0);
 }
-*/
+//*/
 
-
-
-module Glied(l=12,spiel=0.4,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name=0,help)
+module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name=0,help)
 
 {
-    hFreiraum=h/2+nozzle /2;
-    hSteg=h/2 - nozzle /2;
+  freiwinkel= is_num(freiwinkel)?[freiwinkel,freiwinkel]:freiwinkel;
+    hFreiraum=h/2 + spielZ;
+    hSteg=h/2 - spielZ;
+    sphereR=.8;
+    hErr=sphereR-cos(90/ceil(fn/2))*sphereR+.00001; // sphere fn error minkowski
     
     $info=false;
     $helpM=false;
@@ -7814,6 +7881,7 @@ module Glied(l=12,spiel=0.4,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name
     HelpTxt("Glied",[
         "l",l,
     "spiel",spiel,
+    "spielZ",spielZ,
     "la",la,
     "fn",fn,
     "d",d,
@@ -7832,52 +7900,52 @@ module Glied(l=12,spiel=0.4,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name
         
         T(0,l)//kopfstück
         {
-            lkopf=l-(d-.5)/tan(freiwinkel)+la -1;
+            lkopf=l-(d-.5)/tan(min(freiwinkel[0],freiwinkel[1]))+la -1;
             
             T(0,-lkopf/2,h/2) minkowski()
             {
-                cube([d-2*0.8+.25,lkopf-2*0.8,hSteg-2*.8],true);
-                sphere(0.8,$fn=fn);
+                cube([d-2*sphereR+.25,lkopf-2*0.8,hSteg-2*.8],true);
+                sphere(sphereR,$fn=fn);
             } 
             cylinder(h,d=d,$fs=0.2,$fa=5,$fn=0);//Achse!
         }
-   difference()
+   T(0,0,h/2)difference()
    {
-       T(0,0,h/2)hull()//Ringanker
-      {
-               T(0,l/2+la/2-d/2) minkowski()
+     hull(){//Ringanker
+       T(0,l/2+la/2-d/2) minkowski()
         {
-            cube([max(d-2*.8-.5,.1),l+la-2*.8-d,h-0.8*2],true);
-            sphere(0.8,$fn=fn);
+          cube([max(d-2*sphereR-.5,.1),l+la-2*.8-d,h-sphereR*2 + hErr*2],true);
+          sphere(sphereR,$fn=fn);
         } 
-               T(0,l -d/2 -rand-spiel+la) minkowski()// spitze
+       T(0,l -d/2 -rand-spiel+la) minkowski()// spitze
         {
-            cube([max(d-2*.8-.5,.1),0.1,+0.01],true);
-            sphere(0.8,$fn=fn);
+          cube([max(d-2*sphereR-.5,.1),0.1,+0.01],true);
+          sphere(sphereR,$fn=fn);
         } 
 
-        
       } 
        
         
         
-        translate([0,l])cylinder(h*2,d=d+rand*2+spiel*4,$fn=0,$fs=0.5);// space for ring of other
+        translate([0,l])cylinder(h*2,d=d+rand*2+spiel*4,$fn=0,$fs=0.5,center=true);// space for ring of other
         cylinder(h*2,d=d+2*spiel,$fn=fn,center=true);
         Freiwinkel();
-        Tz(h/2)Pille(l=hFreiraum,d=d+1+2*spiel,rad=1,fn=fn); 
+        Pille(l=hFreiraum,d=d+1+2*spiel,rad=1,fn=fn); 
     }
     
-    T(0,0)union()//B ring
+    T(0,0,h/2)union()//B ring
     {
         difference()
         { 
             union()
             {
-                Ring(h,rand,d+2*spiel,cd=-1,name=name);
+              linear_extrude(h,center=true,convexity=5)Rund(0,d/2+spiel -.1){
+                Ring(h=0,rand,d+2*spiel,cd=-1,name=name,center=true);
+                T(0,d/2+spiel)Quad([max(d-.5,.1),sphereR*2],r=sphereR,centerX=true);
+              }
                 //T(0,3.2)R(z=33)cylinder(5,d=3,$fn=3);
-                
             }
-            Tz(h/2)cylinder(hFreiraum,d=d+rand*2+2*spiel,center=true);//Pille(l=hSteg+n(1),d=d+rand*2+2*spiel +1,rad=1,fn=fn); 
+            cylinder(hFreiraum,d=d+rand*2+2*spiel,center=true);//Pille(l=hSteg+n(1),d=d+rand*2+2*spiel +1,rad=1,fn=fn); 
             color("red")Freiwinkel(); 
                          /*     * T(+2.9,-1.40,2.5)R(z=46)minkowski()
                             {
@@ -7902,14 +7970,14 @@ module Glied(l=12,spiel=0.4,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name
         
     }
    
- module Freiwinkel(w=freiwinkel+90)//Glied only
+ module Freiwinkel(w=freiwinkel+[90,90])//Glied only
  T(0,+0.5){
-  R(z=+w) T(+0,+25-d/2,h/2)minkowski()
+  R(z=+w[0]) T(+0,+25-d/2)minkowski()
             {
                 cube([200,+50-.8*2,hFreiraum-2*0.8],true);
                 sphere(0.8,$fn=fn);
             }    
-  R(z=-w) T(+0,+25-d/2,h/2)minkowski()
+  R(z=-w[1]) T(+0,+25-d/2)minkowski()
             {
                 cube([200,+50-.8*2,hFreiraum-2*0.8],true);
                 sphere(0.8,$fn=fn);
