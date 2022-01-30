@@ -54,7 +54,8 @@ Release
 033|22 CHG DRing CHG DBogen CHG Strebe CHG Ttorus CHG Glied CHG Kreis ADD wall CHG n()
 036|22 ADD star CHG SpiralCut CHG Gewinde CHG Bevel
 037|22 CHG star ADD Star
-038|22 
+038|22 CHG star CHG SpiralCut CHG Anordnen FIX DGlied Glied SGLied
+040|22
 
 */
 
@@ -121,7 +122,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.037;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.038;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -565,22 +566,30 @@ function wall(soll=.5,min=1.75,even=false,nozzle=nozzle)=
   
   
 
-function star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z)=
+function star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0)=
 let(
   grad=is_num(grad)?[grad/2,grad/2]:grad,
   grad2=is_undef(grad2)?grad:is_num(grad2)?[grad2/2,grad2/2]:grad2,
   fn=max(1,fn),
   
-  deg=360/(e*2),
-  winkel=((radial?[1,1]*90/e+ [grad.x,grad.y]:grad))/fn,
-  winkel2=((radial?[1,1]*90/e - [grad.x,grad.y]:grad2))/fn,
+  deg=angle/(e*2),
+  winkel=((radial?[1,1]*angle/4/e+ [grad.x,grad.y]:grad))/fn,
+  winkel2=((radial?[1,1]*angle/4/e - [grad.x,grad.y]:grad2))/fn,
   )
-[for(i=[0:e*2 -1], w=[0:1], ifn=[1:fn])  RotLang((deg*i)%360 + ( i%2?  w?winkel[0]*ifn: -winkel[1]*(fn-ifn+1) :
+[for(i=[0:e*2 ], w=[0:1], ifn=[1:fn])  RotLang((deg*i+rot)%360 + ( i%2?  w?winkel[0]*ifn: -winkel[1]*(fn-ifn+1) :
                                                                       w?winkel2[0]*ifn:-winkel2[1]*(fn-ifn+1) ),
                                                  i%2?r1:r2,z=z)];
 
 
-//polygon(star());
+//polygon(concat(star(e=4,angle=250),star(angle=70,e=4,r1=4,r2=3,rot=-90)));
+//polygon(star(e=3,angle=120,rot=-60,radial=true,fn=10));
+
+
+
+
+
+
+
 
 
 ///////////////////////////////////////////////////////
@@ -713,7 +722,7 @@ echo    ("
 ••• stern(e=5,r1=10,r2=5,mod=2,delta=+0,z)  Stern points ••• \n
 ••• wStern(f=5,r=1.65,a=.25,r2,fn=fn,rot=0,z)  ••• \n
 ••• superellipse(n=2.5,r=10,z,fn=fn) ••• \n
-••• star(e=5,r1=10,r2=8,grad=[0,0],radial=true) ••• \n
+••• star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0) ••• \n
 ••• wall(soll,min=1.75,even=false,nozzle=nozzle) adapt to line width (nozzle) ••• \n
 
 
@@ -827,7 +836,7 @@ echo    ("•••••••••• BasisObjekte:   •••••••�
 ••  HypKehle(help=1);\n
 ••  HypKehleD();\n
 
-•• [46] Text(text=“»«”,size=5,h=0,cx=0,cy=0,cz=0,center=0,font=“Bahnschrift:style=bold”);\n
+•• [46] Text(text=\"»«\",size=5,h=0,cx=0,cy=0,cz=0,center=0,font=\"Bahnschrift:style=bold\");\n
 •• [47] W5(kurv=15,arms=3,detail=.3,h=50,tz=+0,start=0.7,end=13.7,topdiameter=1,topenddiameter=1,bottomenddiameter=+2);\n
 
 •• [50] Rohr(grad=90,rad=5,d=8,l1=10,l2=12,fn=fn,fn2=fn,rand=n(2),name=0);\n
@@ -1434,7 +1443,7 @@ InfoTxt("Anordnen",["e",e,"children",$children],name);
 
     
  if(option==1){
-     r=is_undef(r)?(es/2)/sin(180/e):r;
+     r=is_undef(r)?e==1?0:(es/2)/sin(180/e):r;
      Polar(e,x=r,re=rot,name=false){
        ///idx=$idx;
        //$idx=0;
@@ -3665,31 +3674,64 @@ HelpTxt("Bevel",[
  
 }
 
+//SpiralCut(radial=false,ir=2.5,or=10,nozzle=.2)cylinder(10,d=10);
+//SpiralCut(axial=true,ir=15,or=10);
 
-
-module SpiralCut(layer=l(1),h=12,x=.025,ir=1,or=5,t=0,winkel,name,help){
+module SpiralCut(h=20,ir=1,or=50,width=.03,x,t=0,grad,cuts,radial=true,line,layer,axial,name,help){
  
  t=is_num(t)?[0,0,t]:t;
- winkel=is_undef(winkel)? 360-360/PHI:winkel ;
- cuts=ceil(h/layer)-1;   
+ x=abs(is_undef(x)?width:x);
+ radial=is_undef(axial)?radial:!axial;
  
- difference(){
-  children();
-  translate(t)for(i=[0:cuts]){
-   rotate(i*winkel)T(-x/2,ir,i*layer)cube([x,or-ir,layer]);   
-  }
-  }
-    
-InfoTxt("SpiralCut",["Winkel",winkel,"Layer",layer,"Cuts",cuts],name);
+ layer=is_undef(layer)?l(1):layer;
+ line=is_undef(line)?n(1):
+                     max(line,.1);
  
+ r=min(ir,or);
+ sizeY=abs(or-ir);
+ 
+ cuts=is_undef(cuts)?radial?ceil(h/layer):
+                            floor(360/gradB(b=line*2+x,r=r + line/2)):
+                     cuts;
+                     
+ winkel=is_undef(grad)? radial? gw:
+                                  360/cuts:
+                          grad;
+
+Echo("outer diametern <= inner!",color="warning",condition=ir>=or);
+
+
+ if(radial)
+  if($children)difference(){
+    children();
+    translate(t)for(i=[0:cuts-1])rotate(i*winkel)T(-x/2,r,i*layer)cube([x,sizeY,layer]);
+  }
+  else translate(t)for(i=[0:cuts-1])rotate(i*winkel)T(-x/2,r,i*layer)cube([x,sizeY,layer]);
+ else   if($children)difference(){ // axial cuts
+    children();
+    translate(t)for(i=[0:cuts-1])rotate(i*winkel)T(-x/2,r+line*sign(or-ir),0)cube([x,sizeY-line,h]);
+  }
+  else translate(t)for(i=[0:cuts-1])rotate(i*winkel)T(-x/2,r+line*sign(or-ir),0)cube([x,sizeY-line,h]);
+  
+  if($preview)if(!radial){
+    if(or>ir)color("chartreuse",alpha=.3)translate(t) rotate(90) cylinder(h,r=r,$fn=cuts);
+    else color("skyblue",alpha=.3)translate(t) rotate(90) Ring(h,r=r-line,rand=-(sizeY-line),fn=cuts,name=false,help=false);
+  }
+
+if(radial)InfoTxt("SpiralCut — Radial",["Winkel",winkel,"Layer",layer,"Cuts",cuts,"width",x,"ir",ir,"or",or],name);
+else InfoTxt("SpiralCut — Axial",["Winkel",winkel,"line",line,"Cuts",cuts,"width",x,"ir",ir,"or",or],name);
+
 HelpTxt("SpiralCut",[
- "layer",layer,
    "h",h,
-   "x",x,
    "ir",ir,
    "or",or,
+   "width",x,
    "t",t,
-   "winkel",winkel,
+   "grad",winkel,
+   "cuts",cuts,
+   "radial",radial,
+   "line",line,
+   "layer",layer,
    "name",name],
     help);
 
@@ -7826,38 +7868,38 @@ module Knochen(l=+15,d=3,d2=5,b=0,fn=fn,help)
 
 }
 
-module DGlied(sym,l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,rand=n(1.5),freiwinkel=20,help){
-if (sym) DGlied1(l=l,l1=l1,l2=l2,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
-else DGlied0(l=l,l1=l1,l2=l2,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
+module DGlied(sym,l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=20,help){
+if (sym) DGlied1(l=l,l1=l1,l2=l2,la=la,spiel=spiel,d=d,h=h,rand=rand,spielZ=spielZ,freiwinkel=freiwinkel);
+else DGlied0(l=l,l1=l1,l2=l2,la=la,spiel=spiel,d=d,h=h,rand=rand,spielZ=spielZ,freiwinkel=freiwinkel);
 
-HelpTxt("DGlied",["sym",sym,"l",l,"l1",l1,"l2",l2,"spiel",spiel,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
+HelpTxt("DGlied",["sym",sym,"l",l,"l1",l1,"l2",l2,"spiel",spiel,"spielZ",spielZ,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
 }
 
-module DGlied0(l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,rand=n(1.5),freiwinkel=20)
+module DGlied0(l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=20)
 {
 l1=is_undef(l1)?is_list(l)?l[0]:l:l1;
 l2=is_undef(l2)?is_list(l)?l[1]:l:l2;
-    Glied(l1,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
-    mirror([0,1,0])Glied(l2,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
+    Glied(l1,la=la,spiel=spiel,spielZ=spielZ,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
+    mirror([0,1,0])Glied(l2,la=la,spiel=spiel,spielZ=spielZ,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
 }
 
-module DGlied1(l=12,l1,l2,la=0,d=3,h=5,spiel=0.4,rand=n(1.5),freiwinkel=20)
+module DGlied1(l=12,l1,l2,la=0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=20)
 {
 l1=is_undef(l1)?is_list(l)?l[0]:l:l1;
 l2=is_undef(l2)?is_list(l)?l[1]:l:l2;
-    mirror([+0,1,0])T(0,-l1)Glied(l1,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
-    T(0,-l2)Glied(l2,la=la,d=d,h=h,spiel=spiel,rand=rand,freiwinkel=freiwinkel);
+    mirror([+0,1,0])T(0,-l1)Glied(l1,la=la,spiel=spiel,spielZ=spielZ,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
+    T(0,-l2)Glied(l2,la=la,d=d,h=h,spiel=spiel,spielZ=spielZ,rand=rand,freiwinkel=freiwinkel);
 }
 
 
 
-module SGlied(sym=0,l=12,la=-.5,d=3,h=5,spiel=0.4,rand=n(1.5),freiwinkel=30,help){
+module SGlied(sym=0,l=12,la=-.5,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=30,help){
 
 T(0,l/2){
 Halb(!sym,x=1)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=sym?freiwinkel:90);
-Halb(sym,x=1)rotate(180)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=sym?freiwinkel:90);
+Halb(sym,x=1)rotate(180)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,messpunkt=false,freiwinkel=sym?freiwinkel:90);
 }
-HelpTxt("SGlied",["sym",sym,"l",l,"spiel",spiel,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
+HelpTxt("SGlied",["sym",sym,"l",l,"spiel",spiel,"spielZ",spielZ,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
 }
 /*
 Schnitt(0,center=true,z=3){
@@ -7866,7 +7908,7 @@ rotate(30+180)T(0,-31)Glied(l=31,d=3,la=-1,spielZ=0);
 }
 //*/
 
-module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name=0,help)
+module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name=0,help,messpunkt=messpunkt)
 
 {
   freiwinkel= is_num(freiwinkel)?[freiwinkel,freiwinkel]:freiwinkel;
@@ -7888,7 +7930,7 @@ module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),fr
     "h",h,
     "rand",rand,
     "freiwinkel",freiwinkel,
-    "name",name],help);
+    "name",name,"messpunkt",messpunkt],help);
     
     T(y=l,z=h/2)Pille(l=hSteg,d=d+1,rad=.8,fn=fn);//Torus(1.2,1.7,fn=fn,n=name);
         if (messpunkt)
