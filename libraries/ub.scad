@@ -55,7 +55,8 @@ Release
 036|22 ADD star CHG SpiralCut CHG Gewinde CHG Bevel
 037|22 CHG star ADD Star
 038|22 CHG star CHG SpiralCut CHG Anordnen FIX DGlied Glied SGLied
-040|22
+040|22 FIX SGLied CHG wall
+042|22
 
 */
 
@@ -122,7 +123,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.038;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.040;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -556,7 +557,7 @@ is_undef(z)?[for(f=[0:fn])let(i=f%fn*360/fn)each[
 
 // wall calculates perimeter number according to nozzle size for "soll"mm
 
-function wall(soll=.5,min=1.75,even=false,nozzle=nozzle)=
+function wall(soll=.5,min=1.25,even=false,nozzle=nozzle)=
   let (
     perimeterHi=ceil(soll/nozzle),
     perimeterLow=floor(soll/nozzle),
@@ -3714,8 +3715,8 @@ Echo("outer diametern <= inner!",color="warning",condition=ir>=or);
   else translate(t)for(i=[0:cuts-1])rotate(i*winkel)T(-x/2,r+line*sign(or-ir),0)cube([x,sizeY-line,h]);
   
   if($preview)if(!radial){
-    if(or>ir)color("chartreuse",alpha=.3)translate(t) rotate(90) cylinder(h,r=r,$fn=cuts);
-    else color("skyblue",alpha=.3)translate(t) rotate(90) Ring(h,r=r-line,rand=-(sizeY-line),fn=cuts,name=false,help=false);
+    if(or>ir)color("chartreuse",alpha=.3)translate(t) rotate(90)%cylinder(h,r=r,$fn=cuts);
+    else color("skyblue",alpha=.3)translate(t) rotate(90)%Ring(h,r=r-line,rand=-(sizeY-line),fn=cuts,name=false,help=false);
   }
 
 if(radial)InfoTxt("SpiralCut — Radial",["Winkel",winkel,"Layer",layer,"Cuts",cuts,"width",x,"ir",ir,"or",or],name);
@@ -7893,13 +7894,19 @@ l2=is_undef(l2)?is_list(l)?l[1]:l:l2;
 
 
 
-module SGlied(sym=0,l=12,la=-.5,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=30,help){
+module SGlied(sym=0,l=12,la=-.5,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=30,help,messpunkt=messpunkt){
 
-T(0,l/2){
-Halb(!sym,x=1)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=sym?freiwinkel:90);
-Halb(sym,x=1)rotate(180)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,messpunkt=false,freiwinkel=sym?freiwinkel:90);
-}
-HelpTxt("SGlied",["sym",sym,"l",l,"spiel",spiel,"spielZ",spielZ,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
+  T(0,l/2){
+  Halb(!sym,x=1)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=sym?freiwinkel:90,messpunkt=false);
+  Halb(sym,x=1)rotate(180)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,messpunkt=false,freiwinkel=sym?freiwinkel:90);
+  }
+  HelpTxt("SGlied",["sym",sym,"l",l,"spiel",spiel,"spielZ",spielZ,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
+
+  if (messpunkt)
+  {
+      %color (sym?"red":"blue")translate([0,l,0.1])R(z=180/12)cylinder(5, d1=1,d2=1,$fn=12,center=true);//messachse1
+      %color(sym?"red":"blue")cylinder(5, d1=1,d2=1,$fn=12,center=true);//messachse2
+  }
 }
 /*
 Schnitt(0,center=true,z=3){
