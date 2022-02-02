@@ -56,7 +56,8 @@ Release
 037|22 CHG star ADD Star
 038|22 CHG star CHG SpiralCut CHG Anordnen FIX DGlied Glied SGLied
 040|22 FIX SGLied CHG wall
-042|22
+042|22 FIX CycloidZahn CHG Cycloid CHG Polar
+044|22
 
 */
 
@@ -123,7 +124,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.040;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.042;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -575,7 +576,7 @@ let(
   
   deg=angle/(e*2),
   winkel=((radial?[1,1]*angle/4/e+ [grad.x,grad.y]:grad))/fn,
-  winkel2=((radial?[1,1]*angle/4/e - [grad.x,grad.y]:grad2))/fn,
+  winkel2=((radial?[1,1]*angle/4/e - [grad.x,grad.y]:grad2))/fn
   )
 [for(i=[0:e*2 ], w=[0:1], ifn=[1:fn])  RotLang((deg*i+rot)%360 + ( i%2?  w?winkel[0]*ifn: -winkel[1]*(fn-ifn+1) :
                                                                       w?winkel2[0]*ifn:-winkel2[1]*(fn-ifn+1) ),
@@ -1071,8 +1072,11 @@ module M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=
 
 
 // multiply children polar (e=number, x/y=radial distance)
-module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name,n,help=false){
+module Polar(e=3,x=0,y=0,rot=0,rotE=0,end=360,dr=0,mitte=false,name,n,help=false,r,re){
     
+    
+   rot=is_undef(r)?rot:r; // compability
+   rotE=is_undef(re)?rotE:r; // compability
    name=is_undef(n)?is_undef(name)?is_undef($info)?false:
                                                    $info:
                                    name:
@@ -1083,14 +1087,14 @@ module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name,n,help=false){
    winkel=abs(end)==360?360/e:end/max(1,e-1);
   
   InfoTxt("Polar",["elements",str(e,
-    " radius ",radius,"mm ",re?str("rotElements=",re,"°"):"",end!=360?str(" End=",end,"°"):""," Element=",winkel,"° Abstand=",2*radius*PI/360*winkel,"mm (Sekante=",2*radius*sin(winkel/2),")")],name);
+    " radius ",radius,"mm ",rotE?str("rotElements=",rotE,"°"):"",end!=360?str(" End=",end,"°"):""," Element=",winkel,"° Abstand=",2*radius*PI/360*winkel,"mm (Sekante=",2*radius*sin(winkel/2),")")],name);
   
   
-   if(e>+0) rotate(r)for(i=[0:e-1]){
+   if(e>+0) rotate(rot)for(i=[0:e-1]){
         $idx=i;
         $tab=is_undef($tab)?1:b($tab,false)+1;
         $info=$idx?false:name;
-        rotate(e==1&&end<360?winkel/2:i*winkel)translate([x,y,0])rotate([0,0, re+(i*winkel)/end*dr])children();
+        rotate(e==1&&end<360?winkel/2:i*winkel)translate([x,y,0])rotate([0,0, rotE+(i*winkel)/end*dr])children();
     }
      if(mitte){
          $idx=e;
@@ -1098,7 +1102,7 @@ module Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name,n,help=false){
      }
 
      
-    HelpTxt("Polar",["e",e,"x",x,"y",y,"r",r,"re",re,"end",end,"dr",dr,"mitte",mitte,"name",name],help);
+    HelpTxt("Polar",["e",e,"x",x,"y",y,"rot",rot,"rotE",rotE,"end",end,"dr",dr,"mitte",mitte,"name",name],help);
 MO(!$children);
            
      
@@ -3789,8 +3793,12 @@ HelpTxt("Buchtung",[
 }
 
 
-module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=n(2),d=0,rot=0,linear=false,preview=true,spiel=0.075,fn=fn,name,help){
+
+
+module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=n(2),d=0,rot,linear=false,preview=true,spiel=0.075,fn=fn,name,help){
     $info=false;
+    z=abs(round(z));
+    rot=is_undef(rot)?z%2?0:90/z:rot;
     center=is_bool(center)?center?1:0:center;
     preview=$preview?preview:true;
     linear=linear==true?1:linear;
@@ -3838,6 +3846,8 @@ HelpTxt("CyclGetriebe",[
 }
 
 
+
+
 module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,kreisDivisor=3.50,name,help){
   //if(is_undef(UB)) echo(str("<H1><font color=red> include ub.scad> "));
       
@@ -3849,31 +3859,41 @@ module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,
   rot=90/z;
     kreis=Umkreis(z*2,z*modul/2+modul/kreisDivisor+(d>r*2?spiel:-spiel));
     $info=false;
-  if(!linear)Polar(z%1?2:1,end=z%1?180+rot:360,r=z%1?0:180/(z*4))
+  if(b(linear,bool=false)<0)Polar(z%1?2:1,end=z%1?180+rot:360,r=z%1?0:180/(z*4))
   Rund(modul/10,fn=18){
     intersection (){
      rotate(-spielwinkel)    Cycloid(modul=modul,z=z1,d=d,fn=fn);
      rotate(rot+spielwinkel) Cycloid(modul=modul,z=z1,d=d,fn=fn);
       if(d<r*2)rotate(-rot/2)  circle(r=kreis,$fn=z*2);
-         else  Kreis(d=d+10,rand=(d/2+5-kreis)+Umkreis(z*2,modul/3.5*2),rot=z%1?-rot/2:rot/2,fn=z*2);
+         else  Kreis(d=d+10,rand=(d/2+5-kreis)+Umkreis(z*2,modul/3.5*2),rot=rot/2,fn=z*2);
     }
     rotate(180/z)intersection (){
      rotate(-spielwinkel)   Cycloid(modul=modul,z=z1,d=d,fn=fn);
      rotate(rot+spielwinkel)   Cycloid(modul=modul,z=z1,d=d,fn=fn);
       if(d<r*2) rotate(-rot/2)circle(r=kreis,$fn=z*2);
-       else  Kreis(d=d+10,rand=(d/2+5-kreis)+Umkreis(z*2,modul/3.5*2),rot=z%1?-rot/2:rot/2,fn=z*2);
+       else  Kreis(d=d+10,rand=(d/2+5-kreis)+Umkreis(z*2,modul/3.5*2),rot=rot/2,fn=z*2);
     } 
   }
   
+  if(!linear)
+  Rund(modul/10,fn=fn)
+    Polar(z*2)//rot=z%1?45/z:90/z)
+     intersection (){
+       rotate(-rot/2-spielwinkel)    Cycloid(modul=modul,z=z,d=d,fn=fn,option=2);
+       rotate(rot/2+spielwinkel) Cycloid(modul=modul,z=z,d=d,fn=fn,option=2);
+       if(d<r*2)rotate(rot)  circle(r=kreis,$fn=z*2);
+         else  Kreis(d=d+10,rand=(d/2+5-kreis)+Umkreis(z*2,modul/3.5*2),rot=rot ,fn=z*2);
+    }
+  
 
   
-  if(linear){
+  if(b(linear,bool=false)>0){
   T(center?-l/2:0)Rund(modul/10,fn=18)intersection(){
     T(2.5*-modul*PI/4)  Klon(tx=modul*PI/4) intersection(){
         T(-modul*PI/4-spiel*2) Cycloid(modul=modul,z=z1+2,d=d,linear=linear,fn=fn);
         T(0)Cycloid(modul=modul,z=z1+2,d=d,linear=linear,fn=fn);
     }
-   T(0,-(linear==true?1:linear)) square([l,(linear==true?1:linear)+modul/3.5]);
+   T(0,-(linear==true?modul:linear)) square([l,(linear==true?modul:linear)+modul/3.5]);
   }
 
   }
@@ -4160,7 +4180,8 @@ rot=+0.5;
 Cycloid(linear=+2,option=+0);
 T(rot*PI*z-PI/4,z/2)rotate(-rot*360-90)Cycloid(option=+0,z=z,l=+0.00,d=1);
 }
-*/
+//*/
+
 
 
 module Cycloid (modul=1,z=5,fn=36,option=+0,l=0,d=0,linear=false,name,help,zahn){
@@ -4215,7 +4236,7 @@ if(!linear){
  ]; 
  
  
-pointsRand=Kreis(r=d/2,rand=0,fn=max(d*3,fn));
+pointsRand=kreis(r=d/2,rand=0,fn=max(d*3,fn));
  
 if(option==1)color("pink")polygon(
     d?concat(pointsRand,pointsEX):pointsEX
@@ -4234,13 +4255,18 @@ if(option==-1)color("cyan")polygon(
     [[for(i=[0:len(pointsCAV)-1])i]]
     ,convexity=5);    
 
-points=[for(z=[0:2:e-1])each[for(i=[fn*z:fn*(z+1)])pointsEX[i],
-for(i=[fn*(z+1):fn*(z+2)])pointsCAV[i]
-    ]
-    //,pointsEX[+0]
-    ]; 
-//if(!option)color("orange")rotate(180/e-90)polygon(points,convexity=5); 
-//rot=180+(d>r*2?90/z:-90/z));
+points=[for(z=[0:2:e -2])each[
+          for(i=[fn*z:fn*(z+1)])pointsEX[i],
+          for(i=[fn*(z+1):fn*(z+2)])pointsCAV[i]
+       ] ];
+
+pointsSingle=[
+                for(i=[0:fn -1])pointsCAV[i+fn*(z*2-1)],
+                for(i=[0:fn -1])pointsEX[i],
+                for(i=[0:fn -1])pointsCAV[i+fn],
+                if(!d) [0,0]
+             ];
+
 
 if(!option)color("orange")rotate(-180/e)
     polygon(d?concat(pointsRand,points):points
@@ -4249,6 +4275,9 @@ if(!option)color("orange")rotate(-180/e)
     [for(i=[len(pointsRand):len(points)-1+len(pointsRand)])i]]:
     [[for(i=[0:len(points)-1])i]]
     ,convexity=5);
+    
+if(option==2) rotate(-180/e)
+ polygon(points=d?concat(kreis(r=-d/2,rand=0,grad=360/z*1.5 ,center=true,rot=-90/z,fn=max(d*3,fn)),pointsSingle):pointsSingle);
     
 }
 HelpTxt("Cycloid",["modul",modul,"z",z,"fn",fn,"option",option,"l",l,"d",d,"linear",linear,"name",name],help);
