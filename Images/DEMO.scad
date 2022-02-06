@@ -654,7 +654,10 @@ Anordnen(es=[30,20],option=3,e=6,c=undef,loop=false,center=false,name="Objects")
     objPos=[3,3];
   
     union(){ // Pill
-    T(objPos)R(90){ Pille();T(10)Pille(rad=1);}
+      T(objPos)R(90){ 
+        Pille();
+        T(10)Pille(d=3,rad=1);
+      }
     Txt("Pille"); 
   }  
   union(){ // Strut
@@ -718,10 +721,9 @@ Anordnen(es=[30,20],option=3,e=6,c=undef,loop=false,center=false,name="Objects")
   }  
   union(){ // 
     T(objPos){
-     Color(color2) REcke(r=2);
-    T(-1.5,1.0)Prisma(2,6,c1=3,center=true);
-    T(y=-1,0.5)Prisma(6,2,c1=2,center=true);
-      
+      Color(color2) REcke(h=5,r=2,center=true);
+      T(-1.5, 1)Prisma(3,6,5,c1=3,center=true);
+      T( 0.5,-1)Prisma(6,2,5,c1=2,center=true);
     }
     Txt("REcke()"); 
   }  
@@ -900,7 +902,10 @@ Klammer(d=10,breite=3);
 Pin(d=12,l=30);
 CyclGetriebe(help=$helpM,modul=5,z=15,achse=10,light=3,lRand=2);
 Buchtung(help=$helpM);
-SpiralCut(help=$helpM);
+union(){
+  SpiralCut(or=10,ir=1,help=$helpM);
+  T(15)SpiralCut(or=10,ir=1,radial=false,help=$helpM);
+  }
 SRing(e=5,id=10,od=20,rand=2.5);
 DRing(help=$helpM);//opt polygon
 DRing(help=$helpM)circle(1,$fn=5);
