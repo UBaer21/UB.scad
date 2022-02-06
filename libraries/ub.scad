@@ -59,6 +59,9 @@ Release
 042|22 FIX CycloidZahn CHG Cycloid CHG Polar FIX star
 044|22 CHG Kegel FIX star
 045|22 CHG CycloidZahn CHG CyclGear add f CHG Cycloid 
+046|22 CHG CyclGear CHG CycloidZahn CHG LinEx CHG REcke
+047|22
+
 
 */
 
@@ -125,7 +128,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.045;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.046;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -2174,13 +2177,13 @@ rotate(end==-1? (asin($r/trx))*sign(grad):
 
 
 
-module LinEx(h=5,h2=0,h22,scale=0.85,scale2,twist,twistcap=1,slices,$d,$r=5,grad,grad2,mantelwinkel=0,center=false,rotCenter=false,end=0,fn=12,name,help,n){
+module LinEx(h=5,h2=0,h22,scale=0.85,scale2,twist,twistcap=1,slices,$d,$r=5,grad,grad2,mantelwinkel=0,center=false,rotCenter=false,end=0,fn=12,name,help,n,convexity=5){
 
 
 $info=is_undef(name)?is_undef($info)?false:$info:name;
 $helpM=0;
 $idxON=false;
-
+ifn=$fn;
 end=is_bool(end)?end?[1,1]:[0,0]:is_list(end)?end:[end,end];   
 name=is_undef(n)?name:n;
 twistcap=is_list(twistcap)?twistcap:[twistcap,twistcap];    
@@ -2224,7 +2227,7 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
         
     if(is_list(grad)?$r*tan(min(grad[0],grad[1]))<(is_list($r)?[h2,h2]:h2)&&min(grad[0],grad[1])<90&&min(grad[0],grad[1])>0:$r*tan(grad)<h2&&grad<90&&grad>0)Echo(str(name," LinEx Höhe h2=",h2," mm zu groß oder winkel/$r zu klein min=",atan(h2/$r),"° max=",$r*tan(grad),"mm"),color="red");    
     
-    HelpTxt("LinEx",["h",h,"h2",h2,"h22",h22,"scale",scale,"scale2",scale2,"twist",twist,"twistcap",twistcap,"slices",slices,"$d",$d,"grad",grad,"grad2",grad2,", mantelwinkel",mantelwinkel,"center",center,"rotCenter",rotCenter,"end",end,"fn",fn,"name",name],help);  
+    HelpTxt("LinEx",["h",h,"h2",h2,"h22",h22,"scale",scale,"scale2",scale2,"twist",twist,"twistcap",twistcap,"slices",slices,"$d",$d,"grad",grad,"grad2",grad2,", mantelwinkel",mantelwinkel,"center",center,"rotCenter",rotCenter,"end",end,"fn",fn,"name",name,"convexity",convexity],help);  
     
 
 
@@ -2235,17 +2238,17 @@ rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
     union(){
 
     //capoben
-    if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22,scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=5,slices=slices/hc*h22)children();
+    if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22,scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=convexity,slices=slices/hc*h22,$fn=0)children($fn=ifn);
     
     //capunten
-    if(h2)Tz(h2)rotate(twist/2)mirror([0,0,1])linear_extrude(h2,scale=scale,twist=twistcap[0]?-twist/(hc)*h2:0,convexity=5,slices=slices/hc*h2)children();
+    if(h2)Tz(h2)rotate(twist/2)mirror([0,0,1])linear_extrude(h2,scale=scale,twist=twistcap[0]?-twist/(hc)*h2:0,convexity=convexity,slices=slices/hc*h2,$fn=0)children($fn=ifn);
     }
 
     //center
     Tz(h2){
       $idx=0;
       $tab=is_undef($tab)?1:b($tab,false)+1;
-      rotate(twist/2)linear_extrude(hc,scale=1,convexity=5,twist=twist,slices=slices,center=false)children();
+      rotate(twist/2)linear_extrude(hc,scale=1,convexity=convexity,twist=twist,slices=slices,center=false)children();
     }
   
     
@@ -3796,30 +3799,30 @@ HelpTxt("Buchtung",[
 
 
 
-module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=n(2),d=0,rot,linear=false,preview=true,spiel=0.075,f=2,fn=16,name,help){
+module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=n(2),d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=2,fn=16,name,help){
     $info=false;
     z=abs(round(z));
-    rot=is_undef(rot)?z%2?0:90/z:rot;
+    rot=is_undef(rot)?90/z*rotZahn:rot;
     center=is_bool(center)?center?1:0:center;
     preview=$preview?preview:true;
     linear=linear==true?1:linear;
-    r=z/4*modul;
+    r=z/f*modul/2;
     mitteR=(r-modul/2)/2+achse/4;
     rand=r-achse/2-modul/2-lRand*2;
     
-    if(!linear){T(center?0:z/f/2*modul)T(y=center>1?z/f/2*modul:0)rotate(rot - (center>1?90:0))difference(){
+    if(!linear){T(center?0:-z/f/2*modul)T(y=center>1?z/f/2*modul:0)rotate(rot - (center>1?90:0))difference(){
         LinEx(h=h,h2=h2,$d=z/f*modul,mantelwinkel=w,slices=preview?(h-1)*2:2,grad=d>r*2?-grad:grad)
         if($preview&&!preview) Kreis(d=d>r*2?d:$d,rand=d>r*2?d/2-r:r-d/2);
-        else render()CycloidZahn(modul=modul,z=z/f,f=f,d=d,spiel=spiel,fn=fn);
+        else CycloidZahn(modul=modul,z=z/f,f=f,d=d,spiel=spiel,fn=fn);
       if(achse) Tz(-.01)LinEx(h=h+.02,h2=h2,$d=achse,grad=-achsegrad)circle(d=$d,$fs=.25,$fn=0,$fa=2);
       if(light) Tz(-0.01)Polar(light)T(mitteR)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(-mitteR)Rund(min(rand/light,rand/2-0.1),fn=18)Kreis(r=mitteR,rand=rand,grad=min(360/light-15,320),grad2=max(360/light-40,10),rcenter=true,fn=z/light);
-      if(lock)Tz(-0.01)LinEx(h=h+.02,h2=h2,$r=achse/2,grad=-60)WStern(f=is_num(lock)?lock:5,help=0,r=$r,fn=(is_num(lock)?lock:5)*15);
+      if(lock)rotate(90)Tz(-0.01)LinEx(h=h+.02,h2=h2,$r=achse/2,grad=-60)WStern(f=is_num(lock)?lock:5,help=0,r=$r,fn=(is_num(lock)?lock:5)*15);
     }
     InfoTxt("CyclGetriebe",["Wälzradius",z/4*modul],name);
     }
     
- if (linear)T(0)intersection(){M(skewzx=-tan(w))T(0,-linear)LinEx(h,.5,$r=linear,grad=[90,45],grad2=[90,45])T(0,linear)CycloidZahn(z=z/f,f=f,modul=modul,fn=fn,linear=linear,center=center,spiel=spiel);
-}
+ if (linear){M(skewzx=-tan(w))T(0,-linear)LinEx(h,.5,$r=linear,grad=[90,grad],grad2=[90,grad])T(0,linear)CycloidZahn(z=z/f,f=f,modul=modul,fn=fn,linear=linear,center=center,spiel=spiel);
+    }
     //Color()T(mitteR,0,4)circle(d=rand);
 
 HelpTxt("CyclGetriebe",[
@@ -3837,6 +3840,7 @@ HelpTxt("CyclGetriebe",[
 "lRand",lRand,
 "d",d,
 "rot",rot,
+"rotZ",rotZahn,
 "linear",linear,
 "preview",preview,
 "spiel",spiel,
@@ -3889,10 +3893,10 @@ module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,
   
 
   lambda=modul*PI;
-  //square([lambda/f,.1]);
+  //T(0,0.3)square([lambda/f,.1]);
   if(b(linear,bool=false)>0){
   T(center?-l/2:0)Rund(rund[0],rund[1],fn=18)intersection(){
-    T(-tra/2.5) Linear(e=f,es=lambda/f) intersection(){
+    T(-tra/2+ lambda/f/4) Linear(e=f,es=lambda/f) intersection(){
         T(+tra/2+spiel-lambda) Cycloid(modul=modul,z=z+2,d=d,linear=linear,fn=fn);
         T(-tra/2-spiel-lambda) Cycloid(modul=modul,z=z+2,d=d,linear=linear,fn=fn);
     }
@@ -5089,18 +5093,18 @@ module WStern(f=5,r=1.65,a=.25,r2,fn=fn,fv=0,name,help){
 }
 
 
-module REcke(h=5,r=5,rad=.5,rad2,single=0,grad=90,fn=fn,help){
+module REcke(h=5,r=5,rad=.5,rad2,single=0,grad=90,center=false,fn=fn,help){
 rad2=is_undef(rad2)?rad:rad2;
    radius=TangentenP(180-grad,r,r); 
    radius2=TangentenP(180-grad,r+Hypotenuse(rad,rad),r-rad);
     
- difference(){
+ translate([0,0,center?-h/2:0])difference(){
   if(grad==90)T(-rad,-rad)cube([r+rad,rad+r,h]);
       else translate([-rad*tan(90-grad/2),-rad]) rotate_extrude(angle=grad,convexity=5)square([radius2,h]);
   translate(RotLang(90-grad/2,radius))rotate(grad/2+180)Strebe(angle=200-grad,h=h,single=single,2D=0,rad=rad,rad2=rad2,d=2*r,help=0,name=0,fn=fn);
  }   
-if(help)echo(str("<H3><font color='",helpMColor,"' <b>Help REcke(h=",h,",r=",r,",rad=",rad,",rad2=",rad2,",single=",single,",grad=",grad," ,fn=",fn," ,help")); 
- if(grad!=90)echo("<H1><font color=red> WIP grad!=90");   
+HelpTxt("REcke",["h",h,"r",r,"rad",rad,"rad2",rad2,"single",single,"grad",grad,"center",center,"fn",fn],help); 
+ if(grad!=90)Echo("WIP grad!=90",color="warning");   
 }
 
 
