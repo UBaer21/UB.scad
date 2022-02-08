@@ -58,9 +58,9 @@ Release
 040|22 FIX SGLied CHG wall
 042|22 FIX CycloidZahn CHG Cycloid CHG Polar FIX star
 044|22 CHG Kegel FIX star
-045|22 CHG CycloidZahn CHG CyclGear add f CHG Cycloid 
-046|22 CHG CyclGear CHG CycloidZahn CHG LinEx CHG REcke
-047|22
+045|22 CHG CycloidZahn CHG CyclGetriebe add f CHG Cycloid 
+046|22 CHG CyclGetriebe CHG CycloidZahn CHG LinEx CHG REcke
+047|22 FIX CyclGtriebe
 
 
 */
@@ -128,7 +128,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.046;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.047;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -3797,10 +3797,15 @@ HelpTxt("Buchtung",[
      help);
 }
 
+module CyclGear(z=20,modul=2,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(0.8),d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=3,fn=24,name,help){
+CyclGetriebe(z=z,modul=modul,w=w,h=h,h2=h2,grad=grad,achse=achse,achsegrad=achsegrad,light=light,lock=lock,center=center,lRand=lRand,d=d,rot=rot,rotZahn=rotZahn,linear=linear,preview=preview,spiel=spiel,f=f,fn=fn,name,help);
+}
 
 
-module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=n(2),d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=2,fn=16,name,help){
-    $info=false;
+
+
+module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(.5),d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=2,fn=24,name,help){
+    //$info=false;
     z=abs(round(z));
     rot=is_undef(rot)?90/z*rotZahn:rot;
     center=is_bool(center)?center?1:0:center;
@@ -3810,18 +3815,25 @@ module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60
     mitteR=(r-modul/2)/2+achse/4;
     rand=r-achse/2-modul/2-lRand*2;
     
-    if(!linear){T(center?0:-z/f/2*modul)T(y=center>1?z/f/2*modul:0)rotate(rot - (center>1?90:0))difference(){
+  if(!linear){
+    T(center?0:-z/f/2*modul)T(y=center>1?z/f/2*modul:0)rotate(rot - (center>1?90:0))difference(){
+        $info=false;
         LinEx(h=h,h2=h2,$d=z/f*modul,mantelwinkel=w,slices=preview?(h-1)*2:2,grad=d>r*2?-grad:grad)
-        if($preview&&!preview) Kreis(d=d>r*2?d:$d,rand=d>r*2?d/2-r:r-d/2);
-        else CycloidZahn(modul=modul,z=z/f,f=f,d=d,spiel=spiel,fn=fn);
-      if(achse) Tz(-.01)LinEx(h=h+.02,h2=h2,$d=achse,grad=-achsegrad)circle(d=$d,$fs=.25,$fn=0,$fa=2);
-      if(light) Tz(-0.01)Polar(light)T(mitteR)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(-mitteR)Rund(min(rand/light,rand/2-0.1),fn=18)Kreis(r=mitteR,rand=rand,grad=min(360/light-15,320),grad2=max(360/light-40,10),rcenter=true,fn=z/light);
-      if(lock)rotate(90)Tz(-0.01)LinEx(h=h+.02,h2=h2,$r=achse/2,grad=-60)WStern(f=is_num(lock)?lock:5,help=0,r=$r,fn=(is_num(lock)?lock:5)*15);
+          if($preview&&!preview) Kreis(d=d>r*2?d:$d,rand=d>r*2?d/2-r:r-d/2);
+          else CycloidZahn(modul=modul,z=z/f,f=f,d=d,spiel=spiel,fn=fn);
+        if(achse) Tz(-.01)LinEx(h=h+.02,h2=h2,$d=achse,grad=-achsegrad)circle(d=$d,$fs=.25,$fn=0,$fa=2);
+        
+        if(light) Tz(-0.01)Polar(light)T(mitteR)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(-mitteR)Rund(min(rand/light,rand/2-0.1),fn=18)Kreis(r=mitteR,rand=rand,grad=min(360/light - gradS(s=lRand,r=mitteR+rand/2),320),grad2=max(360/light - gradS(s=wall(lRand*1.85),r=mitteR-rand/2),10),rcenter=true,fn=z/light);
+        
+        if(lock)rotate(90)Tz(-0.01)LinEx(h=h+.02,h2=h2,$r=achse/2,grad=-60)WStern(f=is_num(lock)?lock:5,help=0,r=$r,fn=(is_num(lock)?lock:5)*15);
     }
-    InfoTxt("CyclGetriebe",["Wälzradius",z/4*modul],name);
-    }
+    InfoTxt("CyclGetriebe",["Wälzradius",z/f*modul/2],name);
+  }
     
- if (linear){M(skewzx=-tan(w))T(0,-linear)LinEx(h,.5,$r=linear,grad=[90,grad],grad2=[90,grad])T(0,linear)CycloidZahn(z=z/f,f=f,modul=modul,fn=fn,linear=linear,center=center,spiel=spiel);
+ 
+  if (linear){
+    $info=false;
+    M(skewzx=-tan(w))T(0,-linear)LinEx(h,.5,$r=linear,grad=[90,grad],grad2=[90,grad])T(0,linear)CycloidZahn(z=z/f,f=f,modul=modul,fn=fn,linear=linear,center=center,spiel=spiel);
     }
     //Color()T(mitteR,0,4)circle(d=rand);
 
