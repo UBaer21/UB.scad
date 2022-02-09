@@ -61,6 +61,7 @@ Release
 045|22 CHG CycloidZahn CHG CyclGetriebe add f CHG Cycloid 
 046|22 CHG CyclGetriebe CHG CycloidZahn CHG LinEx CHG REcke
 047|22 FIX CyclGtriebe
+048|22 Add CyclGear FIX Bezier CHG v3 CHG vektorWinkel CHG Points ADD vMult
 
 
 */
@@ -128,7 +129,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.047;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.048;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -284,17 +285,43 @@ function clampToX0(points,interval=minVal)=is_list(points[0])?[for(e=points)[abs
     [abs(points[0])>interval?points[0]:0,points[1]];
   
 // angle between two points used for e.g. Bezier
-  vektorWinkel= function(p1=[0,0,0],p2=[0,0,0])p1==p2?[0,0,0]:[ 
-            
-            -acos((v3(p2).z-v3(p1).z)/norm(p2-p1))+90,
+  vektorWinkel= function(p1=[0,0,0],p2=[0,0,0])
+  let(p1=v3(p1),p2=v3(p2))
+  
+     p1==p2?[0,0,0]:[ 
+            -acos((p2.z-p1.z)/norm(p2-p1))+90,
             0,
             atan2(p2.y-p1.y,p2.x-p1.x)-90
             ];
 
-function v3( v ) =is_num(v.y)?is_num(v.z)?len(v)==3?v:  // make everything to a vector3
-                                          [v.x,v.y,v.z]:
+
+
+
+
+function v3(v)= [
+is_num(v.x)?v.x:is_num(v)?v:0,
+is_num(v.y)?v.y:0,
+is_num(v.z)?v.z:0,
+ ];
+
+
+/* org
+function v3org( v ) =
+       is_num(v.y)?is_num(v.z)?len(v)==3?v:  // make everything to a vector3
+                                          [v.x,v.y,v.z]: // shorten if len >3
                             concat(v,[0]):
                   concat(v,[0,0]);
+                  
+                  
+ v=[1,undef,"a",2];
+ echo(v3(v),v3org(v));
+//*/
+                
+
+
+
+ 
+ 
 
 // list of parent modules [["name",id]]
 function parentList(n=-1,start=1)=  is_undef($parent_modules)||$parent_modules==start?undef:[for(i=[start:$parent_modules +n])[parent_module(i),i]];
@@ -595,8 +622,7 @@ let(
 //polygon(star(e=3,angle=120,rot=-60,radial=true,fn=10));
 
 
-
-
+function vMult(v1=[1],v2=1)=assert(len(v1)==len(v2),"vMult vector lengths different")[for(i=[0:len(v1)-1])v1[i]*v2[i]];
 
 
 ///////////////////////////////////////////////////////
@@ -731,6 +757,7 @@ echo    ("
 ••• superellipse(n=2.5,r=10,z,fn=fn) ••• \n
 ••• star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0) ••• \n
 ••• wall(soll,min=1.75,even=false,nozzle=nozzle) adapt to line width (nozzle) ••• \n
+••• vMult(v1,v2) vector multiplication ••• \n
 
 
 ");
@@ -906,7 +933,7 @@ echo    ("\n
 •• PCBcase(help=1);••••\n
 •• Klammer(help=1);••••\n
 •• Pin(help=1);••••\n
-•• CyclGetriebe(help=1);••••\n
+•• CyclGetriebe(help=1);/CyclGear();••••\n
 •• SRing(help=1);••••\n
 •• DRing(help=1);opt polygon••••\n
 •• GewindeV4(help=1); ••••\n
@@ -1351,7 +1378,9 @@ module HexGrid(e=[11,4],es=5,center=true,name){
 
 //Points(octa(5),loop=4,size=0.4);
 
-module Points(points,color,size,hull=.5,loop=25,start=0,mark,markS,center=true,help){
+
+
+module Points(points=[[0,0]],color,size,hull=.5,loop=25,start=0,mark,markS,center=true,help){
   lp=assert(points[0],"no point(s) input")len(points);
   cMark=["Chartreuse","Aqua","Magenta","LightSkyBlue"];
   size=is_undef(size)?$vpd/100:size;
@@ -1360,7 +1389,10 @@ module Points(points,color,size,hull=.5,loop=25,start=0,mark,markS,center=true,h
 
 
     for (i=[0:is_list(points[0])?lp-1:0])translate(is_list(points[0])?points[i]:points){
-     if(is_num(mark)&&i==mark)color("Chartreuse", alpha=.6)OctaH(.6*markS);
+     if(is_num(mark)&&i==mark){
+      color("Chartreuse", alpha=.6)OctaH(.6*markS);
+      color("Chartreuse", alpha=1)T(0,markS)linear_extrude(.01,convexity=3)text(str(points[i]),size=markS/3,halign="center");
+      }
      if(is_list(mark)) for(j=[0:len(mark)-1])if(i==mark[j])color(cMark[j%len(cMark)], alpha=0.4)OctaH(0.4*markS,$fn=12);
        
      if(i>=start&&i<start+loop){
@@ -3803,7 +3835,6 @@ CyclGetriebe(z=z,modul=modul,w=w,h=h,h2=h2,grad=grad,achse=achse,achsegrad=achse
 
 
 
-
 module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(.5),d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=2,fn=24,name,help){
     //$info=false;
     z=abs(round(z));
@@ -3823,7 +3854,7 @@ module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60
           else CycloidZahn(modul=modul,z=z/f,f=f,d=d,spiel=spiel,fn=fn);
         if(achse) Tz(-.01)LinEx(h=h+.02,h2=h2,$d=achse,grad=-achsegrad)circle(d=$d,$fs=.25,$fn=0,$fa=2);
         
-        if(light) Tz(-0.01)Polar(light)T(mitteR)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(-mitteR)Rund(min(rand/light,rand/2-0.1),fn=18)Kreis(r=mitteR,rand=rand,grad=min(360/light - gradS(s=lRand,r=mitteR+rand/2),320),grad2=max(360/light - gradS(s=wall(lRand*1.85),r=mitteR-rand/2),10),rcenter=true,fn=z/light);
+        if(light) Tz(-0.01)Polar(light)T(light>1?mitteR:0)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(light>1?-mitteR:0)Rund(min(rand/light,rand/2-0.1),fn=fn)Kreis(r=mitteR,rand=rand,grad=min(360/light - gradS(s=lRand,r=mitteR+rand/2),320),grad2=max(360/light - gradS(s=wall(lRand*1.85),r=mitteR-rand/2),2),rcenter=true,fn=fn/light*2);
         
         if(lock)rotate(90)Tz(-0.01)LinEx(h=h+.02,h2=h2,$r=achse/2,grad=-60)WStern(f=is_num(lock)?lock:5,help=0,r=$r,fn=(is_num(lock)?lock:5)*15);
     }
@@ -6274,7 +6305,6 @@ HelpTxt("Strebe",["h",h,"d",d,"d2",d2,"rad",rad,"rad2",rad2,"sc",sc,"grad",grad,
 }
 
 
-
 module Bezier(
 p0=[+0,+10,0],
 p1=[15,-10,0],
@@ -6364,15 +6394,10 @@ help
     if(3D){
       points=is_undef(points)?kreis(d=d,rand=0,fn=fn2):points;
       loop=len(points);
-      path=[for (t=[min:((max-min)/fn):(max+(max-min)/fn)-((max-min)/fn)])Bezier(t,
-            [p0[0],p0[1]],
-            [p1[0],p1[1]],        
-            [p2[0],p2[1]],       
-            [p3[0],p3[1]]        
-           )];
-     PolyH(pathPoints(points=points,path=path,scale=scale,twist=twist),loop=loop);
-    
-    
+      path=[for (t=[min:((max-min)/fn):(max+(max-min)/fn)-((max-min)/fn)])Bezier(t,p0,p1,p2,p3)];
+
+     PolyH(pathPoints(points=points,path=path,scale=scale,twist=twist),loop=loop,name=false);
+
     }
     
     
