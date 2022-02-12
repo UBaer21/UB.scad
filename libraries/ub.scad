@@ -62,7 +62,7 @@ Release
 046|22 CHG CyclGetriebe CHG CycloidZahn CHG LinEx CHG REcke
 047|22 FIX CyclGtriebe
 048|22 Add CyclGear FIX Bezier CHG v3 CHG vektorWinkel CHG Points ADD vMult
-
+050|22 CHG vMult CHG Gewinde
 
 */
 
@@ -129,7 +129,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.048;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.050;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -622,7 +622,7 @@ let(
 //polygon(star(e=3,angle=120,rot=-60,radial=true,fn=10));
 
 
-function vMult(v1=[1],v2=1)=assert(len(v1)==len(v2),"vMult vector lengths different")[for(i=[0:len(v1)-1])v1[i]*v2[i]];
+function vMult(v1=[1],v2=1)=[for(i=[0:min(len(v1),len(v2))-1])v1[i]*v2[i]];
 
 
 ///////////////////////////////////////////////////////
@@ -3067,7 +3067,7 @@ konisch=0,
 center=true,
 rund=false,
 ratio,
-spiel=.15,
+spiel=.1,
 name,
 help,
 
@@ -3252,7 +3252,7 @@ help
     d1=innen?-kern:dn;//Gewindespitzen
     d2=innen?-dn:kern;//Gewindetäler
     grad=max(//windungen
-      is_undef(h)?grad-(grad%(360/fn)):(h-p)/p*360-(((h-p)/p*360)%(360/fn)),
+      is_undef(h)?grad-(grad%(360/fn)):(h-p)/p*360-(((h-p)/p*360)%(360/fn)-360/fn),
     360/fn*(start+end))
     ;
   
