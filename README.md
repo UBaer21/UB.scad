@@ -119,24 +119,19 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 ![functions](https://github.com/UBaer21/UB.scad/blob/main/Images/functions.png)
 * `l(x)` № layer in mm depending on layer=
-* `n(x)` wall / perimeter depending on nozzle=
+* `n(x,nozzle)` wall / perimeter depending on nozzle=
 * `Inkreis( eck, rU)` inner circle of n-gon
 * `Umkreis( eck, rI)` outer circle of n-gon
 * `Hypotenuse( a, b)` length 
 * `Kathete( hyp, kat)` length
 * `Sehne( n, r, a)` length n-eck/alpha winkel 
 * `RotLang( rot, l, z, e, lz)` [polar vector] (e=elevation)
-* `bezier( t, p0=[0,0], p1=[-20,20], p2=[20,20], p3=[0,0])` single point  for t=[0:.1:1]
-* `kreis(r=10, rand=+5, grad=360, grad2=+0, fn=fn, center=true, sek=true, r2=0, rand2=0, rcenter=0, rot=0, t=[0,0])` points circle or arc
 * `kreisXY(r=5, grad=0)` [vector]
-* `5gon(b1=20, l1=15, b2=10, l2=30)` points for a pentagon
-* `zigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)` points 
 * `TangentenP(grad, rad, r)` distance tangential point
 * `Hexstring(c=[r, g, b])` #hexcolor 
 * `RotPoints(grad,points)` rotates points 
 * `gradB(b, r)` degree for arc section b 
 * `gradS(s, r)` degree for chord s 
-* `vollwelle()` ⇒ Vollwelle(help=1) points
 * `runden(x, dec=2)` round x at decimal
 * `radiusS(n, s, a)` radius for chord s on n-gon or for angle 
 * `grad(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)` conversion everything in degree  
@@ -152,7 +147,21 @@ There are a lot of settings available but most is using  pre configuration - so 
 * `scaleGrad(grad=45, h=1, r=1)` scale factor for extrusions h of circle(r) to obtain angle grad at sides
 * `m( r=[0,0,0], t=[0,0,0] )` mulmatrix vector
 * `mPoints(points, r, t, s)` transform (rotate translate scale ) point or points (2D/3D)
-* `quad(x, y, r, fn)` Quad polygon points x can be vector [x,y] r can be list
-* `stern(e, r1, r2, mod, delta)` Stern polygon points, mod sets additonal points delta moves between
-* `octa(s)` octahedron points (s can be list)
+* `wall(soll=.5,min=1.25,even=false,nozzle=nozzle)` calculates perimeter for "soll" according to nozzle size
+* `vMult(v1=[1],v2=1)` multiplicates vectors v1.x × v2.x …
 
+* Points generating
+  * 
+  * `pathPoints(points,path,twist=0,scale=1,open=true)` points along path 
+  * `kreis(r=10, rand=+5, grad=360, grad2=+0, fn=fn, center=true, sek=true, r2=0, rand2=0, rcenter=0, rot=0, t=[0,0])` points circle or arc
+  * `bezier( t, p0=[0,0], p1=[-20,20], p2=[20,20], p3=[0,0])` single point  for t=[0:.1:1]
+  * `tetra( r )` tetrahedron points
+  * `5gon(b1=20, l1=15, b2=10, l2=30)` points for a pentagon
+  * `zigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)` points
+  * `vollwelle()` ⇒ Vollwelle(help=1) points
+  * `quad(x, y, r, fn)` Quad polygon points x can be vector [x,y] r can be list
+  * `stern(e, r1, r2, mod, delta)` Stern polygon points, mod sets additonal points delta moves between
+  * `octa(s)` octahedron points (s can be list)
+  * `star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0)` star points ⇒ Star polygon
+  * `superellipse(n=2.5,r=10,z,fn=fn` points for a superellipse
+  
