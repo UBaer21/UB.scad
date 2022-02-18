@@ -63,6 +63,9 @@ Release
 047|22 FIX CyclGtriebe
 048|22 Add CyclGear FIX Bezier CHG v3 CHG vektorWinkel CHG Points ADD vMult
 050|22 CHG vMult CHG Gewinde
+052|22 CHG Buchtung CHG SpiralCut Add 2D
+054|22 CHG inch CHG Pille ADD Roof
+056|22 
 
 */
 
@@ -129,7 +132,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.050;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.054;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -278,7 +281,7 @@ function runden(x,dec=2)=round(x*pow(10,dec))/pow(10,dec);//auf komastelle runde
 function grad(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)=gradC(grad,min,sec,h,prozent,gon,rad); // compatibility as renamed gradC
 function gradC(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)=grad+h/24*360+min/60+sec/3600+atan(prozent/100)+gon/400*360+rad/(2*PI)*360;
 
-function inch(inch)=inch*25.4;
+function inch(inch=1)=inch*25.4;
 function kreisbogen(r,grad=360)=PI*r*2/360*grad;
 function fs2fn(r,grad=360,fs=fs,minf=3)=max(minf,PI*r*2/360*grad/fs);
 function clampToX0(points,interval=minVal)=is_list(points[0])?[for(e=points)[abs(e[0])>interval?e[0]:0,e[1]]]:
@@ -603,7 +606,7 @@ function star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=
 let(
   grad=is_num(grad)?[grad/2,grad/2]:grad,
   grad2=is_undef(grad2)?[grad[1],grad[0]]:is_num(grad2)?[grad2/2,grad2/2]:grad2,
-  fn=max(1,fn),
+  fn=max(1,round(fn)),
   
   deg=angle/(e*2),
   diff=(grad[1]-grad[0])/2,
@@ -2156,57 +2159,80 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gr
     InfoTxt("Torus",["Innen∅",2*trx-d,"Mitten∅",2*trx,"Aussen∅",2*trx+d],info=name);
     HelpTxt("Torus",["trx",trx,"d",d,"a",a,"fn",fn,"fn2",fn2,",r=",r,", grad=",grad,"dia",dia,"center",center,"end",end,"gradEnd",gradEnd,"trxEnd",trxEnd,"endRot",endRot,"endspiel",endspiel,"name",name,"$d",$d],help);
     
+        
+  rotate(end==-1? (asin($r/trx))*sign(grad):
+                  0){
+     $idx=true;
+     $info=is_undef(name)?is_undef($info)?false:$info:name;
+      translate([0,0,center?0:d/2]) RotEx(grad=a,fn=fn,cut=1,help=false){
+        $idx=0;
+        $tab=is_undef($tab)?1:b($tab,false)+1;
+        if($children)T(x=trx)R(0,0,r)children();
+        else T(x=trx)R(0,0,r)circle(d=d,$fn=fn2);
+      }
+
+      if(end&&a!=360&&!trxEnd){
+          if($children){
+              rotate(a+endspiel*sign(grad))translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=fn/2,help=false)rotate(endRot[1])children();
+              rotate(+0)translate([trx,0,center?0:d/2])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=fn/2,help=false)rotate(endRot[0])children();  
+          }
+          else{
+          rotate(a-sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?1:0)sphere(d=d,$fn=fn2);
+          rotate(sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?0:1)sphere(d=d,$fn=fn2);
+          }
+      }
       
-rotate(end==-1? (asin($r/trx))*sign(grad):
-                0){
-   $idx=true;
-   $info=is_undef(name)?is_undef($info)?false:$info:name;
-    translate([0,0,center?0:d/2]) RotEx(grad=a,fn=fn,cut=1,help=false){
-      $idx=0;
-      $tab=is_undef($tab)?1:b($tab,false)+1;
-      if($children)T(x=trx)R(0,0,r)children();
-      else T(x=trx)R(0,0,r)circle(d=d,$fn=fn2);
-    }
-
-    if(end&&a!=360&&!trxEnd){
-        if($children){
-            rotate(a+endspiel*sign(grad))translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=fn/2,help=false)rotate(endRot[1])children();
-            rotate(+0)translate([trx,0,center?0:d/2])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=fn/2,help=false)rotate(endRot[0])children();  
-        }
-        else{
-        rotate(a-sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?1:0)sphere(d=d,$fn=fn2);
-        rotate(sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?0:1)sphere(d=d,$fn=fn2);
-        }
-    }
-    
-    if(trxEnd)translate([0,0,center?0:d/2]){ // End Ringstück
-        if($children){
-        T(trx-trxEnd)rotate(gradEnd*sign(-trxEnd)){
-            RotEx(grad=gradEnd*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
-            if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/4,help=false)rotate(endRot[0])children();
-            }
-       rotate(180+grad)T(-trx+trxEnd)rotate(180){
-            RotEx(grad=gradEnd*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
-            if(end)rotate(gradEnd*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/4,help=false)rotate(endRot[1])children();
-            } 
-        }
-        else{
-            T(trx-trxEnd)rotate(gradEnd*sign(-trxEnd)){
-            RotEx(grad=gradEnd*sign(trxEnd),fn=fn/360*gradEnd,cut=+0)T(trxEnd)circle(d=d,$fn=fn2);
-            if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,help=false)circle(d=d,$fn=fn2);
-            }
-       rotate(180+grad)T(-trx+trxEnd)rotate(180){
-            RotEx(grad=gradEnd*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)circle(d=d,$fn=fn2);
-            if(end)rotate(gradEnd*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,help=false)circle(d=d,$fn=fn2);
-            }  
-        }    
-    }
+      if(trxEnd)translate([0,0,center?0:d/2]){ // End Ringstück
+          if($children){
+          T(trx-trxEnd)rotate(gradEnd*sign(-trxEnd)){
+              RotEx(grad=gradEnd*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
+              if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/4,help=false)rotate(endRot[0])children();
+              }
+         rotate(180+grad)T(-trx+trxEnd)rotate(180){
+              RotEx(grad=gradEnd*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
+              if(end)rotate(gradEnd*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/4,help=false)rotate(endRot[1])children();
+              } 
+          }
+          else{
+              T(trx-trxEnd)rotate(gradEnd*sign(-trxEnd)){
+              RotEx(grad=gradEnd*sign(trxEnd),fn=fn/360*gradEnd,cut=+0)T(trxEnd)circle(d=d,$fn=fn2);
+              if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,help=false)circle(d=d,$fn=fn2);
+              }
+         rotate(180+grad)T(-trx+trxEnd)rotate(180){
+              RotEx(grad=gradEnd*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)circle(d=d,$fn=fn2);
+              if(end)rotate(gradEnd*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,help=false)circle(d=d,$fn=fn2);
+              }  
+          }    
+      }
+  }
 }
 
+//Roof(base=5,twist=50,scale=[0.3,1])circle(5,$fn=3);
 
+
+module Roof(base=0,deg=45,opt=1,h,floor=false,center=false,twist=0,scale=1,fn=fn,convexity=5,overlap=.05,name,help){
+s=tan(deg);
+floor=is_list(h)?true:floor;
+h=is_list(h)?h:[floor?h:0,h];
+Echo("Roof is experimental - use Dev Snapshot version and activate",color="warning",condition=version()[0]<2022);
+  Tz(center?0:h[0]?h[0]:0)linear_extrude(base+(twist?overlap:0),center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
+ if(version()[0]>2021){ 
+ //top
+  if(scale)Tz(center?base/2:base+(h[0]?h[0]:0))intersection(){
+  scale([1,1,s])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)scale(scale)rotate(-twist)children(); // experimental feature comment out if not activated in preferences
+  if(h[1])cube([viewportSize*4,viewportSize*4,h[1]*2],true);
+  }
+  
+ //bottom
+  if(floor)Tz(center?-base/2:h[0]?h[0]:0)intersection(){
+  scale([1,1,-s])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)children(); // experimental feature comment out if not activated in preferences
+  if(h[0])cube([viewportSize*4,viewportSize*4,h[0]*2],true);
+  }
+  }
+  
+InfoTxt("Roof",["h",h,"deg",str(deg,"° (",s,")")],name);
+HelpTxt("Roof",["base",base,"deg",deg,"opt",opt,"h",h,"floor",floor,"center",center,"twist",twist,"scale",scale,"fn",fn,"convexity",convexity,"overlap",overlap,"name",name],help);
 }
-
-
 
 
 module LinEx(h=5,h2=0,h22,scale=0.85,scale2,twist,twistcap=1,slices,$d,$r=5,grad,grad2,mantelwinkel=0,center=false,rotCenter=false,end=0,fn=12,name,help,n,convexity=5){
@@ -3751,9 +3777,15 @@ Echo("outer diametern <= inner!",color="warning",condition=ir>=or);
   else translate(t)for(i=[0:cuts-1])rotate(i*winkel)T(-x/2,r,i*layer)cube([x,sizeY,layer]);
  else   if($children)difference(){ // axial cuts
     children();
-    translate(t)for(i=[0:cuts-1])rotate(i*winkel)T(-x/2,r+line*sign(or-ir),0)cube([x,sizeY-line,h]);
+    translate(t)for(i=[0:cuts-1])rotate(i*winkel)T(-x/2,r+line*sign(or-ir),0){
+      if(h)cube([x,sizeY-line,h]);
+      else square([x,sizeY-line]);
+      }
   }
-  else translate(t)for(i=[0:cuts-1])rotate(i*winkel)T(-x/2,r+line*sign(or-ir),0)cube([x,sizeY-line,h]);
+  else translate(t)for(i=[0:cuts-1])rotate(i*winkel)T(-x/2,r+line*sign(or-ir),0){
+      if(h)cube([x,sizeY-line,h]);
+      else square([x,sizeY-line]);
+      }
   
   if($preview)if(!radial){
     if(or>ir)color("chartreuse",alpha=.3)translate(t) rotate(90)%cylinder(h,r=r,$fn=cuts);
@@ -3786,13 +3818,15 @@ module Buchtung(size=[10,5],l=10,r=2.5,rmin=0,center=true,fn=fn,fn2=fn,phase=360
     size=is_list(size)?size:[size,size];
     rmin=is_list(rmin)?rmin:[rmin,rmin,rmin,rmin];
     r=is_list(r)?r:[r,r,r,r];
-  
+  loop=len(quad(fn=fn2));
   points=[
       for (i=[0:fn])
         let(
           zscale=l/(fn),
-          rscale=r-rmin)
-        each quad(size,r=(1+sin(i*phase/fn+deltaPhi))/2*rscale+rmin,z=i*zscale,fn=fn2)
+          rscale=r-rmin,
+          ir=(1+sin((i*phase/fn+deltaPhi)%360))/2*rscale+rmin
+          )
+        each quad(size,r=ir,z=i*zscale,fn=fn2)
         ];
   
 /*
@@ -3814,7 +3848,8 @@ module Buchtung(size=[10,5],l=10,r=2.5,rmin=0,center=true,fn=fn,fn2=fn,phase=360
     }
 //*/
 
-translate(center?[0,0,-l/2]:[0,0.0,0]+size/2)PolyH(points,loop=floor(fn2/4)*4+4,name=false);
+//translate(center?[0,0,-l/2]:[0,0.0,0]+size/2)PolyH(points,loop=floor(fn2/4)*4+4,name=false);
+translate(center?[0,0,-l/2]:[0,0.0,0]+size/2)PolyH(points,loop=loop,name=false);
 
     
 HelpTxt("Buchtung",[
@@ -4630,7 +4665,7 @@ deltaRy2=Kathete(rad2,deltaRx2);
 ausgleich2=rad2-deltaRy2;
 grad2=asin(deltaRy2/rad2);
 
-if(l+ausgleich+ausgleich2-rad[0]-rad2<0) echo(str("<font color=red><b>Pille zu kurz! ",l-rad[0]+ausgleich-rad2+ausgleich2));
+Echo(str("Pille zu kurz! ",l-rad[0]+ausgleich-rad2+ausgleich2),color="red",condition=l+ausgleich+ausgleich2-rad[0]-rad2<0);
 
 points=concat([
 if(!loch)[0,0],
