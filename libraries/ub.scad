@@ -65,7 +65,8 @@ Release
 050|22 CHG vMult CHG Gewinde
 052|22 CHG Buchtung CHG SpiralCut Add 2D
 054|22 CHG inch CHG Pille ADD Roof
-056|22 
+056|22 CHG PolyH CHG kreis CyclGetriebe CHG gradS CHG LinEx CHG Echo
+058|22 CHG PolyH
 
 */
 
@@ -132,7 +133,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.054;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.058;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -179,7 +180,7 @@ let(
 p0*(omt2*omt) + p1*(3*omt2*t) + p2*(3*omt*t2) + p3*(t2*t);
 
 function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=kreis(r,rand,grad,grad2,fn,center,sek,r2,rand2,rcenter,rot,t);
-function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d)=
+function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d,endPoint=true)=
 let (
 grad2=is_undef(grad2)?grad:grad2,
 r=is_num(d)?rcenter?(d+rand)/2:d/2:
@@ -190,16 +191,17 @@ r2=r2?
     :r,
 fn=max(1,floor(abs(fn))),
 step=grad/fn,
-step2=grad2/fn
+step2=grad2/fn,
+endPoint=rand?true:endPoint
 )
 is_num(z)?[
 if(!sek&&!rand&&abs(grad)!=360&&grad)[0+t[0],0+t[1],z], // single points replacement
-if(grad)for(i=[0:fn])
+if(grad)for(i=[0:endPoint?fn:fn-1])
         let(iw=abs(grad)==360?i%fn:i)
     [sin(rot+(center?-grad/2-90:0)+iw*step)*r  +t[0],
      cos(rot+(center?-grad/2-90:0)+iw*step)*r2 +t[1],
      z],
-if(rand)for(i=[0:fn])
+if(rand)for(i=[0:endPoint?fn:fn -1])
     let(iw=abs(grad2)==360?i%fn:i)
     [sin(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r  -rand )+t[0],
      cos(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r2 -rand2)+t[1],
@@ -207,15 +209,16 @@ if(rand)for(i=[0:fn])
 ]:
 [
 if(!sek&&!rand&&abs(grad)!=360&&grad||r==0)[0+t[0],0+t[1]], // single points replacement
-if(r&&grad)for(i=[0:fn])
+if(r&&grad)for(i=[0:endPoint?fn:fn-1])
         let(iw=abs(grad)==360?i%fn:i)
     [sin(rot+(center?-grad/2-90:0)+iw*step)*r+t[0],
     cos(rot+(center?-grad/2-90:0)+iw*step)*r2+t[1]],
-if(rand)for(i=[0:fn])
+if(rand)for(i=[0:endPoint?fn:fn-1])
     let(iw=abs(grad2)==360?i%fn:i)
     [sin(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r-rand)+t[0],
     cos(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r2-rand2)+t[1]]
 ];
+
 
 //PolyH([for(i=[0:100])each kreis(z=i/10,r=5+sin(i*3.6)*2)],loop=fn +fn+2);
 
@@ -274,7 +277,9 @@ function RotPoints(grad,points)=[for(i=[0:len(points)-1])RotLang(rot=atan2(point
 
 function negRed(num)=num<0?str("🔻",num):num==0?str("⚠",num):num; // display console text
 function gradB(b,r)=360/(PI*r*2)*b; // winkel zur Bogen strecke b des Kreisradiuses r
-function gradS(s,r)=asin(s/(2*r))*2;// winkel zur Sehne s des Kreisradiuses r
+
+function gradS(s,r)=abs(s)>abs(2*r)&&!$idx?echo("\t⭕ ‼ gradS s > diameter (2×r) max ❗")180*sign(s)*sign(r):abs(s)>abs(2*r)?180*sign(s)*sign(r):asin(s/(2*r))*2;// winkel zur Sehne s des Kreisradiuses r
+
 function radiusS(n,s,a)=(s/2)/(sin((is_undef(n)?a:360/n)/2));// Radius  zur Sehne
 function runden(x,dec=2)=round(x*pow(10,dec))/pow(10,dec);//auf komastelle runden
 //convert angle
@@ -296,7 +301,6 @@ function clampToX0(points,interval=minVal)=is_list(points[0])?[for(e=points)[abs
             0,
             atan2(p2.y-p1.y,p2.x-p1.x)-90
             ];
-
 
 
 
@@ -349,6 +353,8 @@ is_num(f)||len(points[pos])>4?str(" F",len(points[pos])==5?points[pos][4]:f):"",
 )
 i>= 0?str(gcode(i=i-chunksize,chunksize=chunksize,points=points),chunk(i,max(0,i-chunksize))):"";
 
+
+
 function b(n,bool)=  is_list(n)?[for(i=[0:len(n)-1])b(n[i],bool)]:
                                is_num(n)?bool||is_undef(bool)?n?true:
                                                                 false:
@@ -358,6 +364,12 @@ function b(n,bool)=  is_list(n)?[for(i=[0:len(n)-1])b(n[i],bool)]:
                                                 false:
                                               n?1:
                                                 0;
+
+/*
+echo(b(1),b(true))
+echo(boolTrue=b(1,true),b(true,true));
+echo(boolFalse=b(1,false),b(true,false));
+//*/
 
 function scaleGrad(grad=45,h=1,r=1)=assert(grad!=0)max(0,(r-(h/tan(grad)))/r);
 
@@ -1627,7 +1639,8 @@ module Echo(title,color="#FF0000",size=2,condition=true,help=false){
     
  if(condition)
      if(version()[0]<2021)echo(str("<H",size,"><font color=",color,">",title)); 
-     else if (color=="#FF0000"||color=="red")echo(str("\n⭕\t»»» ",title));
+     else if (color=="#FF0000"||color=="red")echo(str("\n🔴\t»»» ",title));
+     else if (color=="redring")echo(str("\n⭕\t»»» ",title));
      else if (color=="#FFA500"||color=="orange")echo(str("\n🟠\t»»» ",title));    
      else if (color=="#00FF00"||color=="green"||color=="info")echo(str("🟢\t ",title));
      else if (color=="#0000FF"||color=="blue") echo(str("🔵\t ",title));
@@ -2292,9 +2305,9 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
 rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
     T(z=center?-h/2:0){
     
-    $idx=true;
-    union(){
 
+    union(){
+    $idx=true;
     //capoben
     if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22,scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=convexity,slices=slices/hc*h22,$fn=0)children($fn=ifn);
     
@@ -2304,7 +2317,7 @@ rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
 
     //center
     Tz(h2){
-      $idx=0;
+      //$idx=is_undef($idx)?0:$idx;
       $tab=is_undef($tab)?1:b($tab,false)+1;
       rotate(twist/2)linear_extrude(hc,scale=1,convexity=convexity,twist=twist,slices=slices,center=false)children();
     }
@@ -2312,11 +2325,11 @@ rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
     
     
     if(end[0]){
-
+    $idx=true;
      rotate(twist/2+(twistcap[0]?twist/(hc)*h2:0))rotate(sign(end[0])>+0?[-90,0,-90]:[-90,0,0]) RotEx(cut=true,grad=180,fn=fn)scale(scale)rotate(sign(end[0])>0?90:0)children();
         }
      if(end[1]){
-
+    $idx=true;
          Tz(h)rotate(-twist/2-(twistcap[1]?twist/(hc)*h22:0))rotate(sign(end[1])>+0?[-90,0,-90]:[-90,0,0])RotEx(cut=true,grad=-180,fn=fn)
         scale(scale2)rotate(sign(end[1])>0?90:0)children();
      }
@@ -2347,15 +2360,19 @@ pointsE2=[for(i=[0:35])[sin(i*10),cos(i*10),0],for(i=[0:35])[sin(i*10),cos(i*10)
   
 //Points(points1,loop=36,start=36*2);
 //echo(points1[36]);
-
+union(){
 PolyH(points,loop=36,pointEnd=true,end=true,name="pointy");
 T(10)PolyH(pointsE1,loop=36,pointEnd=1,end=true,name="point∇");
 T(-10)PolyH(pointsE2,loop=36,pointEnd=2,end=true,name="pointΔ");//WIP
 T(0,-10)PolyH(points1,loop=37,pointEnd=0,end=true);
 T(0,10)PolyH(octa(5));
+}
 //*/
+//PolyH(concat([[0,0,-10]],kreis(rand=0,z=0,endPoint=false),[[0,0,10]]),fn,pointEnd=true);
 
-module PolyH(points,loop,end=true,pointEnd=false,convexity=5,name,help){
+
+
+module PolyH(points,loop,end=true,pointEnd=false,convexity=5,faceOpt=+0,name,help){
 loop=is_undef(loop)||loop<3?1:loop;
 points=assert(!is_undef(points))points;
 lp=len(points);
@@ -2363,8 +2380,9 @@ loops=pointEnd?pointEnd==1||pointEnd==2?(lp-1)/loop:
                                         (lp-2)/loop:
                lp/loop;
   
-fBottom=[[for(i=[loop -1:-1:0])i]];
-fTop=[[for(i=[0:loop -1])i+lp-(loop)]];
+fBottom=pointEnd==2||b(pointEnd,bool=true)==false?[[for(i=[loop -1:-1:0])i]]:[];
+fTop=   pointEnd==1||b(pointEnd,bool=true)==false?[[for(i=[0:loop -1])i+lp-(loop)]]:[];
+
 fBody=loops>1?[for(lev=[0:loops -2],i=[0:loop -1])[
   i          +loop*lev,
   (i +1)%loop+loop*lev,
@@ -2372,20 +2390,52 @@ fBody=loops>1?[for(lev=[0:loops -2],i=[0:loop -1])[
   i          +loop*(lev+1)
 ]]:[];
 
+fBody1=loops>1?[for(lev=[0:loops -2],i=[0:loop -1])each[[
+  
+  i          +loop*lev,
+  (i +1)%loop+loop*lev,
+  //(i +1)%loop+loop*(lev+1),
+  i          +loop*(lev+1)
+],
+[
+  //i          +loop*lev,
+  (i +1)%loop+loop*lev,
+  (i +1)%loop+loop*(lev+1),
+  i          +loop*(lev+1)
+]]
+]:[];
+
+fBody2=loops>1?[for(lev=[0:loops -2],i=[0:loop -1])each[[
+  
+  //i          +loop*(lev+1),
+  i          +loop*lev,
+  (i +1)%loop+loop*lev,
+  (i +1)%loop+loop*(lev+1),
+  
+],
+[
+  i          +loop*lev,
+  //(i +1)%loop+loop*lev,
+  (i +1)%loop+loop*(lev+1),
+  i          +loop*(lev+1)
+]]
+]:[];
+
+
 
 faces=loop>1?end?concat(
                   fBottom,
                   pointEnd==2?[for(i=[0:loop -1])[lp-i -2,lp-1,lp-(i+1)%loop -2]]:fTop,
-                  fBody
+                  faceOpt?faceOpt==-1||faceOpt==2?fBody2:fBody1:fBody
                 ):
-                fBody:
+                faceOpt?faceOpt==-1||faceOpt==2?fBody2:fBody1:fBody:
             [[for(i=[0:lp-1])i]]
 ;
 
-pointyFaces=(pointEnd==true||pointEnd==1)&&loops>1?[ 
+pointyFaces=(pointEnd==true||pointEnd==1)&&loops>=1?[ 
 if(pointEnd==true||pointEnd==1) for(i=[0:loop -1])[(i + 1)%loop + 1,i +1,0],//bottom
 if(pointEnd==true||pointEnd==2) for(i=[0:loop -1])[lp-i -2,lp-1,lp-(i+1)%loop -2],//top  
-for(lev=[0:loops -2],i=[0:loop -1])let(pE=1)[
+if(loops>1)for(lev=[0:loops -2],i=[0:loop -1])let(pE=1)[
   pE + i          +loop*lev,
   pE + (i +1)%loop+loop*lev,
   pE + (i +1)%loop+loop*(lev+1),
@@ -2403,7 +2453,7 @@ InfoTxt("PolyH",["loops",loops,"points",lp],loop>1?name:false);
 InfoTxt("PolyH using hull—",["points",lp],loop==1?name:false);
   
 
-HelpTxt("PolyH",["points",[[0,0,0],[1,2,3]],"loop",loop,"end",end,"pointEnd",pointEnd,"name","convexity",convexity,name],help);
+HelpTxt("PolyH",["points",[[0,0,0],[1,2,3]],"loop",loop,"end",end,"pointEnd",pointEnd,"convexity",convexity,"faceOpt",faceOpt,"name",name],help);
   
 }
 
@@ -3864,13 +3914,13 @@ HelpTxt("Buchtung",[
      help);
 }
 
-module CyclGear(z=20,modul=2,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(0.8),d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=3,fn=24,name,help){
-CyclGetriebe(z=z,modul=modul,w=w,h=h,h2=h2,grad=grad,achse=achse,achsegrad=achsegrad,light=light,lock=lock,center=center,lRand=lRand,d=d,rot=rot,rotZahn=rotZahn,linear=linear,preview=preview,spiel=spiel,f=f,fn=fn,name,help);
+module CyclGear(z=20,modul=2,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(0.8,$info=false),lRandBase,d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=3,fn=24,name,help){
+CyclGetriebe(z=z,modul=modul,w=w,h=h,h2=h2,grad=grad,achse=achse,achsegrad=achsegrad,light=light,lock=lock,center=center,lRand=lRand,lRandBase=lRandBase,d=d,rot=rot,rotZahn=rotZahn,linear=linear,preview=preview,spiel=spiel,f=f,fn=fn,name,help);
 }
 
 
 
-module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(.5),d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=2,fn=24,name,help){
+module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(.5,$info=false),lRandBase,d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=2,fn=24,name,help){
     //$info=false;
     z=abs(round(z));
     rot=is_undef(rot)?90/z*rotZahn:rot;
@@ -3880,6 +3930,7 @@ module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60
     r=z/f*modul/2;
     mitteR=(r-modul/2)/2+achse/4;
     rand=r-achse/2-modul/2-lRand*2;
+    lRandBase=is_undef(lRandBase)?lRand*1.85:lRandBase;
     
   if(!linear){
     T(center?0:-z/f/2*modul)T(y=center>1?z/f/2*modul:0)rotate(rot - (center>1?90:0))difference(){
@@ -3889,7 +3940,10 @@ module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60
           else CycloidZahn(modul=modul,z=z/f,f=f,d=d,spiel=spiel,fn=fn);
         if(achse) Tz(-.01)LinEx(h=h+.02,h2=h2,$d=achse,grad=-achsegrad)circle(d=$d,$fs=.25,$fn=0,$fa=2);
         
-        if(light) Tz(-0.01)Polar(light)T(light>1?mitteR:0)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(light>1?-mitteR:0)Rund(min(rand/light,rand/2-0.1),fn=fn)Kreis(r=mitteR,rand=rand,grad=min(360/light - gradS(s=lRand,r=mitteR+rand/2),320),grad2=max(360/light - gradS(s=wall(lRand*1.85),r=mitteR-rand/2),2),rcenter=true,fn=fn/light*2);
+        if(light) Tz(-0.01)Polar(light)T(light>1?mitteR:0)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(light>1?-mitteR:0)Rund(min(rand/light,rand/2-0.1),fn=fn)Kreis(r=mitteR,rand=rand,
+        grad=min(360/light - gradS(s=lRand,r=mitteR+rand/2),320),
+        grad2=max(360/light - gradS(s=wall(lRandBase),r=mitteR-rand/2),2)
+        ,rcenter=true,fn=fn/light*2);
         
         if(lock)rotate(90)Tz(-0.01)LinEx(h=h+.02,h2=h2,$r=achse/2,grad=-60)WStern(f=is_num(lock)?lock:5,help=0,r=$r,fn=(is_num(lock)?lock:5)*15);
     }
@@ -3916,6 +3970,7 @@ HelpTxt("CyclGetriebe",[
 "lock",lock,
 "center",center,
 "lRand",lRand,
+"lRandBase",lRandBase,
 "d",d,
 "rot",rot,
 "rotZ",rotZahn,
