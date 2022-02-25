@@ -67,7 +67,8 @@ Release
 054|22 CHG inch CHG Pille ADD Roof
 056|22 CHG PolyH CHG kreis CyclGetriebe CHG gradS CHG LinEx CHG Echo
 058|22 CHG PolyH
-
+060|22 CHG nametext CHG Egg CHG Stern CHG Star CHG star CHG Roof CHG Linse add fn
+062|22 CHG Pfeil
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -133,7 +134,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.058;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.062;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -612,9 +613,7 @@ function wall(soll=.5,min=1.25,even=false,nozzle=nozzle)=
     )
   (is_undef($idx)||$idx==0)&&$info?echo(perimeterShells=walls,soll=soll,ist=n(walls,nozzle=nozzle))n(walls,nozzle=nozzle):n(walls,nozzle=nozzle);
   
-  
-
-function star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0)=
+function starOrg(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0)=
 let(
   grad=is_num(grad)?[grad/2,grad/2]:grad,
   grad2=is_undef(grad2)?[grad[1],grad[0]]:is_num(grad2)?[grad2/2,grad2/2]:grad2,
@@ -628,13 +627,43 @@ let(
   winkel=((radial?[1,1]*angle/4/e+ [grad.x,grad.y]:grad)+[diff,-diff])/fn,
   winkel2=((radial?[1,1]*angle/4/e - [grad.y,grad.x]:grad2)+[diff2,-diff2])/fn
   )
-[for(i=[0:e*2 -1], w=[0:1], ifn=[1:fn])  RotLang((deg*i+rot +(i%2?diff2:diff))%360  + ( i%2?  w? winkel2[1]*ifn : - winkel2[0]*(fn-ifn+1) :
+[for(i=[0:e*2 -1], w=[0:1], ifn=[+1:fn +0])  RotLang((deg*i+rot +(i%2?diff2:diff))%360  + ( i%2?  w? winkel2[1]*ifn : - winkel2[0]*(fn-ifn+1) :
+                                                                      w?  winkel[1]*ifn: - winkel[0]*(fn-ifn+1) ),
+                                                 i%2?r2:r1,z=z)];
+  
+
+function star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0)=
+let(
+  grad=is_num(grad)?[grad/2,grad/2]:grad,
+  grad2=is_undef(grad2)?[grad[1],grad[0]]:is_num(grad2)?[grad2/2,grad2/2]:grad2,
+  fn=max(1,round(fn)),
+  
+  deg=angle/(e*2),
+  diff=(grad[1]-grad[0])/2,
+  diff2=(grad2[1]-grad2[0])/2,
+
+  
+  winkel=((radial?[1,1]*angle/4/e+ [grad.x,grad.y]:grad)+[diff,-diff])/(fn+1),
+  winkel2=((radial?[1,1]*angle/4/e - [grad.y,grad.x]:grad2)+[diff2,-diff2])/(fn+1)
+  )
+[for(i=[0:e*2 -1], w=[0:1], ifn=[+0:fn +1])  RotLang((deg*i+rot +(i%2?diff2:diff))%360  + ( i%2?  w? winkel2[1]*ifn : - winkel2[0]*(fn-ifn+1) :
                                                                       w?  winkel[1]*ifn: - winkel[0]*(fn-ifn+1) ),
                                                  i%2?r2:r1,z=z)];
 
 
 //polygon(concat(star(e=4,angle=250),star(angle=70,e=4,r1=4,r2=3,rot=-90)));
-//polygon(star(e=3,angle=120,rot=-60,radial=true,fn=10));
+/*
+polygon(starOrg(e=3,angle=120*3,rot=-60,radial=true,fn=10));
+T(20)polygon(starOrg());
+T(0,20)polygon(starOrg(angle=180,fn=3,grad=4));
+
+Tz(.5)Color(){
+polygon(star(e=3,angle=120*3,rot=-60,radial=true,fn=10));
+T(20)polygon(star());
+T(0,20))polygon(star(angle=180,fn=3,grad=4));
+}
+
+//*/
 
 
 function vMult(v1=[1],v2=1)=[for(i=[0:min(len(v1),len(v2))-1])v1[i]*v2[i]];
@@ -675,7 +704,7 @@ messpunkt=$preview?$info:false;//1 für aktiv
 $messpunkt=messpunkt;
 //n=0;
 
-if (texton)%T(20,-30,25)R(90)color("slategrey")text(str(name),font="DejaVusans:style=bold",halign="left",size=3,$fn=100);
+if (texton&&$preview)%rotate($vpr)T(20,-30,25)color("slategrey")text(str(name),font="DejaVusans:style=bold",halign="left",size=is_num(texton)?texton:$vpd/75,$fn=100);
     
 if (bed&&!anima)color(alpha=.1)%Rand(-5,delta=1)square(printBed);
 if(version()[0]<2021)
@@ -1851,10 +1880,20 @@ module SCT(a=90){
 ///∇∇ Polygons ∇∇///
 
 
-module Star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,help){
-polygon(star(e=e,r1=r1,r2=r2,grad=grad,grad2=grad2,radial=radial,fn=fn,z=undef));
+module Star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,d,help){
+  kfn=d?max(12,fs2fn(r=abs(d/2),fs=fs)):12;
+  points=concat(
+    star(e=e,r1=r1,r2=r2,grad=grad,grad2=grad2,radial=radial,fn=fn,z=undef),
+    d? kreis(d=d,rand=0,fn=kfn,endPoint=false):[]
+    );
 
-HelpTxt("Star",["e",e,"r1",r1,"r2",r2,"grad",grad,"grad2",grad2,"radial",radial,"fn",fn],help);
+  paths=[
+    [for(i=[0:len(star(e=e,fn=fn))-1])i],
+   if(d) [for(i=[0:len(kreis(rand=0,fn=kfn,endPoint=false))-1])i+len(star(e=e,fn=fn))]
+    ];
+polygon(points,paths);
+
+HelpTxt("Star",["e",e,"r1",r1,"r2",r2,"grad",grad,"grad2",grad2,"radial",radial,"fn",fn,"d",d],help);
 
 }
 
@@ -2220,26 +2259,34 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gr
   }
 }
 
+
+/* Roof
+opt = straight / voronoi
+
+*/
 //Roof(base=5,twist=50,scale=[0.3,1])circle(5,$fn=3);
 
 
+
+
 module Roof(base=0,deg=45,opt=1,h,floor=false,center=false,twist=0,scale=1,fn=fn,convexity=5,overlap=.05,name,help){
-s=tan(deg);
+s=is_list(deg)?[tan(deg[0]),tan(deg[1])]:[tan(deg),tan(deg)];
 floor=is_list(h)?true:floor;
 h=is_list(h)?h:[floor?h:0,h];
+iSize=max(viewportSize*5,100);
 Echo("Roof is experimental - use Dev Snapshot version and activate",color="warning",condition=version()[0]<2022);
   Tz(center?0:h[0]?h[0]:0)linear_extrude(base+(twist?overlap:0),center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
  if(version()[0]>2021){ 
  //top
   if(scale)Tz(center?base/2:base+(h[0]?h[0]:0))intersection(){
-  scale([1,1,s])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)scale(scale)rotate(-twist)children(); // experimental feature comment out if not activated in preferences
-  if(h[1])cube([viewportSize*4,viewportSize*4,h[1]*2],true);
+  scale([1,1,s[1]])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)scale(scale)rotate(-twist)children(); // experimental feature comment out if not activated in preferences
+  if(h[1])cube([iSize,iSize,h[1]*2],true);
   }
   
  //bottom
   if(floor)Tz(center?-base/2:h[0]?h[0]:0)intersection(){
-  scale([1,1,-s])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)children(); // experimental feature comment out if not activated in preferences
-  if(h[0])cube([viewportSize*4,viewportSize*4,h[0]*2],true);
+  scale([1,1,-s[0]])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)children(); // experimental feature comment out if not activated in preferences
+  if(h[0])cube([iSize,iSize,h[0]*2],true);
   }
   }
   
@@ -2808,15 +2855,18 @@ HelpTxt("BB",["r",r,"ball",ball,"rand",rand,"e",e,"spiel",spiel,"support",suppor
 }
 
 
+
 module Egg(r1=10,r2=3,breit,grad,r3=true,fs=fs,name,help){
     
     breit=is_undef(breit)?r1:breit;
     x=r1-breit/2;
     r2=is_undef(grad)?r2:r1-(Hypotenuse(x,tan(grad)*x));
   assert(breit>=r2*2,str("max r2=",breit/2,"/ breit min=",r2*2," r2=",r2,"breit=",breit));
+  assert(breit<=r1*2,str("breit>r1*2 r1=",r1," breit=",breit));
     a=r1-r2;
     grad=is_undef(grad)?acos(x/a):grad;
     hM=tan(grad)*x;
+    r3=r3?true:false;
     
 //    %Color(){
 //    Kreis(r1,grad=grad,center=false,t=[0,-r1/2]);
@@ -3069,11 +3119,20 @@ HelpTxt("Rosette",[
 }
 
 
-module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d,center=true,name,help){
+
+module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d=0,center=true,name,help){
  shift=is_list(shift)?shift:[shift,-shift];
  l=is_list(l)?l:[l/2,l/2]; 
- b=is_list(b)?b:[b,2*(l[1]-shift[0])*tan(grad/2)];
- center=is_bool(center)?center?[1,1]:[0,0]:is_list(center)?center:[center,center];   
+ b=is_list(b)?b:[b,2*(l[1]-(d?0:shift[0]))*tan(grad/2)];
+ center=is_bool(center)?center?[1,1]:[0,0]:is_list(center)?center:[center,center];
+ d=d?max(abs(d),abs(b[1]))*sign(d):0;
+ gradB=d?gradB(b=l[1]+ shift[1],r=d/2)  :0; // länge Pfeilspitze auf Kreis
+ 
+ fnD=max(5,ceil(norm([b[1]/2,l[1]])/$fs)); // fraqments gebogene Spitze
+ fnDend=max(5,ceil(abs(l[0])/$fs));
+ 
+ spitze=false; // gebogene Spitze = false
+ 
  points=[
      [l[1],0],//spitze
      [shift[0],b[1]/2],
@@ -3086,23 +3145,31 @@ module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d,center=true,name,help){
     ];   
 
 
-if(d)translate(center.y?center.y<0?[0,d/2]:
-                                [0,0]:
-                [0,-d/2]){
-    Kreis(d=d,rand=b[0],b=-l[0],center=false,rcenter=true,rot=-90); 
+  pointsD=[
+    [0,d/2-b[0]/2],
+    each kreis(rand=0,grad=gradB(r=d/2+b[0]/2*0,b=-l[0]),d=d+b[0],center=0,fn=fnDend),
+    [sin(-gradB(r=d/2,b=l[0] +shift[0]))*d/2,cos(-gradB(r=d/2,b=l[0] +shift[0]))*d/2],//shift End
+    each kreis(rand=0,grad=-gradB(r=d/2-b[0]/2*0,b=-l[0]),d=d-b[0],center=0,rot=gradB(r=d/2-b[0]/2*0,b=-l[0]),fn=fnDend),
     
-        translate([0,d/2])polygon(points);
-//    intersection(){ // bend arrow head option
-//        square(50);
-//        difference(){
-//            sca=0.4;
-//            T(+0)scale([1-sca,1])circle(r=d/2+b[1]/2);
-//            T(+0)scale([1.1+sca,1])circle(r=d/2-b[1]/2);//+b[1]/2);
-//        }
-//        %circle(r=d/2);
-//    }
-}
- else translate([center.x?center.x>0?0:-l[1]:l[0],center.y?center.y>0?0:-b[1]/2:b[1]/2]) polygon(points);  
+    [0,d/2+b[0]/2],
+    for(i=[0:fnD ])   let(deg=i*gradB/fnD - gradB(shift[1],r=d/2),r=d/2 +(b[1]/2/fnD)*(fnD-i))
+      [sin(deg)*r,cos(deg)*r],
+    for(i=[fnD :-1:0])let(deg=i*gradB/fnD - gradB(shift[1],r=d/2),r=d/2 -(b[1]/2/fnD)*(fnD-i))
+      [sin(deg)*r,cos(deg)*r],
+      
+    ];
+
+  if(d)translate(center.y?center.y<0?[0,d/2]:
+                                  [0,0]:
+                  [0,-d/2]){
+      if(spitze)union(){
+      Kreis(d=d,rand=b[0],b=-l[0],center=false,rcenter=true,rot=-90); 
+      T(y=d/2)polygon(points);
+      }
+      else polygon(pointsD);
+
+  }
+  else translate([center.x?center.x>0?0:-l[1]:l[0],center.y?center.y>0?0:-b[1]/2:b[1]/2]) polygon(points);  
     
 InfoTxt("Pfeil",["Winkel",2*atan((b[1]/2)/(l[1]-shift[0]))],name);    
 HelpTxt("Pfeil",[   
@@ -5930,7 +5997,6 @@ HelpTxt("Cring",[
 
 
 
-
 module Stern(e=5,r1=10,r2=5,mod=2,delta=+0,center=1,name,help){
     name=is_undef(name)?is_undef($info)?false:$info:name;
   
@@ -5947,6 +6013,7 @@ module Stern(e=5,r1=10,r2=5,mod=2,delta=+0,center=1,name,help){
     gradR2=2*asin((abstandR1/2)/hypR1);
     sWinkel=360/(e*mod);
     deltaSoll=(floor((mod-1)/2));
+    $idx=is_undef($idx)?0:$idx;
     
     rotate((center==-1?180/e:0)-90+(center?sWinkel/4*(mod-(mod%2?1:2))+delta*sWinkel/2:+0))polygon(points=star,convexity=5);
     
@@ -6079,16 +6146,16 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=fa
 }
 
 
-module Linse(dia=10,r=7.07107,name,messpunkt=true,help){
+module Linse(dia=10,r=7.07107,name,messpunkt=true,fn,help){
 
 InfoTxt("Linse",["Dicke",dick,"Kreisgrad",str(grad,"°")],name);
 
 tx=Kathete(r,dia/2);
 grad=2*asin((dia/2)/r);    
 dick=2*(r-tx);
+fn=is_undef(fn)?fs2fn(r=r,fs=fs)/360*grad:fn;
 
-
-   polygon(concat( kreis(rand=0,r=r,grad=grad,t=[tx,0]), kreis(rand=0,r=r,grad=grad,rot=-180,t=[-tx,0]))); 
+   polygon(concat( kreis(rand=0,r=r,grad=grad,t=[tx,0],fn=fn), kreis(rand=0,r=r,grad=grad,rot=-180,t=[-tx,0],fn=fn))); 
   if(messpunkt){
       Pivot([tx,0],active=[1,0,0,1,0],messpunkt=messpunkt);
       Pivot([0,dia/2],active=[1,0,0,1,1],messpunkt=messpunkt);
@@ -6099,7 +6166,8 @@ dick=2*(r-tx);
  "dia",dia,
  "r",r,
  "name",name,
- "messpunkt=",messpunkt],
+ "messpunkt=",messpunkt,
+ "fn",fn],
   help);
 }
 
