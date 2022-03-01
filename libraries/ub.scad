@@ -69,6 +69,8 @@ Release
 058|22 CHG PolyH
 060|22 CHG nametext CHG Egg CHG Stern CHG Star CHG star CHG Roof CHG Linse add fn
 062|22 CHG Pfeil
+064|22 CHG Pfeil CHG Star add fn2 CHG Roof CHG GT
+066|22
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -134,7 +136,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.062;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.064;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -1880,8 +1882,8 @@ module SCT(a=90){
 ///∇∇ Polygons ∇∇///
 
 
-module Star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,d,help){
-  kfn=d?max(12,fs2fn(r=abs(d/2),fs=fs)):12;
+module Star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,fn2,d,help){
+  kfn=is_num(fn2)?round(fn2):d?max(12,fs2fn(r=abs(d/2),fs=fs)):12;
   points=concat(
     star(e=e,r1=r1,r2=r2,grad=grad,grad2=grad2,radial=radial,fn=fn,z=undef),
     d? kreis(d=d,rand=0,fn=kfn,endPoint=false):[]
@@ -1893,7 +1895,7 @@ module Star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,d,help){
     ];
 polygon(points,paths);
 
-HelpTxt("Star",["e",e,"r1",r1,"r2",r2,"grad",grad,"grad2",grad2,"radial",radial,"fn",fn,"d",d],help);
+HelpTxt("Star",["e",e,"r1",r1,"r2",r2,"grad",grad,"grad2",grad2,"radial",radial,"fn",fn,"fn2",fn2,"d",d],help);
 
 }
 
@@ -2267,24 +2269,24 @@ opt = straight / voronoi
 //Roof(base=5,twist=50,scale=[0.3,1])circle(5,$fn=3);
 
 
-
-
 module Roof(base=0,deg=45,opt=1,h,floor=false,center=false,twist=0,scale=1,fn=fn,convexity=5,overlap=.05,name,help){
+
 s=is_list(deg)?[tan(deg[0]),tan(deg[1])]:[tan(deg),tan(deg)];
 floor=is_list(h)?true:floor;
 h=is_list(h)?h:[floor?h:0,h];
 iSize=max(viewportSize*5,100);
+
 Echo("Roof is experimental - use Dev Snapshot version and activate",color="warning",condition=version()[0]<2022);
   Tz(center?0:h[0]?h[0]:0)linear_extrude(base+(twist?overlap:0),center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
  if(version()[0]>2021){ 
  //top
-  if(scale)Tz(center?base/2:base+(h[0]?h[0]:0))intersection(){
+  if(scale&&(h[1]||is_undef(h[1])))Tz(center?base/2:base+(h[0]?h[0]:0))intersection(){
   scale([1,1,s[1]])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)scale(scale)rotate(-twist)children(); // experimental feature comment out if not activated in preferences
   if(h[1])cube([iSize,iSize,h[1]*2],true);
   }
   
  //bottom
-  if(floor)Tz(center?-base/2:h[0]?h[0]:0)intersection(){
+  if(floor&&(h[0]||is_undef(h[0])))Tz(center?-base/2:h[0]?h[0]:0)intersection(){
   scale([1,1,-s[0]])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)children(); // experimental feature comment out if not activated in preferences
   if(h[0])cube([iSize,iSize,h[0]*2],true);
   }
@@ -2891,35 +2893,36 @@ module Egg(r1=10,r2=3,breit,grad,r3=true,fs=fs,name,help){
     InfoTxt("Egg",["hM",hM,"h",str(hM+r2,r3?str("/",hM+r2+breit/2):""),"breit(r3×2)",breit,"grad",grad,"r1",r1,"r2",r2],name);
 }
 
+/*
+Tz(.25)color("green")GT(spiel=0,spielO=0);
+Tz(.75)color("red")GT(spielO=0.05,spiel=0);// pre β22|064
+Tz(.5)GT();
+//*/
 
 
-module GT(z=20,achse=3.5,spiel=.05,evolute=true,pulley=true,linear=true,fn=fn,name,help){
+
+module GT2(spiel=0,fn=fn){  //GT2
         fn=max(6,fn);
         p=2; // zahnabstand 
         PLD=0.254; //  ?Mittellinie? Pitch Line distance 
         r1=.15;//kehle basis zahn
-        r2=1; // zahn flanken radius im abstand [b,i]
-        r3=.555;// zahn spitzen radius
+        r2=1+spiel; // zahn flanken radius im abstand [b,i]
+        r3=.555+spiel;// zahn spitzen radius
         b=0.4;// abstand mitte Mittelpunkt r2
         h=1.38; //gesamt h (i+ht)
-        ht=0.75; // zahnhöhe
-        i=.63;  // band dicke  
-        breiteZahn=(r2-b)*2;
-        umfang=z*p; 
+        ht=0.75+spiel; // zahnhöhe
+        i=.63;  // band dicke
 
+   l=p +0.1;
 
-
-module GT2(){  //GT2
-   
-   
   pointsGT2= concat(
-        [[-p,ht],[-p,ht+i],[p,ht+i],[p,ht]]
+        [[-l/2,ht],[-l/2,ht+i],[l/2,ht+i],[l/2,ht]]
             , kreis(r=r2,fn=fn/16,grad=22.5,center=false,t=[-b,ht],rot=90,rand=0,sek=true)
             , kreis(r=r3,grad=180-45,rot=-90,fn=fn/4,t=[0,r3],rand=0,sek=true)            
             , kreis(r=r2,fn=fn/16,grad=22.5,center=false,t=[b,ht],rot=-90-22.5,rand=0,sek=true)
         );
    
-    T(0,-ht)Rund(0,r1,fn=fn)
+    T(0,-ht )Rund(0,r1,fn=fn)
         polygon(pointsGT2);
     
 //union(){
@@ -2934,31 +2937,51 @@ module GT2(){  //GT2
     //%Color("red")T(0,ht-r1)MKlon(0.736)circle(r1);
   
 }
+
+
+
+module GT(z=20,achse=3.5,spiel=.05,evolute=true,pulley=true,linear=true,fn=fn,name,help,spielO=0){
+        p=2; // zahnabstand 
+        PLD=0.254; //  ?Mittellinie? Pitch Line distance 
+        b=0.4;// abstand mitte Mittelpunkt r2
+        r1=.15;//kehle basis zahn
+        r2=1; // zahn flanken radius im abstand [b,i]
+        i=.63;  // band dicke
+        breiteZahn=(r2-b)*2;
+        umfang=z*p; 
+
+
+
+
  
    
 if(pulley){
     if(evolute){
-        offset(-spiel)Rund(0.1,0,fn=fn){
+        offset(-spielO)
+        Rund(r1,0,fn=fn/4)
+        union(){
             r=umfang/2/PI;
             difference(){
                 circle(r,$fn=z*2);
                 for(i=[0:z-1])rotate(i*360/z)
-                for(i=[-20:20])rotate(-i)T(-umfang/360*i,r-PLD)GT2();
-                if(achse)circle(d=achse-spiel*2,$fn=fn);
+                for(i=[-20:20])rotate(-i)T(-umfang/360*i,r-PLD)GT2(spiel);
+                if(achse)circle(d=achse-spielO*2,$fn=fn);
             }
             InfoTxt("GT2 Pulley evolute profile",["Dia",r*2-spiel*2-PLD*2,"z",z],name);
                 //if(name)echo(str(is_bool(name)?"":"<b>",name," GT2 Pulley evolute profil Dia=",r*2-spiel*2-PLD*2," z=",z));
         }       
      }
     else{
-        offset(-spiel)Rund(r1,0,fn=fn){
+        offset(-spielO)
+        Rund(r1,0,fn=fn/4)
+        union(){
             r=umfang/2/PI-PLD;
             difference(){
                 circle(r,$fn=z*2);
-            for(i=[0:z-1])rotate(i*360/z)T(0,r)GT2();
-            if(achse)  circle(d=achse-spiel*2,$fn=fn);
+            for(i=[0:z-1])rotate(i*360/z)T(0,r)GT2(spiel);
+            if(achse)  circle(d=achse-spielO*2,$fn=fn);
             }
-            InfoTxt("GT2 Pulley",["Dia",r*2-spiel*2,"z",z],name);
+            InfoTxt("GT2 Pulley",["Dia",r*2-spielO*2,"z",z],name);
             //echo(str(is_bool(name)?"":"<b>",name," GT2 Pulley Dia=",r*2-spiel*2,"z=",z));
         }
     }
@@ -2966,11 +2989,11 @@ if(pulley){
  }
  else {
      $info=false;
-     if (linear)Linear(e=z,es=2)GT2();
+     if (linear)Linear(e=z,es=2)GT2(-spiel);
      else {
          r=umfang/2/PI;
          intersection(){
-             Polar(e=z,y=r-PLD)GT2();
+             Polar(e=z,y=r-PLD)GT2(-spiel);
              circle(r+i-PLD,$fn=z*2);
          }
      }
@@ -3128,8 +3151,8 @@ module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d=0,center=true,name,help){
  d=d?max(abs(d),abs(b[1]))*sign(d):0;
  gradB=d?gradB(b=l[1]+ shift[1],r=d/2)  :0; // länge Pfeilspitze auf Kreis
  
- fnD=max(5,ceil(norm([b[1]/2,l[1]])/$fs)); // fraqments gebogene Spitze
- fnDend=max(5,ceil(abs(l[0])/$fs));
+ fnD=max(8,ceil(norm([b[1]/2,l[1]])/$fs)); // fraqments gebogene Spitze
+ fnDend=max(10,ceil(abs(l[0])/$fs));
  
  spitze=false; // gebogene Spitze = false
  
