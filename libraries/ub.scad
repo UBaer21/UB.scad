@@ -70,7 +70,8 @@ Release
 060|22 CHG nametext CHG Egg CHG Stern CHG Star CHG star CHG Roof CHG Linse add fn
 062|22 CHG Pfeil
 064|22 CHG Pfeil CHG Star add fn2 CHG Roof CHG GT
-066|22
+066|22 ADD naca ADD NACA CHG Roof CHG WStern CHG wall CHG Points
+068|22
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -136,7 +137,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.064;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.066;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -607,14 +608,17 @@ is_undef(z)?[for(f=[0:fn])let(i=f%fn*360/fn)each[
 
 // wall calculates perimeter number according to nozzle size for "soll"mm
 
-function wall(soll=.5,min=1.25,even=false,nozzle=nozzle)=
+function wall(soll=.5,min=1.25,even=false,nozzle=nozzle,name)=
   let (
     perimeterHi=ceil(soll/nozzle),
     perimeterLow=floor(soll/nozzle),
     walls=max(min,even?perimeterHi%2?perimeterLow:perimeterHi : round(soll/nozzle))
     )
-  (is_undef($idx)||$idx==0)&&$info?echo(perimeterShells=walls,soll=soll,ist=n(walls,nozzle=nozzle))n(walls,nozzle=nozzle):n(walls,nozzle=nozzle);
+  (is_undef($idx)||$idx==0)&&$info||name?echo(name=name,perimeterShells=walls,soll=soll,ist=n(walls,nozzle=nozzle))n(walls,nozzle=nozzle):n(walls,nozzle=nozzle);
   
+  
+  
+/*
 function starOrg(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0)=
 let(
   grad=is_num(grad)?[grad/2,grad/2]:grad,
@@ -632,7 +636,9 @@ let(
 [for(i=[0:e*2 -1], w=[0:1], ifn=[+1:fn +0])  RotLang((deg*i+rot +(i%2?diff2:diff))%360  + ( i%2?  w? winkel2[1]*ifn : - winkel2[0]*(fn-ifn+1) :
                                                                       w?  winkel[1]*ifn: - winkel[0]*(fn-ifn+1) ),
                                                  i%2?r2:r1,z=z)];
-  
+
+*/
+
 
 function star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0)=
 let(
@@ -669,6 +675,55 @@ T(0,20))polygon(star(angle=180,fn=3,grad=4));
 
 
 function vMult(v1=[1],v2=1)=[for(i=[0:min(len(v1),len(v2))-1])v1[i]*v2[i]];
+
+
+
+// NACA profile points
+
+function naca(l = 10, naca, m=+0.00, p=0.0,t=0.12,fn=fn,dir=0,asymP,z)=
+ let(
+  m=is_undef(naca)?m:(naca-naca%1000)/100000,
+  p=is_undef(naca)?p:(naca-(naca-naca%1000)-naca%100)/1000,
+  t=is_undef(naca)?t:(naca%100)/100,
+ range=dir?[0:1:fn/2-1]:[fn/2-1:-1:0],
+ asymP=is_undef(asymP)?10*(1-p):asymP,// asymetric point distribution
+ naca_func=function(x,t=t) +5*t*(0.2969*sqrt(x) - 0.1260*x - 0.3516*pow(x,2.0) + 0.2843*pow(x,3) - 0.1015*pow(x,+4)),
+ naca_t=function(t=t,fn=fn/2,l=l,y=dir?1:-1)
+  let(
+   // c=l/(fn -1),
+   // x=1/(fn-1)
+  )
+  [ for(n=range)
+    let(
+    x=1/((fn-1)*(asymP+1)-asymP*n)
+    )
+    concat([n*x*l,naca_func(x*n,t=t)*y*l],is_undef(z)?[]:z) ],
+
+ naca_camber = function(m=m,p=p,fn=fn/2,l=l,sig=1,xScale=1)
+  let(
+    //c=l/(fn-1),
+    //x=1/(fn-1)
+    )
+  [ for(n=range) 
+    let(
+    x=1/((fn-1)*(asymP+1)-asymP*n)
+    )
+    concat([n*x*l*xScale,(n*x<p?m/p^2 * (2 * p*x*n - (n*x)^2):
+                                m/(1-p)^2 * ((1-2*p) + 2*p*x*n - (n*x)^2))
+                          *sig*l],is_undef(z)?[]:0)
+  ]
+ )
+///  WIP not using 4. for the realitonship http://www.aerospaceweb.org/question/airfoils/q0041.shtml
+//x=x - sin(atan(dy_camber/dx) ) * naca_t.x 
+//y=naca_camber.y + cos(atan(dy_camber/dx) ) * naca_t.x 
+dir?naca_camber(xScale=0)+naca_t():concat(naca_camber(xScale=0)+naca_t(),naca(l=l,m=m,p=p,t=t,fn=fn,dir=1,asymP=asymP,z=z));
+
+
+
+
+
+
+
 
 
 ///////////////////////////////////////////////////////
@@ -804,6 +859,7 @@ echo    ("
 ••• star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0) ••• \n
 ••• wall(soll,min=1.75,even=false,nozzle=nozzle) adapt to line width (nozzle) ••• \n
 ••• vMult(v1,v2) vector multiplication ••• \n
+••• naca(l,0012) NACA airfoil ••• \n
 
 
 ");
@@ -886,6 +942,7 @@ echo    ("•••••• Polygons ••••••\n
 •• Welle(help=1);\n
 •• Tdrop(help=1);\n
 •• Star(help=1);\n
+•• NACA(help=1);\n
 
 ");
 }
@@ -1427,7 +1484,7 @@ module HexGrid(e=[11,4],es=5,center=true,name){
 
 
 module Points(points=[[0,0]],color,size,hull=.5,loop=25,start=0,mark,markS,center=true,help){
-  lp=assert(points[0],"no point(s) input")len(points);
+  lp=assert(is_list(points),"no point(s) input")len(points);
   cMark=["Chartreuse","Aqua","Magenta","LightSkyBlue"];
   size=is_undef(size)?$vpd/100:size;
   markS=is_undef(markS)?$vpd/40:markS;// scale marks 
@@ -1882,6 +1939,12 @@ module SCT(a=90){
 ///∇∇ Polygons ∇∇///
 
 
+module NACA(l=10,naca=0012,fn=fn,center=false,help){
+
+translate([center?-l*.3:0,0])polygon(naca(l=l,naca=naca,fn=fn));
+HelpTxt("NACA",["l",l,"naca",str(naca<1000?"00":"",naca%100),"fn",fn,"center",center],help);
+}
+
 module Star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,fn2,d,help){
   kfn=is_num(fn2)?round(fn2):d?max(12,fs2fn(r=abs(d/2),fs=fs)):12;
   points=concat(
@@ -2266,15 +2329,16 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gr
 opt = straight / voronoi
 
 */
-//Roof(base=5,twist=50,scale=[0.3,1])circle(5,$fn=3);
+//Roof(10,h=1,base=5,floor=true,twist=50,scale=[0.3,1])circle(5,$fn=3);
 
 
-module Roof(base=0,deg=45,opt=1,h,floor=false,center=false,twist=0,scale=1,fn=fn,convexity=5,overlap=.05,name,help){
+module Roof(height,h,base=0,deg=45,opt=1,floor=false,center=false,twist=0,scale=1,fn=fn,convexity=5,overlap=.0,name,help){
 
 s=is_list(deg)?[tan(deg[0]),tan(deg[1])]:[tan(deg),tan(deg)];
 floor=is_list(h)?true:floor;
 h=is_list(h)?h:[floor?h:0,h];
 iSize=max(viewportSize*5,100);
+base=height&&h[1]?height-h[0]-h[1]:base;
 
 Echo("Roof is experimental - use Dev Snapshot version and activate",color="warning",condition=version()[0]<2022);
   Tz(center?0:h[0]?h[0]:0)linear_extrude(base+(twist?overlap:0),center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
@@ -2293,7 +2357,7 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
   }
   
 InfoTxt("Roof",["h",h,"deg",str(deg,"° (",s,")")],name);
-HelpTxt("Roof",["base",base,"deg",deg,"opt",opt,"h",h,"floor",floor,"center",center,"twist",twist,"scale",scale,"fn",fn,"convexity",convexity,"overlap",overlap,"name",name],help);
+HelpTxt("Roof",["height",height,"h",h,"base",base,"deg",deg,"opt",opt,"floor",floor,"center",center,"twist",twist,"scale",scale,"fn",fn,"convexity",convexity,"overlap",overlap,"name",name],help);
 }
 
 
@@ -5310,7 +5374,7 @@ module WStern(f=5,r=1.65,a=.25,r2,fn=fn,fv=0,name,help){
        
     
     polygon(points);  
-  InfoTxt("WStern",["OD",(r+a)*2,"ID",(r-a)*2],name);  
+  InfoTxt("WStern",["OD",(r+a)*2,"ID",(r-a)*2,"r",r,"a",a],name);  
   HelpTxt("WStern",["f",f,"r",r,"a",a,"r2",r2,"fn",fn,"fv",fv,"name",name],help);
   
 }
