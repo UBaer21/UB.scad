@@ -71,7 +71,7 @@ Release
 062|22 CHG Pfeil
 064|22 CHG Pfeil CHG Star add fn2 CHG Roof CHG GT
 066|22 ADD naca ADD NACA CHG Roof CHG WStern CHG wall CHG Points
-068|22
+068|22 FIX Polar CHG Umkreis
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -137,7 +137,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.066;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.068;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -159,7 +159,7 @@ function n(x,nozzle=nozzle)=sign(x)*(abs(x)*nozzle + 0.05*nozzle); /*(x==1?0.05*
                                                           - layer*(1-PI/4) * (x-1)*0)); 0.05*nozzle padding for slicer */
 
 function Inkreis(eck,rU)=cos(180/eck)*rU;
-function Umkreis(eck,rI)=rI/cos(180/eck);
+function Umkreis(eck,rI,name)=let(r=rI/cos(180/eck))is_undef(name)?r:echo(str(name," Umkreis=",r))r;
 function Hypotenuse(a,b)=sqrt(pow(a,2)+pow(b,2));
 function Kathete(hyp,kat)=sqrt(pow(hyp,2)-pow(kat,2));
 function Sehne(n,r,a)=is_undef(a)?2*r*sin(180/n):2*r*sin(a/2);// n-eck oder a=α winkel zum r=radius
@@ -1211,7 +1211,7 @@ module Polar(e=3,x=0,y=0,rot=0,rotE=0,end=360,dr=0,mitte=false,name,n,help=false
     
     
    rot=is_undef(r)?rot:r; // compability
-   rotE=is_undef(re)?rotE:r; // compability
+   rotE=is_undef(re)?rotE:re; // compability
    name=is_undef(n)?is_undef(name)?is_undef($info)?false:
                                                    $info:
                                    name:
