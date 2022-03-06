@@ -5,7 +5,7 @@
 
 include<ub.scad> 
 /*[Hidden]*/
-designVersion=1.1;
+designVersion=1.2;
 useVersion=22.062;//⇒ v.gd/ubaer
 assert(Version>=useVersion,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 nozzle=.2;
@@ -13,7 +13,7 @@ bed=false;
 
 vpr=[0,0,0];
 
-vpd=show=="products"?1000:show=="polygons"?470:show=="objects"?400:230;
+vpd=show=="products"?1000:show=="polygons"?530:show=="objects"?400:230;
 vpt=show=="products"?[100,100]:[viewportSize*0.41,viewportSize*0.33];//[35,30];show=="polygons"?[56,52]:
 
 $textSize=1.3;
@@ -149,7 +149,8 @@ if(show=="modifier")//•••••••••• Modifier:   •••••
 
   union(){//R rotates
     Cross();
-    square([1,2]);T(objPos/2+[1])Pfeil([6,2],[1,2],d=3,$fs=.2);
+    square([1,2]);
+    T(objPos/2)T([4,2])rotate(-30)Pfeil([7,2],[1,2],shift=-0.5,d=10,center=0,$fs=.2);
     T(objPos){
       Cross();
       R(x=0,y=0,z=-45) Color(color2)square([1,2]);
@@ -243,7 +244,7 @@ if(show=="modifier")//•••••••••• Modifier:   •••••
 
 
 if(show=="polygons")union()//•••••••••• Polygons:   ••••••••••
-  T(5,7)Anordnen(es=[36,24],option=3,e=7,c=undef,loop=false,center=false,name="Polygons"){
+  T(5,7)Anordnen(es=[36,24],option=3,e=8,c=undef,loop=false,center=false,name="Polygons"){
   $textPos=[-7,-8.5];
     $textSize=2;
     $crossLine=0.2;
@@ -428,12 +429,27 @@ if(show=="polygons")union()//•••••••••• Polygons:   ••�
         Txt("Bogen"); 
       } 
       
-       union(){ // Tdrop for horizontal holes
+      union(){ // Tdrop for horizontal holes
         Tdrop(d=12);
         Txt("Tdrop"); 
-      }     
-      
-      
+      }
+
+      union(){ // Star
+        Star(r1=7,r2=3,radial=true,d=17);
+        Color()Star(r1=6,r2=2,radial=true,grad=-25,d=2);
+        Txt("Star"); 
+      }
+
+      union(){ // NACA Airfoil
+        T(0,7)NACA(20,naca=25,center=true);
+        NACA(20,naca=2412,center=true);
+        T(0,-5)NACA(20,naca=8412,center=true);
+        Txt("NACA"); 
+      }
+
+
+
+
     /* 
       •••••• 2D ••••••
 
@@ -901,6 +917,8 @@ if(show=="products")union()//•••••••••• Produkt Objekte:   �
 if(show=="functions")//•••••••••• Functions Objekte:   ••••••••••
   Anordnen(option=3,es=[30,18],e=[3,5],c=undef,loop=false,center=false){
   objPos=[2,1,0];
+  $crossLine=.2;
+  $textSize=1.4;
     union(){ // nozzle
       Color(color2)Rand(n(4))square(5);
       Txt("Rand(n(4))square([5]);",0);
@@ -1006,9 +1024,9 @@ if(show=="functions")//•••••••••• Functions Objekte:   •�
     } 
     
     union(){// m multmatrix
-      
+      deg=90;
       p0=[2,1,0];
-      pM=m(r=[0,0,45])*concat(p0,[1])+[0,0,0];
+      pM=m(r=[0,0,deg])*concat(p0,[1])+[0,0,0];
       T(-2 ){
         Pivot(p0=p0,size=3);
         Cross();
@@ -1017,9 +1035,10 @@ if(show=="functions")//•••••••••• Functions Objekte:   •�
        T(14){
          Pivot(p0=pM,size=3);
          Cross();
+         Pfeil(l=[-4,-1],b=[0.5,1],d=norm(p0)*2+2);
        }
       
-      Txt("m(r=[0,0,45])*p0",0);
+      Txt(str("m(r=[0,0,",deg,"])*p0"),0);
     }   
     
     

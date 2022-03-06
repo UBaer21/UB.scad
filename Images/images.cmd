@@ -14,7 +14,7 @@ echo   creating 3/7 helper.png
 E:\Prog\OpenSCAD2022.02\openscad.exe -o helper.png -D "show=""helper""" -q --colorscheme "DeepOcean" --imgsize 900,900 --projection o --camera 25,18,0,0,0,0,152 DEMO.scad
 
 echo   creating 4/7 polygons.png
-E:\Prog\OpenSCAD2022.02\openscad.exe -o polygons.png -D "show=""polygons""" -q --colorscheme "DeepOcean" --imgsize 900,1200 --projection o --camera 60,75,0,0,0,0,460 DEMO.scad
+E:\Prog\OpenSCAD2022.02\openscad.exe -o polygons.png -D "show=""polygons""" -q --colorscheme "DeepOcean" --imgsize 900,1200 --projection o --camera 60,90,0,0,0,0,510 DEMO.scad
 
 echo   creating 5/7 objects.png
 E:\Prog\OpenSCAD2022.02\openscad.exe -o objects.png -D "show=""objects""" -q --colorscheme "DeepOcean" --imgsize 900,1000 --projection o --camera 50,50,0,0,0,0,335 DEMO.scad
