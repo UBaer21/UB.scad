@@ -72,6 +72,8 @@ Release
 064|22 CHG Pfeil CHG Star add fn2 CHG Roof CHG GT
 066|22 ADD naca ADD NACA CHG Roof CHG WStern CHG wall CHG Points
 068|22 FIX Polar CHG Umkreis
+070|22 FIX star ADD pathLength
+072|22
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -137,7 +139,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.068;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.070;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -637,26 +639,28 @@ let(
                                                                       w?  winkel[1]*ifn: - winkel[0]*(fn-ifn+1) ),
                                                  i%2?r2:r1,z=z)];
 
-*/
+//*/
 
 
 function star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0)=
 let(
   grad=is_num(grad)?[grad/2,grad/2]:grad,
   grad2=is_undef(grad2)?[grad[1],grad[0]]:is_num(grad2)?[grad2/2,grad2/2]:grad2,
-  fn=max(1,round(fn)),
+  centerEck=fn?0:1,
+  fn=max(+1,round(fn)),
   
   deg=angle/(e*2),
   diff=(grad[1]-grad[0])/2,
   diff2=(grad2[1]-grad2[0])/2,
 
   
-  winkel=((radial?[1,1]*angle/4/e+ [grad.x,grad.y]:grad)+[diff,-diff])/(fn+1),
-  winkel2=((radial?[1,1]*angle/4/e - [grad.y,grad.x]:grad2)+[diff2,-diff2])/(fn+1)
+  winkel=((radial?[1,1]*angle/4/e+ [grad.x,grad.y]:grad)+[diff,-diff])/(fn ),
+  winkel2=((radial?[1,1]*angle/4/e - [grad.y,grad.x]:grad2)+[diff2,-diff2])/(fn )
   )
-[for(i=[0:e*2 -1], w=[0:1], ifn=[+0:fn +1])  RotLang((deg*i+rot +(i%2?diff2:diff))%360  + ( i%2?  w? winkel2[1]*ifn : - winkel2[0]*(fn-ifn+1) :
-                                                                      w?  winkel[1]*ifn: - winkel[0]*(fn-ifn+1) ),
-                                                 i%2?r2:r1,z=z)];
+[for(i=[0:e*2 -1], w=[0:1], ifn=[centerEck:fn ]) 
+  RotLang((deg*i+rot +(i%2?diff2:diff))%360  + ( i%2?  w? winkel2[1]*ifn : - winkel2[0]*(fn-ifn +centerEck) :
+                                                       w? winkel [1]*ifn : - winkel [0]*(fn-ifn+centerEck) ),
+          i%2?r2:r1,z=z)];
 
 
 //polygon(concat(star(e=4,angle=250),star(angle=70,e=4,r1=4,r2=3,rot=-90)));
@@ -719,10 +723,15 @@ function naca(l = 10, naca, m=+0.00, p=0.0,t=0.12,fn=fn,dir=0,asymP,z)=
 dir?naca_camber(xScale=0)+naca_t():concat(naca_camber(xScale=0)+naca_t(),naca(l=l,m=m,p=p,t=t,fn=fn,dir=1,asymP=asymP,z=z));
 
 
+function pathLength(points,start=0,end=0,close=0,length=0)= let(end=end>start?end:len(points)-(close?0:1))
+  start<end?pathLength(points=points,start=start+1,end=end,close=close,
+  length=length+norm(points[(start+1)%len(points)]-points[start])):length;
 
-
-
-
+/*
+p=kreis(5,rand=0,fn=6,endPoint=1);
+echo(pathLength(p,close=0),PI*10);
+Points(p);
+//*/
 
 
 
@@ -860,6 +869,7 @@ echo    ("
 ••• wall(soll,min=1.75,even=false,nozzle=nozzle) adapt to line width (nozzle) ••• \n
 ••• vMult(v1,v2) vector multiplication ••• \n
 ••• naca(l,0012) NACA airfoil ••• \n
+••• pathLength(points,start=0,end,close=0) ••• \n
 
 
 ");
@@ -1938,12 +1948,17 @@ module SCT(a=90){
 ///ΔΔ Helper   ΔΔ\\\
 ///∇∇ Polygons ∇∇///
 
+//NACA(); // 2D NACA airfoil profil
 
-module NACA(l=10,naca=0012,fn=fn,center=false,help){
+module NACA(l=10,naca=0012,fn=fn,center=false,name,help){
 
-translate([center?-l*.3:0,0])polygon(naca(l=l,naca=naca,fn=fn));
-HelpTxt("NACA",["l",l,"naca",str(naca<1000?"00":"",naca%100),"fn",fn,"center",center],help);
+points=naca(l=l,naca=naca,fn=fn);
+InfoTxt("NACA",["Surface length",pathLength(points)],name);
+translate([center?-l*.3:0,0])polygon(points);
+HelpTxt("NACA",["l",l,"naca",str(naca<1000?"00":"",naca%100),"fn",fn,"center",center,name],help);
 }
+
+
 
 module Star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,fn2,d,help){
   kfn=is_num(fn2)?round(fn2):d?max(12,fs2fn(r=abs(d/2),fs=fs)):12;
