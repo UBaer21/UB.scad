@@ -149,6 +149,7 @@ There are a lot of settings available but most is using  pre configuration - so 
 * `mPoints(points, r, t, s)` transform (rotate translate scale ) point or points (2D/3D)
 * `wall(soll=.5,min=1.25,even=false,nozzle=nozzle)` calculates perimeter for "soll" according to nozzle size
 * `vMult(v1=[1],v2=1)` multiplicates vectors v1.x × v2.x …
+* `pathLength(points,close=false)` calculates the sum length of segments (perimeter) 
 
 * Points generating
   * 
