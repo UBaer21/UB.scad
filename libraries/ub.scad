@@ -74,7 +74,7 @@ Release
 068|22 FIX Polar CHG Umkreis
 070|22 FIX star ADD pathLength
 072|22 CHG NACA CHG Roof chg LinEx CHG Linse
-074|22
+074|22 CHG Points
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -140,7 +140,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.072;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.074;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -1491,24 +1491,46 @@ module HexGrid(e=[11,4],es=5,center=true,name){
 ///∇∇ Helper ∇∇/// (not for creating geometry or objects)
 
 //Points(octa(5),loop=4,size=0.4);
+//Points(kreis(),mark=[0,1,2,3,4,5,6,7,8]);
+//Points(octa(5),mark=[3,4,2,1],hull=.5*0);
+//Points(octa(5),mark=[3,0,2,1],hull=.1*0);
 
-
-
-module Points(points=[[0,0]],color,size,hull=.5,loop=25,start=0,mark,markS,center=true,help){
+module Points(points=[[0,0]],color,size,hull=.5,loop=25,start=0,mark,markS,markCol,face=true,center=true,help){
   lp=assert(is_list(points),"no point(s) input")len(points);
-  cMark=["Chartreuse","Aqua","Magenta","LightSkyBlue"];
+  cMark=is_undef(markCol)?["Magenta","Chartreuse","Aqua","LightSkyBlue"]:markCol;
   size=is_undef(size)?$vpd/100:size;
   markS=is_undef(markS)?$vpd/40:markS;// scale marks 
-  %if($preview){
+  lenM=is_list(mark)?len(mark):0;
+  
+  if($preview){
 
-
+    if(face&&lenM>2){
+      color("Chartreuse",alpha=.5)
+      polyhedron([for(i=[0:lenM-1])points[mark[i]]],[[for(i=[0:lenM-1])i]]);
+      if(len(points[0])==3)for(i=[0:lenM-1]){
+        p0=points[mark[i]];
+        p1=points[mark[(i+1)%lenM]]-points[mark[i]];
+        p2=points[mark[(i+2)%lenM]]-points[mark[i]];
+        pNormal=cross(  p2, p1  );
+//echo(i,norm(pNormal));
+        translate((p0+points[mark[(i+1)%lenM]]+points[mark[(i+2)%lenM]])/3)
+          color("HotPink",0.8)hull(){
+            translate(pNormal/norm(pNormal)*markS)sphere(minVal,$fn=3);
+            sphere(d=markS/3,$fn=9);
+          }
+      }
+    }
+     
     for (i=[0:is_list(points[0])?lp-1:0])translate(is_list(points[0])?points[i]:points){
      if(is_num(mark)&&i==mark){
       color("Chartreuse", alpha=.6)OctaH(.6*markS);
       color("Chartreuse", alpha=1)T(0,markS)linear_extrude(.01,convexity=3)text(str(points[i]),size=markS/3,halign="center");
       }
-     if(is_list(mark)) for(j=[0:len(mark)-1])if(i==mark[j])color(cMark[j%len(cMark)], alpha=0.4)OctaH(0.4*markS,$fn=12);
-       
+     if(is_list(mark)) for(j=[0:len(mark)-1])if(i==mark[j]){
+      color(cMark[j%len(cMark)], alpha=0.4)OctaH(0.4*markS,$fn=12);
+      if(face)color("DarkGrey", alpha=1)T(0,markS)rotate($vpr)linear_extrude(.01,convexity=3)text(str(j),size=markS/4,halign="center");
+     }
+
      if(i>=start&&i<start+loop){
       if(i==start          )color("red",  alpha=.4)sphere(.25*markS,$fn=24);
       if(i==start +loop-1)color("blue", alpha=.4)sphere(.25*markS,$fn=24);
@@ -1530,7 +1552,7 @@ module Points(points=[[0,0]],color,size,hull=.5,loop=25,start=0,mark,markS,cente
 
   }
   
-  HelpTxt("Points",["points",[[1,2,3]],"color",color,"size",size,"hull",hull,"loop",loop,"start",start,"mark",mark,"markS",markS,"center",center],help);
+  HelpTxt("Points",["points",[[1,2,3]],"color",color,"size",size,"hull",hull,"loop",loop,"start",start,"mark",mark,"markS",markS,"markCol",markCol,"face",face,"center",center],help);
   }
 
  //Points(Kreis(grad=120,fn=6),start=0,loop=6,mark=[2,3,4,12]);
