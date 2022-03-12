@@ -73,7 +73,8 @@ Release
 066|22 ADD naca ADD NACA CHG Roof CHG WStern CHG wall CHG Points
 068|22 FIX Polar CHG Umkreis
 070|22 FIX star ADD pathLength
-072|22
+072|22 CHG NACA CHG Roof chg LinEx CHG Linse
+074|22
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -139,7 +140,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.070;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.072;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -1953,8 +1954,8 @@ module SCT(a=90){
 module NACA(l=10,naca=0012,fn=fn,center=false,name,help){
 
 points=naca(l=l,naca=naca,fn=fn);
-InfoTxt("NACA",["Surface length",pathLength(points)],name);
-translate([center?-l*.3:0,0])polygon(points);
+InfoTxt("NACA",["Surface length",pathLength(points),"center",center?center==2?str("30%-max Thickness=",l*0.3):str("¼-25% neutral (N)=",l*0.25):0],name);
+translate([center?center==2?-l*0.3:-l*.25:0,0])polygon(points);
 HelpTxt("NACA",["l",l,"naca",str(naca<1000?"00":"",naca%100),"fn",fn,"center",center,name],help);
 }
 
@@ -2355,9 +2356,17 @@ h=is_list(h)?h:[floor?h:0,h];
 iSize=max(viewportSize*5,100);
 base=height&&h[1]?height-h[0]-h[1]:base;
 
+$idxON=false;
+
+InfoTxt("Roof",["h",h,"deg",str(deg,"° (",s,")")],name);
+
 Echo("Roof is experimental - use Dev Snapshot version and activate",color="warning",condition=version()[0]<2022);
-  Tz(center?0:h[0]?h[0]:0)linear_extrude(base+(twist?overlap:0),center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
- if(version()[0]>2021){ 
+  Tz(center?0:h[0]?h[0]:0){
+  $tab=is_undef($tab)?1:b($tab,false)+1;
+  linear_extrude(base+(twist?overlap:0),center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
+  }
+ if(version()[0]>2021)union(){ 
+ $idx=1;
  //top
   if(scale&&(h[1]||is_undef(h[1])))Tz(center?base/2:base+(h[0]?h[0]:0))intersection(){
   scale([1,1,s[1]])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)scale(scale)rotate(-twist)children(); // experimental feature comment out if not activated in preferences
@@ -2371,7 +2380,7 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
   }
   }
   
-InfoTxt("Roof",["h",h,"deg",str(deg,"° (",s,")")],name);
+
 HelpTxt("Roof",["height",height,"h",h,"base",base,"deg",deg,"opt",opt,"floor",floor,"center",center,"twist",twist,"scale",scale,"fn",fn,"convexity",convexity,"overlap",overlap,"name",name],help);
 }
 
@@ -2416,11 +2425,11 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
     
 
     
-    InfoTxt("LinEx",["core h",str(hc,"mm - twist per mm=",twist/(hc),"°, Fase für $d= ",$d,"mm ist ",grad,"°/",grad2,"° d=",$d*scale,"/",$d*scale2,"mm - r=",$r*scale,"/",$r*scale2,"mm Mantelwinkel für $d/$r=",$d,"/",$r,"mm⇒ ",mantelwinkel,"° twist=",twist,"° slices=",slices)],name); 
+  InfoTxt("LinEx",["core h",str(hc,"mm - twist per mm=",twist/(hc),"°, Fase für $d= ",$d,"mm ist ",grad,"°/",grad2,"° d=",$d*scale,"/",$d*scale2,"mm - r=",$r*scale,"/",$r*scale2,"mm Mantelwinkel für $d/$r=",$d,"/",$r,"mm⇒ ",mantelwinkel,"° twist=",twist,"° slices=",slices)],name); 
     
 
     
-    Echo(str(name," LinEx Höhe center=",hc,"mm"),color="red",condition=hc<0);
+  Echo(str(name," LinEx Höhe center=",hc,"mm"),color="red",condition=hc<0);
     
     if(is_list(grad2)?$r*tan(min(grad2[0],grad2[1]))<(is_list($r)?[h22,h22]:h22)&&min(grad2[0],grad2[1])<90&&min(grad2[0],grad2[1])>0:$r*tan(grad2)<(is_list($r)?[h22,h22]:h22)&&grad2<90&&grad2>0)Echo(str(name," LinEx Höhe h22=",h22," mm zu groß oder winkel/$r zu klein min=",atan(h22/$r),"° max=",is_list(grad2)?$r*tan(min(grad2[0],grad2[1])):$r*tan(grad2),"mm"),color="red");
         
@@ -2430,7 +2439,7 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
     
 
 
-rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
+  rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
     T(z=center?-h/2:0){
     
 
@@ -6252,16 +6261,24 @@ module Linse(dia=10,r=7.07107,name,messpunkt=true,fn,help){
 
 InfoTxt("Linse",["Dicke",dick,"Kreisgrad",str(grad,"°")],name);
 
-tx=Kathete(r,dia/2);
-grad=2*asin((dia/2)/r);    
-dick=2*(r-tx);
-fn=is_undef(fn)?fs2fn(r=r,fs=fs)/360*grad:fn;
+r=is_list(r)?r:[r,r];
+tx=Kathete(r[0],dia/2);
+tx2=Kathete(r[1],dia/2);
+grad=2*asin((dia/2)/r[0]);    
+grad2=2*asin((dia/2)/r[1]);    
+dick=(r[0]-tx) + (r[1]-tx2);
+ifn=is_undef(fn)?fs2fn(r=r[0],fs=fs,grad=grad):fn;
+ifn2=is_undef(fn)?fs2fn(r=r[1],fs=fs,grad=grad2):fn;
 
-   polygon(concat( kreis(rand=0,r=r,grad=grad,t=[tx,0],fn=fn), kreis(rand=0,r=r,grad=grad,rot=-180,t=[-tx,0],fn=fn))); 
+   polygon(concat(
+    kreis(rand=0,r=r[0],grad=grad,t=[tx*sign(r[0]),0],fn=ifn),
+    kreis(rand=0,r=r[1],grad=grad2,rot=-180,t=[-tx2*sign(r[1]),0],fn=ifn2)
+    )
+   ); 
   if(messpunkt){
       Pivot([tx,0],active=[1,0,0,1,0],messpunkt=messpunkt);
       Pivot([0,dia/2],active=[1,0,0,1,1],messpunkt=messpunkt);
-      Pivot([-tx,0],active=[1,0,0,1,1],messpunkt=messpunkt);
+      Pivot([-tx2,0],active=[1,0,0,1,1],messpunkt=messpunkt);
       
   }
  HelpTxt("Linse",[
