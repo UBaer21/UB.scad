@@ -75,6 +75,8 @@ Release
 070|22 FIX star ADD pathLength
 072|22 CHG NACA CHG Roof chg LinEx CHG Linse
 074|22 CHG Points
+076|22 CHG Points FIX Cring CHG Text ADD stringChunk
+078|22
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -140,7 +142,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.074;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.076;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -734,7 +736,21 @@ echo(pathLength(p,close=0),PI*10);
 Points(p);
 //*/
 
+function stringChunk(txt,start=0,length,string="")=let(length=is_undef(length)?len(str(txt))-start:length)
+  len(string)<length?stringChunk(txt=txt,length=length,start=start+1,string=str(string,str(txt)[start])):string;
 
+//echo(stringChunk(1234,start=0));
+
+
+
+
+
+
+
+
+
+
+// END functions
 
 ///////////////////////////////////////////////////////
 
@@ -871,6 +887,7 @@ echo    ("
 ••• vMult(v1,v2) vector multiplication ••• \n
 ••• naca(l,0012) NACA airfoil ••• \n
 ••• pathLength(points,start=0,end,close=0) ••• \n
+••• stringChunk(txt,start=0,length) •••\n
 
 
 ");
@@ -1491,12 +1508,15 @@ module HexGrid(e=[11,4],es=5,center=true,name){
 ///∇∇ Helper ∇∇/// (not for creating geometry or objects)
 
 //Points(octa(5),loop=4,size=0.4);
-//Points(kreis(),mark=[0,1,2,3,4,5,6,7,8]);
+//Points(kreis(),mark=[0,1,2,3,4,5,6,7,8],loop=13,start=10);
 //Points(octa(5),mark=[3,4,2,1],hull=.5*0);
-//Points(octa(5),mark=[3,0,2,1],hull=.1*0);
+//Points(octa(5),mark=[3,0,2,1],hull=true);
 
-module Points(points=[[0,0]],color,size,hull=.5,loop=25,start=0,mark,markS,markCol,face=true,center=true,help){
+module Points(points=[[0,0]],color,size,hull,loop,start=0,mark,markS,markCol,face=true,center=true,help){
   lp=assert(is_list(points),"no point(s) input")len(points);
+  loop=is_undef(loop)?lp>25?25:
+                            lp:
+                      loop;
   cMark=is_undef(markCol)?["Magenta","Chartreuse","Aqua","LightSkyBlue"]:markCol;
   size=is_undef(size)?$vpd/100:size;
   markS=is_undef(markS)?$vpd/40:markS;// scale marks 
@@ -1528,25 +1548,28 @@ module Points(points=[[0,0]],color,size,hull=.5,loop=25,start=0,mark,markS,markC
       }
      if(is_list(mark)) for(j=[0:len(mark)-1])if(i==mark[j]){
       color(cMark[j%len(cMark)], alpha=0.4)OctaH(0.4*markS,$fn=12);
-      if(face)color("DarkGrey", alpha=1)T(0,markS)rotate($vpr)linear_extrude(.01,convexity=3)text(str(j),size=markS/4,halign="center");
+      if(face){
+       // color("DarkGrey", alpha=1)rotate($vpr)T(0,markS*0.5)linear_extrude(.01,convexity=3)text(str(j),size=markS/4,halign="center");
+        color("white", alpha=1)rotate($vpr)T(0,0,markS*0.5)linear_extrude(.01,convexity=3)text(str(j),size=markS/4,halign="center",valign="center");
      }
+    }
 
      if(i>=start&&i<start+loop){
       if(i==start          )color("red",  alpha=.4)sphere(.25*markS,$fn=24);
-      if(i==start +loop-1)color("blue", alpha=.4)sphere(.25*markS,$fn=24);
+      if(i==start +loop-1)color("Magenta", alpha=.4)sphere(.25*markS,$fn=24);
 
       if(!center)
-        Color(is_undef(color[0])?1/(lp*1.2)*i:color,is_undef(color[3])?.5:color[3])rotate($vpr){
+        Color(is_undef(color[0])?1/(loop*1.1)*(i-start):color,is_undef(color[3])?.5:color[3])rotate($vpr){
       translate([0,i==lp-1?size *+2.5:size*1.25])linear_extrude(.01,convexity=3)text(str(i==lp-1?"end":"p",i),size=size,halign="center");
         rotate([-90,-45,45])cylinder(i==lp-1?size*3.5:size,0,size/5,$fn=3);
         }
-      else Color(is_undef(color[0])?1/(lp*1.2)*i:color,is_undef(color[3])?.5:color[3])rotate(vektorWinkel(points[i],[0,0,points[i].z])+[90,0,0]){
+      else Color(is_undef(color[0])?1/(loop*1.1)*(i-start):color,is_undef(color[3])?.5:color[3])rotate(vektorWinkel(points[i],[0,0,points[i].z])+[90,0,0]){
       translate(i==lp-1?[0,size *+3.5,size*3.5]:i==start+loop-1?[0,size*2.25,size*0.65]:[0,size*1.25,size*0.65])linear_extrude(.01,convexity=3)text(str(i==lp-1?"end":"p",i),size=size,valign="center",halign="center");
        rotate([i==start+loop-1?-45:-35,0,0])rotate(30)cylinder(i==lp-1?size*3.5:i==start+loop-1?size*1.5:size,0,size/5,$fn=3);
        }
     }}
 
-     if(hull&&lp>2) if(len(points[0])==3)color(alpha=is_bool(hull)?1: hull)
+     if(hull&&lp>2) if(len(points[0])==3)color(alpha=is_bool(hull)?.5: hull)
                 hull() polyhedron(points, [[for(i=[0:len(points)-1]) i ]]);
               else if(len(points[0])==2)color(alpha=is_undef(color[3])?.2:color[3])polygon(points);
 
@@ -6071,7 +6094,10 @@ faces=concat(faces0,faces1,faces2,faces3,faces4,faces5);
     
 }
 
-
+/*
+Cring(txt="|-test-|",id=20,center=0);
+T(0,14)R(90,0,180)Text("test",h=1,size=5);
+//*/
 
 module Cring(
 id=20,
@@ -6081,7 +6107,8 @@ rand=3,
 rad=1,
 end=1,
 txt=undef,
-tWeite,
+//tWeite,
+spacing=1,
 tSize=5,
 center=true,
 fn=fn,
@@ -6089,26 +6116,27 @@ fn2=36,
 help
 ){
 center=center==true?1:center==false?0:center;    
-tWeite=is_undef(tWeite)?tSize*0.9:tWeite;
+//tWeite=is_undef(tWeite)?tSize*0.9:tWeite;
     
 Tz(center>0?-h/2:0)rotate(center?-grad/2:0){
   rad=min(rad,h/2,rand/2);  
     
-    difference(){
-        rotate_extrude(angle=grad,$fn=fn,convexity=5)T(id/2)Quad(rand,h,r=rad,center=false,fn=fn2,help=0,name=0);
-       if(txt!=undef)Tz(h/2-tSize/2)difference(){
-          for(i=[0:len(txt)-1])rotate(grad/2+i*atan(tWeite/(id/2+rand))-(len(txt)-1)/2*atan(tWeite/(id/2+rand)))T(id/2+rand)R(90,0,90)Text(text=txt[i],h=1,cx=true,cz=true,size=tSize);
-            Col(4)  cylinder(100,d=id+rand*2-n(1),center=true,$fn=fn);
-      }
+  difference(){
+    rotate_extrude(angle=grad,$fn=fn,convexity=5)T(id/2)Quad(rand,h,r=rad,center=false,fn=fn2,help=0,name=0);
+    if(txt!=undef)Tz(h/2-tSize/2)difference(){
+     rotate(grad/2-90)mirror([1,0])Text(text=txt,h=1,size=tSize,radius=id/2+rand,rot=[90],spacing=spacing,center=true,cy=0);
+     //%union()for(i=[0:len(txt)-1])rotate(grad/2+i*atan(tWeite/(id/2+rand))-(len(txt)-1)/2*atan(tWeite/(id/2+rand)))T(id/2+rand)R(90,0,90)Text(text=txt[i],h=1,cx=true,cz=true,size=tSize);
+      Col(4)  cylinder(100,d=id+rand*2-n(1),center=true,$fn=fn);
     }
-    if(end==1){    
+  }
+  if(end==1){    
     T(id/2+rand/2)Pille(l=h,d=rand,rad=rad,center=false,fn=fn2,fn2=fn2/4,name=0);
     rotate(grad)T(id/2+rand/2)Pille(l=h,d=rand,rad=rad,center=false,fn=fn2,fn2=fn2/4,name=0);
-    }
-    if(end==2){    
+  }
+  if(end==2){    
     T(id/2+rand/2,0,h/2)R(90)Tz(-rad)Prisma(c1=0,x1=rand,z=rad*2,y1=h,s=rad*2,fnS=fn2,name=0,help=0);
     rotate(grad)T(id/2+rand/2,0,h/2)R(90)Tz(-rad)Prisma(c1=0,x1=rand,z=rad*2,y1=h,s=rad*2,fnS=fn2,name=0,help=0);
-    }
+  }
 }
 HelpTxt("Cring",[
  "id", id,
@@ -6118,7 +6146,8 @@ HelpTxt("Cring",[
  "rad",rad ,
  "end", end ,
  "txt",txt ,
- "tWeite",tWeite ,
+ //"tWeite",tWeite ,
+ "spacing",spacing,
  "tSize", tSize,
  "center", center ,
  "fn", fn,
@@ -8102,49 +8131,67 @@ styles=[
 ];
 
 
-module Text(text="»«",size=5,h,cx,cy,cz,center=0,spacing=1,fn=24,radius=0,rot=[0,0,0],font="Bahnschrift:style=bold",style,help,name)
+/*
+Text("123ABCiiII",spacing=.9,radius=20,textmetrics=1,center=+1,cy=false,viewPos=true);
+%circle(20);
+//*/
+//Cring(txt="iiiAAA",tSpacing=1.0);
+
+module Text(text="»«",size=5,h,cx,cy,cz,center=0,spacing=1,fn=24,radius=0,rot=[0,0,0],font="Bahnschrift:style=bold",style,help,name,textmetrics=true,viewPos=false)
 {
+textmetrics=version()[0]<2022?false:textmetrics;
     h=is_undef(h)?size:h;
     cx=center?is_undef(cx)?1:cx:is_undef(cx)?0:cx;
     cy=center?is_undef(cy)?1:cy:is_undef(cy)?0:cy;
     cz=center?is_undef(cz)?1:cz:is_undef(cz)?0:cz;
    
+    text=str(text);
+    lenT=len(text);
     font=is_num(font)?fonts[font]:font;
     style=is_string(style)?style:styles[style];
     fontstr=is_undef(style)?font:str(font,":style=",style);
+    
+    fontSize=[for(i=[0:lenT-1])textmetrics?
+      textmetrics(text=stringChunk(txt=text,length=i),font=fontstr,size=size,spacing=spacing).advance.x + textmetrics(text=text[i],font=fontstr,size=size,spacing=1).advance.x/2
+      
+      :
+      (size*spacing)*i];
+      
+ //echo(fontSize);
  
- if(is_num(text)||text)if(!radius){   
+ if(text)if(!radius){   
     if(h)    
     rotate(rot)translate([0,0,cz?-abs(h)/2:h<0?h:0]) linear_extrude(abs(h),convexity=10){
     text(str(text),size=size,halign=cx?"center":"left",valign=cy?"center":"baseline",font=fontstr,spacing=spacing,$fn=fn);
     }
-    else rotate(rot)translate([0,0,cz?-h/2:0])text(str(text),size=size,halign=cx?"center":"left",valign=cy?"center":"baseline",spacing=spacing,font=fontstr,$fn=fn); 
+    else rotate(rot)translate([0,0,cz?-h/2:0])text(text,size=size,halign=cx?"center":"left",valign=cy?"center":"baseline",spacing=spacing,font=fontstr,$fn=fn); 
     }
-else for(i=[0:len(str(text))-1])rotate(center?gradB((size*spacing)/2*(len(str(text))-1),radius):0)rotate(gradB(size*spacing,radius)*-i)
+else rotate(center?gradB(fontSize[lenT-1]/2,radius):0)for(i=[0:len(text)-1])rotate(-gradB(fontSize[i],radius))
     if(h)    
-    translate([0,radius,0])rotate(rot)Tz(cz?-abs(h)/2:h<0?h:0) linear_extrude(abs(h),convexity=10){
-    text(str(text)[i],size=size,halign=true?"center":"left",valign=cy?"center":"baseline",font=fontstr,$fn=fn);
+    translate([0,radius,0])rotate(rot)Tz(cz?-abs(h)/2:h<0?h:0){
+    %color("Chartreuse")if(viewPos&&$preview)translate([0,-1])rotate(-30)circle($fn=3);// pos Marker
+    linear_extrude(abs(h),convexity=10)text(text[i],size=size,halign=true?"center":"left",valign=cy?"center":"baseline",font=fontstr,$fn=fn);
     }
-    else  translate([0,radius,cz?-h/2:0])rotate(rot)text(str(text)[i],size=size,halign=true?"center":"left",valign=cy?"center":"baseline",font=fontstr,$fn=fn); 
+    else  translate([0,radius,cz?-h/2:0])rotate(rot)text(text[i],size=size,halign=true?"center":"left",valign=cy?"center":"baseline",font=fontstr,$fn=fn); 
     
     
- if(name)echo(str("<b>",name," Text font=",font," — style=",style));   
+ InfoTxt("Text",["font",font,"style",style],name);   
         
- if(help)echo(str("<font color=",helpMColor," size=3><b>Help Text(",
-"text=&quot;",text,"&quot;",
-", size=",size,
-", h=",h,"/*0 for 2D*/",
-", cx=",cx,
-", cy=",cy,
-", cz=",cz,
-", center=",center,
-", spacing=",spacing,
-", fn=",fn,
-", radius=",radius, 
-", rot=",rot,
-", font=&quot;",font,"&quot;",
- ",style=&quot;",style,"&quot;",
- ",help);"));
+ HelpTxt("Text",[
+"text",str("\"",text,"\""),
+"size",size,
+"h",str(h," /*0 for 2D*/"),
+"cx",cx,
+"cy",cy,
+"cz",cz,
+"center",center,
+"spacing",spacing,
+"fn",fn,
+"radius",radius, 
+"rot",rot,
+"font",str("\"",font,"\""),
+"style",str("\"",style,"\"")],help);
+
  
 }
 
