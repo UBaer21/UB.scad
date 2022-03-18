@@ -76,7 +76,8 @@ Release
 072|22 CHG NACA CHG Roof chg LinEx CHG Linse
 074|22 CHG Points
 076|22 CHG Points FIX Cring CHG Text ADD stringChunk
-078|22
+078|22 CHG Servokopf CHG wall CHG Roof CHG title menue ADD line line() CHG wall chg l() n()
+080|22 CHG Star CHG kreis chg Roof
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -100,6 +101,8 @@ vp=$preview?false:true;
 name=undef;
 //Düsen ∅
 nozzle=0.4;
+nozArea=(nozzle/2)^2*PI;
+line=nozzle;
 
 //Layer hight
 layer=0.08;// one step = 0.04 (8mm/200steps)
@@ -142,7 +145,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.076;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.080;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -159,9 +162,11 @@ needs2D=["Rand","WKreis","Welle","Rund","Rundrum", "LinEx", "RotEx","SBogen","Bo
 assert(useVersion?Version>=useVersion:true,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 assert(version()[0]>2019,"Install current http://openscad.org version");
 
-function l(x)=x*layer;
-function n(x,nozzle=nozzle)=sign(x)*(abs(x)*nozzle + 0.05*nozzle); /*(x==1?0.05*nozzle:
+function l(x=1,layer=layer)=x*layer;
+function n(x=1,nozzle=nozzle)=sign(x)*(abs(x)*nozzle + 0.05*nozzle); /*(x==1?0.05*nozzle:
                                                           - layer*(1-PI/4) * (x-1)*0)); 0.05*nozzle padding for slicer */
+                                                          
+function line(n=1,line=line)=sign(n)*(abs(n)*line + 0.05*nozzle);
 
 function Inkreis(eck,rU)=cos(180/eck)*rU;
 function Umkreis(eck,rI,name)=let(r=rI/cos(180/eck))is_undef(name)?r:echo(str(name," Umkreis=",r))r;
@@ -201,6 +206,7 @@ r2=r2?
 fn=max(1,floor(abs(fn))),
 step=grad/fn,
 step2=grad2/fn,
+t=is_list(t)?t:[t,0],
 endPoint=rand?true:endPoint
 )
 is_num(z)?[
@@ -613,13 +619,15 @@ is_undef(z)?[for(f=[0:fn])let(i=f%fn*360/fn)each[
 
 // wall calculates perimeter number according to nozzle size for "soll"mm
 
-function wall(soll=.5,min=1.25,even=false,nozzle=nozzle,name)=
+function wall(soll=.5,min=1.25,even=false,line=line,nozzle,name)=
   let (
-    perimeterHi=ceil(soll/nozzle),
-    perimeterLow=floor(soll/nozzle),
-    walls=max(min,even?perimeterHi%2?perimeterLow:perimeterHi : round(soll/nozzle))
+    line=is_num(nozzle)?nozzle:line,
+    soll=abs(soll),
+    perimeterHi=ceil(soll/line),
+    perimeterLow=floor(soll/line),
+    walls=max(min,even?max(2,perimeterHi%2?perimeterLow:perimeterHi) : round(soll/line))*sign(soll)
     )
-  (is_undef($idx)||$idx==0)&&$info||name?echo(name=name,perimeterShells=walls,soll=soll,ist=n(walls,nozzle=nozzle))n(walls,nozzle=nozzle):n(walls,nozzle=nozzle);
+  (is_undef($idx)||$idx==0)&&$info||name?echo(name=name,perimeterShells=walls,soll=soll,ist=line(walls,line=line))line(walls, line=line) : line(walls, line=line);
   
   
   
@@ -796,9 +804,9 @@ echo(str("<p style=background-color:#ccccdd>",
 "••• Version: β",Version," v ",version(),"  ——  Layer: ",layer," Nozzle ∅: ",nozzle," ••• fn=",fn,"••• Spiel: ",spiel," •••"));
 
 else if(!anima) { echo(str("•••••••••••••••••• UB (USER library v2021) included! v.gd/ubaer  •••••••••••••••••"));
-echo(str("• Version: β",Version," v ",version(),"  —  Layer: ",layer," Nozzle ∅: ",nozzle," • fn=",fn," • Spiel: ",spiel," •"));
+echo(str("• Version: β",Version," v ",version(),"  —  Layer: ",layer,"(",runden((line*layer)/nozArea*100),"%)",line==nozzle?str(" Nozzle ∅: ",nozzle):str(" Line/Nozzle ",line,"/",nozzle)," • fn=",fn," • Spiel: ",spiel," •"));
 }
-
+Echo(str("nozzle area =",nozArea,"mm²< print line profile",line*layer,"mm²"),color="redring",condition=nozArea<=line*layer);
 
 
 if (!help&&!anima) if(version()[0]<2021)echo    ("<h4 style=background-color:lightgrey>••••• Help off       use: helpsw=1;  •••••");
@@ -841,6 +849,7 @@ echo    ("•••••••••• Funktionen:   ••••••••�
 echo    ("
 ••• l(x) Layer\n
 ••• n(x) Nozzledurchmesser\n
+••• line(n) perimeter \n
 ••• Inkreis(eck, rU)\n
 ••• Umkreis(eck, rI)\n
 ••• Hypotenuse(a, b) length\n
@@ -1055,7 +1064,7 @@ echo    ("•• [59] ReuleauxIntersect(h=2,rU=5,2D=false) ••••••");
 echo    ("•• [60] Glied3(x)  ••• [61] Gelenk(l,w) ••••••");
 echo    ("•• [64] Balg(sizex=16,sizey=16,z=10.0,kerb=6.9,rand=-0.5)••••");
 echo    ("•• [67] Tring(spiel=+0,angle=153,r=5.0,xd=+0.0,h=1.75,top=n(2.5),base=n(4),name=0)••••");
-echo    ("•• [201] Servokopf(rot,spiel)Objekt  ••••");
+echo    ("•• [201] Servokopf(help=1)Objekt  ••••");
 echo    ("•• [202] Halbrund(h=15,d=3+2*spiel,x=1.0,n=1)Objekt mikroGetriebemotor Wellenaufnahme  ••••");
 echo    ("•• [203] Riemenscheibe(e=40,radius=25,nockendurchmesser1=2,nockendurchmesser2=2,hoehe=8,name)Objekt ••••");
 
@@ -2004,10 +2013,15 @@ translate([center?center==2?-l*0.3:-l*.25:0,0])polygon(points);
 HelpTxt("NACA",["l",l,"naca",str(naca<1000?"00":"",naca%100),"fn",fn,"center",center,name],help);
 }
 
+//Star(od=10,id=5);
 
-
-module Star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,fn2,d,help){
+module Star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,fn2,d,od,id,help){
   kfn=is_num(fn2)?round(fn2):d?max(12,fs2fn(r=abs(d/2),fs=fs)):12;
+  r1=is_num(od)?od/2:r1;
+  r2=is_num(id)?id/2:r2;
+  od=r1*2;
+  id=r2*2;
+  
   points=concat(
     star(e=e,r1=r1,r2=r2,grad=grad,grad2=grad2,radial=radial,fn=fn,z=undef),
     d? kreis(d=d,rand=0,fn=kfn,endPoint=false):[]
@@ -2019,7 +2033,7 @@ module Star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,fn2,d,help){
     ];
 polygon(points,paths);
 
-HelpTxt("Star",["e",e,"r1",r1,"r2",r2,"grad",grad,"grad2",grad2,"radial",radial,"fn",fn,"fn2",fn2,"d",d],help);
+HelpTxt("Star",["e",e,"r1",r1,"r2",r2,"grad",grad,"grad2",grad2,"radial",radial,"fn",fn,"fn2",fn2,"d",d,"od",od,"id",id],help);
 
 }
 
@@ -2393,13 +2407,13 @@ opt = straight / voronoi
 //Roof(10,h=1,base=5,floor=true,twist=50,scale=[0.3,1])circle(5,$fn=3);
 
 
-module Roof(height,h,base=0,deg=45,opt=1,floor=false,center=false,twist=0,scale=1,fn=fn,convexity=5,overlap=.0,name,help){
+module Roof(height,h,base=0,deg=45,opt=1,floor=false,center=false,twist=0,scale=1,fn=fn,convexity=5,overlap=0,name,help){
 
 s=is_list(deg)?[tan(deg[0]),tan(deg[1])]:[tan(deg),tan(deg)];
 floor=is_list(h)?true:floor;
 h=is_list(h)?h:[floor?h:0,h];
-iSize=max(viewportSize*5,100);
-base=height&&h[1]?height-h[0]-h[1]:base;
+iSize=max(viewportSize*5,max(printBed)*2);
+base=height&&is_num(h[1])&&is_num(h[0])?height-h[0]-h[1]:base;
 
 $idxON=false;
 
@@ -2408,10 +2422,11 @@ InfoTxt("Roof",["h",h,"deg",str(deg,"° (",s,")")],name);
 Echo("Roof is experimental - use Dev Snapshot version and activate",color="warning",condition=version()[0]<2022);
   Tz(center?0:h[0]?h[0]:0){
   $tab=is_undef($tab)?1:b($tab,false)+1;
-  linear_extrude(base+(twist?overlap:0),center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
+  linear_extrude(base+overlap,center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
   }
  if(version()[0]>2021)union(){ 
  $idx=1;
+ $info=false;
  //top
   if(scale&&(h[1]||is_undef(h[1])))Tz(center?base/2:base+(h[0]?h[0]:0))intersection(){
   scale([1,1,s[1]])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)scale(scale)rotate(-twist)children(); // experimental feature comment out if not activated in preferences
@@ -2421,7 +2436,7 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
  //bottom
   if(floor&&(h[0]||is_undef(h[0])))Tz(center?-base/2:h[0]?h[0]:0)intersection(){
   scale([1,1,-s[0]])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)children(); // experimental feature comment out if not activated in preferences
-  if(h[0])cube([iSize,iSize,h[0]*2],true);
+  if(h[0])cube([iSize,iSize,h[0]*2],true);//for difference translate([-iSize/2,-iSize/2,-h[0]-iSize])cube(iSize);//
   }
   }
   
@@ -8654,7 +8669,65 @@ module Riemenscheibe(e=40,radius=25,nockendurchmesser1=2,nockendurchmesser2=2,ho
 
 
 
-module Servokopf(rot=0,spiel=0,schraube=true,help)
+//Schnitt()Servokopf(schraube=1)Pille(5,d=8,center=false,rad=.5);
+
+
+module Servokopf(rot,spiel=0.1,schraube=true,T=21,d=4.9,h=3.25,name,help)
+{
+    // 21 Zacken!
+
+    tdepth=.25;
+    r1=d/2+spiel;
+    r2=d/2-tdepth+spiel;
+    
+    preset=[
+    ["name","T","d"],
+    ["A15T",15,3.9],// A1
+    ["B25T",25,4.9],// B1
+    ["C24T",24,5.6],// C1
+    ["H25T",25,5.9],// 3F
+    ["D15T",15,7.6],// D1
+    [" 21T",21,4.9] // this
+    ];
+    
+    if(help)for(i=[0:len(preset)-1])echo(preset[i]);
+    %if(is_num(rot))Tz(+0){//direction
+      Col(5,0.5) rotate(rot+90)   scale([1,0.5])circle(3.5,$fn=3); 
+      Col(6,0.7) rotate(90) scale([1,0.5])circle(4,$fn=3);
+    }
+    
+    difference(){
+    
+      if($children)children();
+      translate([0,0,-0.01])union(){
+        linear_extrude(h,convexity=5,scale=scaleGrad(grad=88,h=h,r=r1))Rund(+0,0.1,fn=12)Star(T,r1,r2,grad=3,grad2=gradS(wall(0.199,.8,even=0),r2),fn=0);
+        Kegel(d1=d+spiel*2+.2,h=.5,name=false);
+      }
+
+      if(schraube&&$children){
+         cylinder(h+10,d=2,$fn=36); //SchraubenlochNarbe 
+         translate([0,0,h-.011])cylinder(.2,d1=r2*2,d2=2,$fn=36); //Decke 
+         translate([0,0,h])Polar(teiler(T,5),rot=-90,name=false)R(0,-90)cylinder(d/2-tdepth*.8,d=.5,$fn=3); //Decke Support Struktur 
+         
+         translate([0,0,h + 1.15])cylinder(100,d=4.5,$fn=36); //SchraubenKopflochNarbe 
+      }
+      translate([0,0,-30.01])cylinder(30,d=50,$fn=36); //Servo
+    }
+
+ InfoTxt("Servokopf",["T",T,"d",d+spiel*2,"dTop",(d+spiel*2)*scaleGrad(grad=88,h=h,r=d/2+spiel)],name);
+ HelpTxt("Servokopf",[
+    "rot",rot, 
+    "spiel",spiel,
+    "schraube",schraube,
+    "T",T,
+    "d",d,
+    "h",h,
+    "name",name
+    ],help);
+
+}
+
+module ServokopfT15(rot=0,spiel=0,schraube=true,help) // .6 nozzle
 {
     // 15 Zacken!
     d2=6+spiel;
@@ -8695,7 +8768,7 @@ module Servokopf(rot=0,spiel=0,schraube=true,help)
     if(!$children)     translate([0,0,-0.01])cylinder(.5,d1=d1-0.1,d2=d1-2,$fn=36,center=false);//basekone
     
     
- HelpTxt("Servokopf",[
+ HelpTxt("ServokopfT15",[
     "rot",rot, 
     "spiel",spiel,
     "schraube",schraube],
