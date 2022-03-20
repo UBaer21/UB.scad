@@ -78,6 +78,8 @@ Release
 076|22 CHG Points FIX Cring CHG Text ADD stringChunk
 078|22 CHG Servokopf CHG wall CHG Roof CHG title menue ADD line line() CHG wall chg l() n()
 080|22 CHG Star CHG kreis chg Roof
+082|22 CHG Seg7 Prisma ADD Cut 
+084|22
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -145,7 +147,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.080;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.082;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -827,6 +829,7 @@ if(!helpHelper)echo("❌••••• Helper List off — use» helpHelper=tru
 if (helpHelper){
 echo    ("•••••••••• Helper:   •••••••••••••••\n
 • Schnitt(help=1) cuts children\n
+• Cut(help=1) cuts children\n
 • Col(help=1) colors children with palette\n
 • Color(help=1) colors children with hue\n
 • Pivot(help=1) marks p0\n
@@ -1610,6 +1613,30 @@ Echo("»»»»––SCHNITT in render! ––«««« \n",color="warning",condit
 
 MO(!$children);     
 }
+
+
+module Cut(on=1,cut=[+1,+1,+1],t=[+0,0,+0.01],rot=+0,size=500,color,ghost=true,help){
+
+cut=v3(cut);
+t=v3(t);
+ghost=is_bool(ghost)?ghost?0.15:ghost:ghost;
+size=is_list(size)?size:[1,1,1]*size;
+
+intersection(){
+  children();
+  if($preview&&on||on==2)color(color)rotate(rot){
+    if(cut.x)color("red")translate([(cut.x>0?-size.x:0) + t.x,- size.y/2               , - size.z/2])cube(size);
+    if(cut.y)color("green")translate([-size.x/2                ,(cut.y>0?0:-size.y) + t.y, - size.z/2])cube(size);
+    if(cut.z)color("blue")translate([-size.x/2                ,- size.y/2               ,(cut.z>0? -size.z:0) + t.z])cube(size);
+  }
+}
+if(ghost)color("lightSkyBlue",alpha=ghost)%scale(0.99999)children();
+Echo("»»»»––Cut is rendered! ––«««« \n",color="warning",condition=on==2);
+HelpTxt("Cut",["on",on,"cut",cut,"t",t,"rot",rot,"size",size,"color",color,"ghost",ghost],help);
+MO(!$children);     
+}
+
+
 
 // 3 axis Projection 
 
@@ -5167,13 +5194,18 @@ clip",clip
 
 }
 
+//Seg7(n="2-899",ratio=0.7,center=0,deg=45,spiel=+0.0);
+//Seg7(n=[[1,1,1,1,0,1,0],[1,1,1,1,1],[1,1,1,1,0,1,0]],ratio=0.7,center=0,deg=35,spiel=+0.5);
+//Seg7(88,spacing=-1,ratio=.5);
 
-module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,name,help){
+
+
+module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,ratio=1,deg=45,spacing=1,name,help){
     spiel=spiel/sqrt(2);
     l=is_undef(h)?l:h/2-b/2-spiel*2;
     y=l/2;
     x=b/2;
-    y2=y-x;
+    y2=y-x *(tan(90-deg));
     
     /*
     num=[for(n)each
@@ -5204,17 +5236,37 @@ module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,name,help){
     ];
     num=is_list(n)?n:codetable[n];
     
-    points=[[0,y],[x,y2],[x,-y2],[0,-y],[-x,-y2],[-x,y2]];
-
-  T(center?0:l/2+b/2+spiel,center?0:l+b/2+spiel*2){
-    Grid(es=l+spiel*2,name=0)if(num[$idx[0]+$idx[1]*2])Rund(is_undef(rund)?0:rund?rund:b/2-minVal)polygon(points);
+    function points(x=x,y=y,y2=y2)=[[0,y],[x,y2],[x,-y2],[0,-y],[-x,-y2],[-x,y2]];
+    
+  if ( (is_list(n)&&is_num(n[0]) ) || (is_num(n)&&n<10) )
+  T(center?0:l/2*ratio+b/2+spiel,center?0:l+b/2+spiel*2)Rund(is_undef(rund)?0:is_list(rund)?[min(rund[0],b/2-minVal),min(rund[1],(l+spiel*2-b)/2-.00001)]:[min(is_bool(rund)?b(rund,false)*b/2-minVal:rund,b/2-minVal),0]){
+    Grid(es=[l*ratio+spiel*2,l+spiel*2],name=0)if(num[$idx[0]+$idx[1]*2])polygon(points(x,y,y2=y2));
         
-    Grid(es=l+spiel*2,e=[1,3,1],name=0)rotate(90)if(num[4+$idx[1]])Rund(is_undef(rund)?0:rund?rund:b/2-minVal)polygon(points);
+    Grid(es=[l*ratio+spiel*2,l+spiel*2],e=[1,3,1],name=0)rotate(90)if(num[4+$idx[1]])polygon(points(x,y*ratio,y*ratio-x*(tan(90-deg))));
   }
+  else { // multi character 
+
+   if(is_list(n[0]))for (i=[0:len(n)-1])T((l*ratio+b+spiel*2+b)*i-(center?(l*ratio+b+spiel*2+b)*(len(string)-1)/2:0)) Seg7(n=n[i],h=h,b=b,spiel=spiel,l=l,center=center,rund=rund,ratio=ratio,deg=deg,name=false); // binary lists
+   
+   else {
+    Echo("number too big format n as string",color="red",condition=is_num(n)&&n>10^10);
+    string=is_string(n)?n:log(n)<6?str(n):str(str(floor(n/10000)),str(n-floor(n/10000)*10000) );
+  //echo(string);
+    for (i=[0:len(string)-1])T((l*ratio+b+spiel*2+b*spacing)*i-(center?(l*ratio+b+spiel*2+b)*(len(string)-1)/2:0)){
+      if(ord(string[i])>47&&ord(string[i])<58)Seg7(n=ord(string[i])-48,h=h,b=b,spiel=spiel,l=l,center=center,rund=rund,ratio=ratio,deg=deg,name=false); // numbers
+      else if(string[i]=="-"||string[i]=="−"||string[i]=="—")Seg7(n=[0,0,0,0,0,1,0],h=h,b=b,spiel=spiel,l=l,center=center,rund=rund,ratio=ratio,deg=deg,name=false);// mitte
+      else if(string[i]=="_")Seg7(n=[0,0,0,0,1,0,0],h=h,b=b,spiel=spiel,l=l,center=center,rund=rund,ratio=ratio,deg=deg,name=false);// under
+      else if(string[i]!=" ")Seg7(n=[1,1,0,0,1,1,0],h=h,b=b,spiel=spiel,l=l,center=center,rund=rund,ratio=ratio,deg=deg,name=false);// other
+    }
+   }
+  }
+  
+  
   if(name)echo(str(is_string(name)?"<H3>":"",name," Seg7 Höhe=",l*2+b+spiel*4,"mm Breite=",l+b+spiel*2,"mm"));
       
-  HelpTxt("Seg7",["n",n,"h",h,"b",b,"spiel",spiel*sqrt(2),"l",l,"center",center,"rund",rund,",name",name],help);
+  HelpTxt("Seg7",["n",n,"h",h,"b",b,"spiel",spiel*sqrt(2),"l",l,"center",center,"rund",rund,"ratio",ratio,"deg",deg,"spacing",spacing,"name",name],help);
 }
+
 
 
 module Zylinder(h=20,r=10,d,fn,fnh,grad=360,grad2=89,f=10,f2=5,f3=0,a=.5,a3=0,fz=0,az=0,deltaFz=0,deltaF=0,deltaF2=0,deltaF3=0,twist=0,winkelF3=0,scale=+1,sphere=0,lz,altFaces=1,center=false,lambda,name,help){
@@ -7158,7 +7210,7 @@ module Prisma(x1=12,y1,z=6,c1=5,s=1,x2,y2,x2d=0,y2d=0,c2=0,vC=[0,0,1],cRot=0,fnC
     
     x=is_list(x1)?x1[0]:x1;
     y=is_list(x1)?x1[1]:is_undef(y1)?x1:y1;
-    hErr=s/2-cos(90/ceil(fnS/2))*s/2+.00001; // missing sphere piece
+    hErr=s/2-cos(90/ceil(fnS/2))*s/2; // missing sphere piece
     z=is_undef(x1[2])?z+hErr*2:x1[2]+hErr*2;
     c1=min(c1,x,y);
     
