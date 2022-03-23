@@ -79,7 +79,9 @@ Release
 078|22 CHG Servokopf CHG wall CHG Roof CHG title menue ADD line line() CHG wall chg l() n()
 080|22 CHG Star CHG kreis chg Roof
 082|22 CHG Seg7 Prisma ADD Cut 
-084|22
+084|22 FIX Seg7 fix Cut
+086|22 FIX Cut CHG Achsenklammer ADD nut FIX stringChunk
+088|22
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -147,7 +149,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.082;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.086;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -746,14 +748,50 @@ echo(pathLength(p,close=0),PI*10);
 Points(p);
 //*/
 
-function stringChunk(txt,start=0,length,string="")=let(length=is_undef(length)?len(str(txt))-start:length)
-  len(string)<length?stringChunk(txt=txt,length=length,start=start+1,string=str(string,str(txt)[start])):string;
+function stringChunk(txt,start=0,length,string="")=
+  let(
+    start=abs(start),
+    length=is_undef(length)?len(str(txt))-start:length
+  )
+  len(string)<length&&start<len(txt)?stringChunk(txt=txt,length=length,start=start+1,string=str(string,str(txt)[start])):string;
 
 //echo(stringChunk(1234,start=0));
 
 
 
+function nut (e=2,es=10,a=6,b=6,base=1,h=1,s,center=true,shift=0,grad,z)=
+  let(
+   
+  s=assert(grad!=0)is_undef(s)?is_num(grad)&&is_num(b)?e*(a+b-2*h*tan(90+grad)):
+                                       is_undef(es)?assert( is_num(b) && is_num(a),"define a + b")a+b:
+                                                    e * es:
+                s,
+  
+  es=is_num(grad)&&is_num(b)?a+b-2*h*tan(90+grad):
+                  s/e,
 
+  b=is_undef(grad)?is_undef(b)?es-a:
+                               b:
+                  2*(h*tan(90+grad))+es-a,
+  )
+ is_num(z)?
+   [[s,base,z],[s,0,z],[0,0,z],[0,base,z],
+  for(i=[0:e-1])each[
+      [b/2+i*es,base,z],    
+      [es/2-a/2+shift+i*es,h+base,z],
+      [es/2+a/2+shift+i*es,h+base,z],
+      [(es-b/2)+i*es,base,z]]
+      ]:
+
+   [[s,base],[s,0],[0,0],[0,base],
+  for(i=[0:e-1])each[
+      [b/2+i*es,base],    
+      [es/2-a/2+shift+i*es,h+base],
+      [es/2+a/2+shift+i*es,h+base],
+      [(es-b/2)+i*es,base]]
+      ];
+      
+      
 
 
 
@@ -805,7 +843,7 @@ echo(str("<p style=background-color:#ccccdd>",
 "<ul>     •••••••••••••••••••••••••• UB (USER libary v2019) included! <a href=http://v.gd/ubaer> v.gd/ubaer </a> •••••••••••••••••••••••••\n",
 "••• Version: β",Version," v ",version(),"  ——  Layer: ",layer," Nozzle ∅: ",nozzle," ••• fn=",fn,"••• Spiel: ",spiel," •••"));
 
-else if(!anima) { echo(str("•••••••••••••••••• UB (USER library v2021) included! v.gd/ubaer  •••••••••••••••••"));
+else if(!anima) { echo(str("•••••••••••••••••• UB (USER library v2022) included! v.gd/ubaer  •••••••••••••••••"));
 echo(str("• Version: β",Version," v ",version(),"  —  Layer: ",layer,"(",runden((line*layer)/nozArea*100),"%)",line==nozzle?str(" Nozzle ∅: ",nozzle):str(" Line/Nozzle ",line,"/",nozzle)," • fn=",fn," • Spiel: ",spiel," •"));
 }
 Echo(str("nozzle area =",nozArea,"mm²< print line profile",line*layer,"mm²"),color="redring",condition=nozArea<=line*layer);
@@ -900,6 +938,7 @@ echo    ("
 ••• naca(l,0012) NACA airfoil ••• \n
 ••• pathLength(points,start=0,end,close=0) ••• \n
 ••• stringChunk(txt,start=0,length) •••\n
+••• nut (e=2,es=10,a=6,b=6,base=1,h=1,s,center=true,shift=0,grad,z) •••\n
 
 
 ");
@@ -1621,16 +1660,21 @@ cut=v3(cut);
 t=v3(t);
 ghost=is_bool(ghost)?ghost?0.15:ghost:ghost;
 size=is_list(size)?size:[1,1,1]*size;
+ghostscale=.9999;
 
 intersection(){
-  children();
+  union()children();
   if($preview&&on||on==2)color(color)rotate(rot){
     if(cut.x)color("red")translate([(cut.x>0?-size.x:0) + t.x,- size.y/2               , - size.z/2])cube(size);
     if(cut.y)color("green")translate([-size.x/2                ,(cut.y>0?0:-size.y) + t.y, - size.z/2])cube(size);
     if(cut.z)color("blue")translate([-size.x/2                ,- size.y/2               ,(cut.z>0? -size.z:0) + t.z])cube(size);
   }
 }
-if(ghost)color("lightSkyBlue",alpha=ghost)%scale(0.99999)children();
+
+if(ghost&&on){
+ $info=false;
+ color("lightSkyBlue",alpha=ghost)%scale(ghostscale)children();
+ }
 Echo("»»»»––Cut is rendered! ––«««« \n",color="warning",condition=on==2);
 HelpTxt("Cut",["on",on,"cut",cut,"t",t,"rot",rot,"size",size,"color",color,"ghost",ghost],help);
 MO(!$children);     
@@ -3923,6 +3967,7 @@ HelpTxt("DRing",[
 
 
 
+
 module Nut(e=2,es=10,a=6,b=6,base=1,h=1,s,center=true,shift=0,winkel,grad,name,help){
   grad=is_undef(winkel)?assert(grad!=0)grad:assert(winkel!=0)winkel;
   s=is_undef(s)?is_num(grad)&&is_num(b)?e*(a+b-2*h*tan(90+grad)):
@@ -5200,9 +5245,10 @@ clip",clip
 
 
 
+
 module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,ratio=1,deg=45,spacing=1,name,help){
-    spiel=spiel/sqrt(2);
-    l=is_undef(h)?l:h/2-b/2-spiel*2;
+    spielADJ=spiel/sqrt(2);
+    l=is_undef(h)?l:h/2-b/2-spielADJ*2;
     y=l/2;
     x=b/2;
     y2=y-x *(tan(90-deg));
@@ -5239,20 +5285,22 @@ module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,ratio=1,deg=45,spacing=1
     function points(x=x,y=y,y2=y2)=[[0,y],[x,y2],[x,-y2],[0,-y],[-x,-y2],[-x,y2]];
     
   if ( (is_list(n)&&is_num(n[0]) ) || (is_num(n)&&n<10) )
-  T(center?0:l/2*ratio+b/2+spiel,center?0:l+b/2+spiel*2)Rund(is_undef(rund)?0:is_list(rund)?[min(rund[0],b/2-minVal),min(rund[1],(l+spiel*2-b)/2-.00001)]:[min(is_bool(rund)?b(rund,false)*b/2-minVal:rund,b/2-minVal),0]){
-    Grid(es=[l*ratio+spiel*2,l+spiel*2],name=0)if(num[$idx[0]+$idx[1]*2])polygon(points(x,y,y2=y2));
-        
-    Grid(es=[l*ratio+spiel*2,l+spiel*2],e=[1,3,1],name=0)rotate(90)if(num[4+$idx[1]])polygon(points(x,y*ratio,y*ratio-x*(tan(90-deg))));
+  T(center?0:l/2*ratio+b/2+spielADJ,center?0:l+b/2+spielADJ*2)
+    Rund(is_undef(rund)?0:is_list(rund)?[min(rund[0],b/2-minVal),min(rund[1],(l*min(ratio,1)+spielADJ*2-b)/2-.00001)]:[min(is_bool(rund)?b(rund,false)*b/2-minVal:rund,b/2-minVal),0]){
+    //Verticals
+      Grid(es=[l*ratio+spielADJ*2,l+spielADJ*2],name=0)if(num[$idx[0]+$idx[1]*2])polygon(points(x=x,y=y,y2=y2));
+    // Horizontals
+      Grid(es=[l*ratio+spielADJ*2,l+spielADJ*2],e=[1,3,1],name=0)rotate(90)if(num[4+$idx[1]])polygon(points(x,y*ratio,y*ratio-x*(tan(90-deg))));
   }
   else { // multi character 
 
-   if(is_list(n[0]))for (i=[0:len(n)-1])T((l*ratio+b+spiel*2+b)*i-(center?(l*ratio+b+spiel*2+b)*(len(string)-1)/2:0)) Seg7(n=n[i],h=h,b=b,spiel=spiel,l=l,center=center,rund=rund,ratio=ratio,deg=deg,name=false); // binary lists
+   if(is_list(n[0]))for (i=[0:len(n)-1])T((l*ratio+b+spielADJ*2+b*spacing)*i-(center?(l*ratio+b+spielADJ*2+b)*(len(string)-1)/2:0)) Seg7(n=n[i],h=h,b=b,spiel=spiel,l=l,center=center,rund=rund,ratio=ratio,deg=deg,name=false); // binary lists
    
    else {
     Echo("number too big format n as string",color="red",condition=is_num(n)&&n>10^10);
     string=is_string(n)?n:log(n)<6?str(n):str(str(floor(n/10000)),str(n-floor(n/10000)*10000) );
   //echo(string);
-    for (i=[0:len(string)-1])T((l*ratio+b+spiel*2+b*spacing)*i-(center?(l*ratio+b+spiel*2+b)*(len(string)-1)/2:0)){
+    for (i=[0:len(string)-1])T((l*ratio+b+spielADJ*2+b*spacing)*i-(center?(l*ratio+b+spielADJ*2+b)*(len(string)-1)/2:0)){
       if(ord(string[i])>47&&ord(string[i])<58)Seg7(n=ord(string[i])-48,h=h,b=b,spiel=spiel,l=l,center=center,rund=rund,ratio=ratio,deg=deg,name=false); // numbers
       else if(string[i]=="-"||string[i]=="−"||string[i]=="—")Seg7(n=[0,0,0,0,0,1,0],h=h,b=b,spiel=spiel,l=l,center=center,rund=rund,ratio=ratio,deg=deg,name=false);// mitte
       else if(string[i]=="_")Seg7(n=[0,0,0,0,1,0,0],h=h,b=b,spiel=spiel,l=l,center=center,rund=rund,ratio=ratio,deg=deg,name=false);// under
@@ -5262,9 +5310,9 @@ module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,ratio=1,deg=45,spacing=1
   }
   
   
-  if(name)echo(str(is_string(name)?"<H3>":"",name," Seg7 Höhe=",l*2+b+spiel*4,"mm Breite=",l+b+spiel*2,"mm"));
+  InfoTxt("Seg7",["Höhe",str(l*2+b+spielADJ*4,"mm"),"Breite",str(l*ratio+b+spielADJ*2,"mm")],name);
       
-  HelpTxt("Seg7",["n",n,"h",h,"b",b,"spiel",spiel*sqrt(2),"l",l,"center",center,"rund",rund,"ratio",ratio,"deg",deg,"spacing",spacing,"name",name],help);
+  HelpTxt("Seg7",["n",n,"h",h,"b",b,"spiel",spiel,"l",l,"center",center,"rund",rund,"ratio",ratio,"deg",deg,"spacing",spacing,"name",name],help);
 }
 
 
@@ -6936,15 +6984,14 @@ if(messpunkt&&$preview)translate(p0)%union(){
 
 
 
-
 module Achsenklammer(abst=10,achse=3.5,einschnitt=1,h=3,rand=n(2),achsenh=0,fn=fn,help){
     
     achse=is_list(achse)?achse:[achse,achse];
     achsenh=is_list(achsenh)?achsenh:[achsenh,achsenh];
-    if (achsenh[0])linear_extrude(achsenh[0]+h,convexity=5)T(-abst/2)circle(d=achse[0]+(achsenh[0]<0?.1:0),$fn=fn);
-    if (achsenh[1])linear_extrude(achsenh[1]+h,convexity=5)T(abst/2)circle(d=achse[1]+(achsenh[1]<0?0.1:0),$fn=fn);
+    if (achsenh[0])T(-abst/2)LinEx(achsenh[0]+h,[0,achsenh[0]>+.5?.5:0],grad=45,$d=achse[0])circle(d=$d+(achsenh[0]<0?.1:0),$fn=fn);
+    if (achsenh[1])T(abst/2)LinEx(achsenh[1]+h,[0,achsenh[1]>+.5?.5:0],grad=45,$d=achse[1])circle(d=$d+(achsenh[1]<0?0.1:0),$fn=fn);
     
-    linear_extrude(h,convexity=5)
+    if(h)linear_extrude(h,convexity=5)
     difference(){
         union(){
             //if(achse[0]==achse[1])T((achse[1]-achse[0])/4)Halb(2D=1,y=1)Ring(0,(achse[0]+achse[1])/2+rand*2,abst,cd=0,2D=1,name=0,fn=fn,help=0); else
@@ -6959,6 +7006,21 @@ module Achsenklammer(abst=10,achse=3.5,einschnitt=1,h=3,rand=n(2),achsenh=0,fn=f
         if(achsenh[0]<=0) T(-abst/2)circle(d=achse[0],$fn=fn);
         if(achsenh[1]<=0) T( abst/2)circle(d=achse[1],$fn=fn);
     }
+    else difference(){
+        union(){
+            //if(achse[0]==achse[1])T((achse[1]-achse[0])/4)Halb(2D=1,y=1)Ring(0,(achse[0]+achse[1])/2+rand*2,abst,cd=0,2D=1,name=0,fn=fn,help=0); else
+            T((achse[1]-achse[0])/4)Kreis(d=(achse[0]+achse[1])/2+rand*2+abst,grad=180,rand=0,help=0,name=0,rot=-90);
+            T(abst/2)circle(d=achse[1]+rand*2,$fn=fn);
+            T(-abst/2)circle(d=achse[0]+rand*2,$fn=fn);
+        }
+        T(-(achse[1]-achse[0])/4)hull(){
+            T(y=-einschnitt*(achse[0]+achse[1])/2)circle(d=abst-((achse[0]+achse[1])/2+rand*2),$fn=fn);
+            T(y=einschnitt*(achse[0]+achse[1])/2)circle(d=abst-((achse[0]+achse[1])/2+rand*2),$fn=fn);
+        }
+        if(achsenh[0]<=0) T(-abst/2)circle(d=achse[0],$fn=fn);
+        if(achsenh[1]<=0) T( abst/2)circle(d=achse[1],$fn=fn);
+    }
+    
     HelpTxt("Achsenklammer",["abst",abst,"achse",achse,"einschnitt",einschnitt,"h",h,"rand",rand,"achsenh",achsenh,"fn",fn],help);
 }
 
