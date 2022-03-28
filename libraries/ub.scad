@@ -81,7 +81,8 @@ Release
 082|22 CHG Seg7 Prisma ADD Cut 
 084|22 FIX Seg7 fix Cut
 086|22 FIX Cut CHG Achsenklammer ADD nut FIX stringChunk
-088|22
+088|22 CHG bezier add p CHG Seg7 CHG wall CHG nut
+090|22
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -149,7 +150,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.086;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.088;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -189,13 +190,14 @@ is_undef(z)?is_undef(e)?[sin(rot)*l,cos(rot)*l2]:
             [sin(rot)*l,cos(rot)*l,z];
 
 function Bezier(t,p0=[0,0],p1=[-20,20],p2=[20,20],p3=[0,0])=bezier(t,p0,p1,p2,p3);
-function bezier(t,p0=[0,0],p1=[-20,20],p2=[20,20],p3=[0,0])=
+function bezier(t,p0=[0,0],p1=[-20,20],p2=[20,20],p3=[0,0],p)=
 let(
     omt = 1 - t,
     omt2 = omt * omt,
     t2 = t * t
 )
-p0*(omt2*omt) + p1*(3*omt2*t) + p2*(3*omt*t2) + p3*(t2*t);
+is_list(p)?p[0]*(omt2*omt) + p[1]*(3*omt2*t) + p[2]*(3*omt*t2) + p[3]*(t2*t):
+           p0*(omt2*omt) + p1*(3*omt2*t) + p2*(3*omt*t2) + p3*(t2*t);
 
 function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=kreis(r,rand,grad,grad2,fn,center,sek,r2,rand2,rcenter,rot,t);
 function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d,endPoint=true)=
@@ -626,12 +628,13 @@ is_undef(z)?[for(f=[0:fn])let(i=f%fn*360/fn)each[
 function wall(soll=.5,min=1.25,even=false,line=line,nozzle,name)=
   let (
     line=is_num(nozzle)?nozzle:line,
-    soll=abs(soll),
-    perimeterHi=ceil(soll/line),
-    perimeterLow=floor(soll/line),
-    walls=max(min,even?max(2,perimeterHi%2?perimeterLow:perimeterHi) : round(soll/line))*sign(soll)
+    isoll=abs(soll),
+    perimeterHi=ceil(isoll/line),
+    perimeterLow=floor(isoll/line),
+    min=isoll<line(2,line=line)?max(min,runden(isoll/line,2)):min,
+    walls=max(min,even?max(2,perimeterHi%2?perimeterLow:perimeterHi) : round(isoll/line))
     )
-  (is_undef($idx)||$idx==0)&&$info||name?echo(name=name,perimeterShells=walls,soll=soll,ist=line(walls,line=line))line(walls, line=line) : line(walls, line=line);
+  (is_undef($idx)||$idx==0)&&$info||name?echo(name=name,perimeterShells=walls,soll=soll,ist=line(walls,line=line),min=min)line(walls, line=line)*sign(soll) : line(walls, line=line)*sign(soll);
   
   
   
@@ -759,7 +762,7 @@ function stringChunk(txt,start=0,length,string="")=
 
 
 
-function nut (e=2,es=10,a=6,b=6,base=1,h=1,s,center=true,shift=0,grad,z)=
+function nut (e=2,es=10,a=6,b,base=1,h=1,s,center=true,shift=0,grad,z)=
   let(
    
   s=assert(grad!=0)is_undef(s)?is_num(grad)&&is_num(b)?e*(a+b-2*h*tan(90+grad)):
@@ -772,7 +775,7 @@ function nut (e=2,es=10,a=6,b=6,base=1,h=1,s,center=true,shift=0,grad,z)=
 
   b=is_undef(grad)?is_undef(b)?es-a:
                                b:
-                  2*(h*tan(90+grad))+es-a,
+                  2*(h*tan(90+grad))+es-a
   )
  is_num(z)?
    [[s,base,z],[s,0,z],[0,0,z],[0,base,z],
@@ -3967,7 +3970,6 @@ HelpTxt("DRing",[
 
 
 
-
 module Nut(e=2,es=10,a=6,b=6,base=1,h=1,s,center=true,shift=0,winkel,grad,name,help){
   grad=is_undef(winkel)?assert(grad!=0)grad:assert(winkel!=0)winkel;
   s=is_undef(s)?is_num(grad)&&is_num(b)?e*(a+b-2*h*tan(90+grad)):
@@ -5285,7 +5287,7 @@ module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,ratio=1,deg=45,spacing=1
     function points(x=x,y=y,y2=y2)=[[0,y],[x,y2],[x,-y2],[0,-y],[-x,-y2],[-x,y2]];
     
   if ( (is_list(n)&&is_num(n[0]) ) || (is_num(n)&&n<10) )
-  T(center?0:l/2*ratio+b/2+spielADJ,center?0:l+b/2+spielADJ*2)
+  T(center?0:l/2*ratio+b/2+spielADJ,b(center,false)==1?0:(b(center,false)>2?-1:1)*(l+b/2+spielADJ*2))
     Rund(is_undef(rund)?0:is_list(rund)?[min(rund[0],b/2-minVal),min(rund[1],(l*min(ratio,1)+spielADJ*2-b)/2-.00001)]:[min(is_bool(rund)?b(rund,false)*b/2-minVal:rund,b/2-minVal),0]){
     //Verticals
       Grid(es=[l*ratio+spielADJ*2,l+spielADJ*2],name=0)if(num[$idx[0]+$idx[1]*2])polygon(points(x=x,y=y,y2=y2));
