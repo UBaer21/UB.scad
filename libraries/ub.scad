@@ -82,7 +82,8 @@ Release
 084|22 FIX Seg7 fix Cut
 086|22 FIX Cut CHG Achsenklammer ADD nut FIX stringChunk
 088|22 CHG bezier add p CHG Seg7 CHG wall CHG nut
-090|22
+090|22 ADD Involute involute
+092|22 
 */
 
 //libraries direkt (program folder\oscad\libaries) !
@@ -150,7 +151,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.088;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.090;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -798,6 +799,20 @@ function nut (e=2,es=10,a=6,b,base=1,h=1,s,center=true,shift=0,grad,z)=
 
 
 
+function involute(r=10,grad=45,fn=fn,rot=0,rev=0,delta=0,z)=
+let(
+  step=grad/(fn),
+  deltaStep=delta/(fn)
+)
+is_num(z)?
+  [for(i=rev?[fn:-1:0] : [0:fn]) [sin(i*step+rot), cos(i*step+rot),0]*r + [sin(i*step-90+rot), cos(i*step-90+rot), 0] * (2*PI*r/360*i*step+i*deltaStep)+[0,0,z]]:
+  [for(i=rev?[fn:-1:0] : [0:fn]) [sin(i*step+rot), cos(i*step+rot)]*r + [sin(i*step-90+rot), cos(i*step-90+rot)] * (2*PI*r/360*i*step+i*deltaStep)]
+;
+
+
+
+
+
 
 
 
@@ -942,7 +957,7 @@ echo    ("
 ••• pathLength(points,start=0,end,close=0) ••• \n
 ••• stringChunk(txt,start=0,length) •••\n
 ••• nut (e=2,es=10,a=6,b=6,base=1,h=1,s,center=true,shift=0,grad,z) •••\n
-
+••• involute(r=10,grad=45,fn=fn,rot=0,rev=0,delta=0,z) ••• \n
 
 ");
     
@@ -1025,6 +1040,7 @@ echo    ("•••••• Polygons ••••••\n
 •• Tdrop(help=1);\n
 •• Star(help=1);\n
 •• NACA(help=1);\n
+•• Involute(help=1);\n
 
 ");
 }
@@ -2076,6 +2092,54 @@ module SCT(a=90){
 
 ///ΔΔ Helper   ΔΔ\\\
 ///∇∇ Polygons ∇∇///
+
+
+
+
+
+
+
+//Involute(oppose=1,delta=+0,centerP=true);//  Involute profile
+
+module Involute(r=10,s=1,grad=90,end=1,delta=0,delta2,center=true,oppose=false,centerP=false,fn=fn,name,help){
+
+fn=ceil(grad/360)*fn;
+deltai =is_undef(delta2)? delta/2:delta ;
+delta2=is_undef(delta2)?-delta:delta2;
+grads=gradS(s=s,r=r);
+
+
+p1=involute(grad=grad,rot=0,rev=true,delta=delta,r=r,fn=1);
+pOpp=involute(grad=grad+(end?grads:0),rot=0,rev=true,delta=deltai,r=r,fn=1);
+h=oppose?norm(p1[0]):norm(pOpp[0]);
+
+winkel=(atan2(p1[0].x,p1[0].y));
+rot=winkel+gradS(r=h,s=s)/2;
+
+
+points=oppose?concat(
+  centerP?[[0,0]]:[],
+  involute(grad=grad,r=r,rot=center?-rot:0,delta=delta,fn=fn),
+  involute(grad=-grad,rot=center?rot:rot*2,rev=true,delta=-delta,r=r,fn=fn)
+):
+  concat(
+    centerP?[[0,0]]:[],
+    involute(r=r,grad=grad+(end?grads:0),rot=center?-grads/2:0,delta=deltai,fn=fn),
+    involute(r=r,grad=grad,rot=center?grads/2:grads,rev=true,delta=delta2,fn=fn)
+  )
+;
+
+
+polygon(points);
+
+InfoTxt("Involute",["h",h],name);
+
+HelpTxt("Involute",["r",r,"s",s,"grad",grad,"end",end,"delta",delta,"delta2",delta2,"center",center,"oppose",oppose,"centerP",centerP,"fn",fn,"name",name],help);
+}
+
+
+
+
 
 //NACA(); // 2D NACA airfoil profil
 
