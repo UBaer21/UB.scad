@@ -5,21 +5,22 @@
 
 include<ub.scad> 
 /*[Hidden]*/
-designVersion=1.2;
-useVersion=22.062;//⇒ v.gd/ubaer
+designVersion=1.3;
+useVersion=22.101;//⇒ v.gd/ubaer
 assert(Version>=useVersion,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 nozzle=.2;
 bed=false;
+vp=true;
 
 vpr=[0,0,0];
 
-vpd=show=="products"?1000:show=="polygons"?530:show=="objects"?400:230;
+vpd=show=="products"?1000:show=="polygons"?560:show=="objects"?400:230;
 vpt=show=="products"?[100,100]:[viewportSize*0.41,viewportSize*0.33];//[35,30];show=="polygons"?[56,52]:
 
 $textSize=1.3;
 $crossLine=.1;
 /*[Demo]*/
-vp=true;
+
 show="Select Topic!";//[helper,modifier,polygons,generator,objects,products,functions]
 
 
@@ -29,6 +30,7 @@ objPos=[12];
 color2=0;
 
 T($textPos+[0,-6])Tz(-.1)Text(h=0,text=show,size=3,cy=-1);
+T($textPos+[0,-8.5])Tz(-.1)Text(h=0,text=str(Version," ",version()),size=0.6,cy=-1);
 
 module P(){
 Pfeil(l=5,b=[1,2.5],shift=-0.5,center=[1,1],name=false);    
@@ -60,7 +62,7 @@ if(show=="helper")//•••••••••• Helper:   ••••••�
      
     union(){// Schnitt cuts objects in preview
         cube(2,true);T(objPos/2)P();T(objPos)Schnitt(true)cube(2,true);
-        Txt("Schnitt()"); 
+        Txt("Schnitt() / Cut()"); 
     } 
 
     union(){// Col colors (pallete)
@@ -447,8 +449,27 @@ if(show=="polygons")union()//•••••••••• Polygons:   ••�
         Txt("NACA"); 
       }
 
+      union(){ // Involute
+        T(-5,-13)Involute(r=10,s=1);
+        T(0,-10)Involute(r=5,s=1,oppose=true);
+        Txt("Involute"); 
+      }
 
-
+      union(){ // Riemen
+        tx=10;
+        r1=2;
+        r2=5;
+        Rand(1)Riemen(tx=tx,r1=r1,r2=r2,center=true,$messpunkt=0);
+        Color("blue"){
+        T(-tx/2)circle(r1);
+        T(+tx/2)circle(r2);
+        
+        }
+        Txt("Riemen");
+      }
+      
+      
+      
 
     /* 
       •••••• 2D ••••••
@@ -721,7 +742,7 @@ if(show=="objects")union()//•••••••••• Objects:   •••�
     }  
     union(){ // 
       T(objPos){
-        Text("UB.scad",size=3,radius=6,center=true);
+        Text("UB.scad",size=3,radius=6,center=true,cy=false,help=1,textmetrics=0);
         Text("UB",size=3,center=true);
         
       }
@@ -860,8 +881,8 @@ if(show=="products")union()//•••••••••• Produkt Objekte:   �
       Servo(help=$helpM);//r=0,narbe=1) ;    
   Glied(l=30,spiel=0.5,la= -0.5,fn=20,d=6,h=10,rand=2);
     union(){
-      rotate(90)  DGlied0(l1=12,l2=12,la=-1,rand=.75,d=2) ;
-      DGlied1(l1=12,l2=12,la=-1,d=2,rand=.75) ;
+      rotate(90)  DGlied0(l1=12,l2=12,la=-1,rand=0.75,d=2.5) ;
+      DGlied1(l1=12,l2=12,la=-1,d=2.5,rand=.75) ;
     }
     
   Luer(help=$helpM);//male=1,lock=1,slip=1) ;
@@ -894,11 +915,13 @@ if(show=="products")union()//•••••••••• Produkt Objekte:   �
   Klammer(d=10,breite=3);
   Pin(d=12,l=30);
   CyclGetriebe(help=$helpM,modul=5,z=15,achse=10,light=3,lRand=2);
+  
   Buchtung(help=$helpM);
   union(){
     SpiralCut(or=10,ir=1,help=$helpM);
     T(15)SpiralCut(or=10,ir=1,radial=false,help=$helpM);
     }
+   
   SRing(e=5,id=10,od=20,rand=2.5);
   DRing(help=$helpM);//opt polygon
   DRing(help=$helpM)circle(1,$fn=5);
