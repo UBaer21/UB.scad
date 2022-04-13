@@ -91,7 +91,10 @@ Release
 100|22 UPD ZigZag FIX Riemen
 101|22 reordered
 102|22 CHG Glied CHG Riemen UPD Welle CHG Nut
-104|22 
+104|22 CHG Riemen UPD Zylinder CHG Bogen SBogen
+106|22 ADD kreisSek CHG Points
+108|22 CHG Pivot FIX/UPD kreisSek
+110|22
 */
 
 { // Constants
@@ -160,7 +163,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.102;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.108;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -828,6 +831,95 @@ concat(kreis(r=r1,rand=0,grad=180 - 2*a,center=true,fn=fn,z=z,t=[center?-tx/2:0,
 
 
 
+//polygon(kreisSek(grad=[60,81]*1,r=[+4,8],h=20,center=+0,rev=1,mitte=5));
+
+
+function kreisSek(r=10,grad=90,h=0,mitte=0,fn=fn,center=true,mirror=false,rev=0,t=[0,0],z)=
+let(
+t=v3(t),
+tL=t+[center?-mitte/2:0,0,0],
+tR=t+[center?mitte/2:mitte,0,0],
+fn=is_list(fn)?fn:[ceil(fn/2),ceil(fn/2)],
+r=is_list(r)?r:[r,r],
+grad=is_list(grad)?[grad[0]%360,grad[1]%360]:[grad/2%360,grad/2%360],
+
+hSekL=r[0]-cos(grad[0])*r[0],
+hSekR=r[1]-cos(grad[1])*r[1],
+h=max(h,hSekL,hSekR),
+
+hyL=max(hSekL,hSekR,h)-hSekL,
+hyR=max(hSekL,hSekR,h)-hSekR,
+
+yL=-cos(grad[0])*r[0] + hyL,
+yR=-cos(grad[1])*r[1] + hyR,
+xL=center?0:sin(grad[0])*r[0],
+//xR=center?0:sin(grad[1])*r[1],
+hxL=grad[0]==0||grad[0]==180?0:hyL/tan(grad[0]),
+hxR=grad[1]==0||grad[1]==180?0:hyR/tan(grad[1]),
+y0L=[concat((center?[-sin(grad[0])*r[0]-hxL,0]:[0,0])+tL,is_undef(z)?[]:[z])],
+y0R=[concat([sin(grad[1])*r[1]+hxR+(center?0:sin(grad[0])*r[0]+hxL),0]+tR,is_undef(z)?[]:[z])],
+
+
+sekL=[for(i=rev?[fn[0]:-1:0]:[0:fn[0]])
+  let(stepL=(i*(grad[0]/fn[0]) - grad[0])%360)
+  is_undef(z)?[sin(stepL)*r[0]+(center?0:hxL+xL),(mirror?-1:1)*(cos(stepL)*r[0]+yL)]+tL:
+              [sin(stepL)*r[0]+(center?0:hxL+xL),(mirror?-1:1)*(cos(stepL)*r[0]+yL),z]+tL
+     ],
+sekR=[for(i=rev?[fn[1]:-1:0]:[0:fn[1]])
+  let(stepR=(i*(grad[1]/fn[1]) )%360)
+  is_undef(z)?[sin(stepR)*r[1]+(center?0:hxL+xL),(mirror?-1:1)*(cos(stepR)*r[1]+yR)]+tR:
+              [sin(stepR)*r[1]+(center?0:hxL+xL),(mirror?-1:1)*(cos(stepR)*r[1]+yR),z]+tR
+     ]
+)
+
+
+!rev?concat(y0L,sekL,sekR,y0R)
+:concat(y0R,sekR,sekL,y0L);
+
+
+
+
+function kreisSekORG(r=10,grad=90,fn=fn,h,center=true,mirror=false,rev=0,t=[0,0],z)=let(
+t=v3(t),
+grad=grad%360,
+hSek=r-cos(grad/2)*r,
+hy=is_undef(h)?0:max(hSek,h)-hSek,
+y=-cos(grad/2)*r + hy,
+x=center?0:sin(grad/2)*r,
+hx=hy/tan(grad/2)
+)
+is_undef(z)?[
+
+if(rev)[(center?1:2)*(sin(grad/2)*r+hx),0]+t,
+if(!rev)[center?-sin(grad/2)*r-hx:0,0]+t,
+
+for(i=rev?[fn:-1:0]:[0:fn])
+let(
+step=(i*grad/fn - grad/2)%360,
+)
+[sin(step)*r+x+(center?0:hx),(mirror?-1:1)*(cos(step)*r+y)]+t,
+if(rev)[center?-sin(grad/2)*r-hx:0,0]+t,
+if(!rev)[(center?1:2)*(sin(grad/2)*r+hx),0]+t
+]:
+[
+if(rev)[(center?1:2)*(sin(grad/2)*r+hx),0]+t,
+if(!rev)[center?-sin(grad/2)*r-hx:0,0]+t,
+
+for(i=rev?[fn:-1:0]:[0:fn])
+let(
+step=(i*grad/fn - grad/2)%360,
+)
+[sin(step)*r+x+(center?0:hx),(mirror?-1:1)*(cos(step)*r+y),z]+t,
+if(rev)[center?-sin(grad/2)*r-hx:0,0]+t,
+if(!rev)[(center?1:2)*(sin(grad/2)*r+hx),0]+t
+];
+
+
+
+
+
+
+
 
 
 
@@ -975,7 +1067,7 @@ echo    ("
 ••• nut (e=2,es=10,a=6,b=6,base=1,h=1,s,center=true,shift=0,grad,z) •••\n
 ••• involute(r=10,grad=45,fn=fn,rot=0,rev=0,delta=0,z) ••• \n
 ••• riemen(r1=5,r2=10,tx=20,fn=fn,z,center=false) ••• \n
-
+••• kreisSek(r=10,grad=45,h,mitte=0,fn=fn,center=true,mirror=false,rev=0,z) ••• \n
 
 ");
     
@@ -1750,7 +1842,8 @@ MO(!$children);
 //Points(octa(5),mark=[3,4,2,1],hull=.5*0);
 //Points(octa(5),mark=[3,0,2,1],hull=true);
 
-module Points(points=[[0,0]],color,size,hull,loop,start=0,mark,markS,markCol,face=true,center=true,help){
+module Points(points=[[0,0]],color,size,hull,loop,start=0,mark,markS,markCol,face=true,center,help){
+  center=is_undef(center)?is_num(points[0].z)?true:false:center;
   lp=assert(is_list(points),"no point(s) input")len(points);
   loop=is_undef(loop)?lp>25?25:
                             lp:
@@ -2316,7 +2409,7 @@ module Pivot(p0=[0,0,0],size,active=[1,1,1,1,1,1],messpunkt,txt,rot=0,vpr=$vpr,h
     size=is_undef(size)?is_bool(messpunkt)?pivotSize:messpunkt:size;
   
     size2=size/+5;
-if(messpunkt&&$preview)translate(p0)%union(){
+  if(messpunkt&&$preview)translate(p0)%union(){
         
       if(active[3])rotate(rot)  color("blue")cylinder(size,d1=.5*size2,d2=0,center=false,$fn=4);
       if(active[2])rotate(rot)  color("green")rotate([-90,0,0])cylinder(size,d1=.5*size2,d2=0,center=false,$fn=4);
@@ -2329,17 +2422,17 @@ if(messpunkt&&$preview)translate(p0)%union(){
        
        if(txt&&active[5])%color("lightgrey")rotate(vpr)translate([0,size/15])//linear_extrude(.1,$fn=1)
          Tz(0.1) text(text=str(txt,"   "),size=size2,font="Bahnschrift:style=light",halign="right",valign="bottom",$fn=1);
-     
-     HelpTxt("Pivot",[
-         "p0",p0,
-        "size",size,
-        "active",active,
-        "messpunkt",messpunkt,
-        "txt",txt,
-        "rot",rot,
-        "vpr",vpr]
-        ,help); 
-    }
+  }     
+  HelpTxt("Pivot",[
+     "p0",p0,
+    "size",size,
+    "active",active,
+    "messpunkt",messpunkt,
+    "txt",txt,
+    "rot",rot,
+    "vpr",vpr]
+    ,help); 
+
 }
 
 
@@ -2537,11 +2630,13 @@ HelpTxt("Welle",[
 
 
 //Rand(1)Riemen(tx=25,r1=5,r2=10,center=-1,$messpunkt=true);
-//Cut()Riemen(center=+0)rotate(90)Rund(0.2)Nut(a=undef,b=undef,es=2,e=5,grad=70,center=false);
-//Riemen();
+//Cut()Riemen(center=+0,fn=25)rotate(90)Rund(0.2,fn=12)Nut(a=undef,b=undef,es=2,e=5,grad=70,center=false);
 
-module Riemen(r1=5,r2=10,tx=25,fn=fn,center=false,name,help){
 
+module Riemen(r1=5,r2=10,tx=25,fn=fn,center=false,lap=0.005,spiel=0,name,help){
+lapL=0;
+r1=r1+spiel;
+r2=r2+spiel;
 a=asin((r2-r1)/tx);
 lTrum=cos(a)*tx;
 tx0=r2/sin(a)-tx;
@@ -2556,15 +2651,15 @@ if(!$children){
   else polygon(riemen(r1=r1,r2=r2,tx=tx,fn=fn,center=center));
   } else translate([(center?b(center,false)<0&&r1!=r2?tx0:-tx/2:0),0,0]){
   
-  rotate(180)RotEx(grad=180 - a*2,center=true)T(r1)children();
-  T(tx)RotEx(grad=180 + a*2,center=true)T(r2)children();
-  rotate([0, 90,-a +180])T(0,r1)rotate(-270)Tz(-lTrum)linear_extrude(lTrum,convexity=5)children();
-  rotate([0,-90, a +180])T(0,-r1)rotate(-90)linear_extrude(lTrum,convexity=5)children();
+  rotate(180)RotEx(grad=180 - a*2 +gradS(s=lap,r=r1)*2,center=true)T(r1)children();
+  T(tx)RotEx(grad=180 + a*2 +gradS(s=lap,r=r2)*2,center=true)T(r2)children();
+  rotate([0, 90,-a +180])T(0,r1)rotate(-270)Tz(-lTrum+lapL)linear_extrude(lTrum-lapL*2,convexity=5)children();
+  rotate([0,-90, a +180])T(0,-r1)rotate(-90)Tz(+lapL)linear_extrude(lTrum-lapL*2,convexity=5)children();
   
   }
   
 //echo(pathLength(riemen(r1=r1,r2=r2,tx=tx,fn=fn,center=center),close=true));
-HelpTxt("Riemen",["r1",r1,"r2",r2,"tx",tx,"fn",fn,"center",center,"name",name],help);
+HelpTxt("Riemen",["r1",r1,"r2",r2,"tx",tx,"fn",fn,"center",center,"spiel",spiel,"name",name],help);
 
 }
 
@@ -5045,8 +5140,9 @@ module GewindeV1(d=20,s=1.5,w=5,g=1,fn=3,r=0,gd=1.75,detail=5,tz=0,name)//deprec
     
 }
 
+//Bogen(2D=1,lap=+0);
 
-module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=3,fn2=fn,ueberlapp,spiel=-minVal,help,messpunkt=messpunkt,2D=false)
+module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=3,fn2=fn,lap,spiel=-minVal,help,messpunkt=messpunkt,2D=false)
 {
     $fn=fn;
     $fs=fs;
@@ -5054,7 +5150,7 @@ module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=
     $helpM=0;
     $info=0;
     $idxON=false;
-    ueberlapp=is_undef(ueberlapp)?spiel:ueberlapp;
+    ueberlapp=is_undef(lap)?spiel:-lap;
     l1=is_undef(l)?l1-ueberlapp:is_list(l)?l[0]-ueberlapp:l-ueberlapp;
     l2=is_undef(l)?l2-ueberlapp:is_list(l)?l[1]-ueberlapp:l-ueberlapp;
     2D=is_parent(needs2D)&&!$children?2D?b(2D,false):
@@ -5115,7 +5211,7 @@ module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=
       
   if(!$children&&name&&!2D)Echo("Bogen missing Object! using circle",color="warning");
   
-  HelpTxt("Bogen",["grad",grad,"rad",rad,"l",l,"l1",l1,"l2",l2,"fn",fn,"center",center,"tcenter",tcenter,"name",name,"d",d,"fn2",fn2,"spiel",spiel,"messpunkt",messpunkt,"2D",2D],help);
+  HelpTxt("Bogen",["grad",grad,"rad",rad,"l",l,"l1",l1,"l2",l2,"fn",fn,"center",center,"tcenter",tcenter,"name",name,"d",d,"fn2",fn2,"spiel",spiel,"lap",lap,"messpunkt",messpunkt,"2D",2D],help);
     
 }
 
@@ -6771,7 +6867,7 @@ HelpTxt("SpiralCut",[
 }
 
 
-module Zylinder(h=20,r=10,d,fn,fnh,grad=360,grad2=89,f=10,f2=5,f3=0,a=.5,a3=0,fz=0,az=0,deltaFz=0,deltaF=0,deltaF2=0,deltaF3=0,twist=0,winkelF3=0,scale=+1,sphere=0,lz,altFaces=1,center=false,lambda,name,help){
+module Zylinder(h=20,r=10,d,fn,fnh,grad=360,grad2=89,f=10,f2=5,f3=0,a=.5,a3=0,fz=0,az=0,deltaFz=0,deltaF=0,deltaF2=0,deltaF3=0,twist=0,winkelF3=0,scale=+1,sphere=0,lz,altFaces=1,center=false,lambda,fnE,name,help){
     a=is_undef(a)?0:a;
     r=is_undef(d)?is_undef(r)?0:
                             r:
@@ -6783,8 +6879,8 @@ module Zylinder(h=20,r=10,d,fn,fnh,grad=360,grad2=89,f=10,f2=5,f3=0,a=.5,a3=0,fz
     f2=is_undef(lambda[1])?is_undef(f2)?0:
                             f2:
         round(abs(h)/lambda[1]*2)/2;    
-    fn=max(is_undef(fn)?f*2:fn,3);
-    fnh=max(is_undef(fnh)?f2*2:fnh,1);
+    fn =max(is_undef(fn)  && is_undef(fnE)?f  *2 : is_undef(fnE)?fn  :fnE*f ,3);
+    fnh=max(is_undef(fnh) && is_undef(fnE)?f2 *2 : is_undef(fnE)?fnh :fnE*f2,1);
 
     stepRot=grad/fn;
     stepH=h/fnh;
@@ -6828,7 +6924,7 @@ faces2=[[for(i=[fn+0:-1:+0])i],[for(i=[len(points)-fn-1:len(points)-1])i]];//top
 
 translate([0,0,center?-h/2:0])polyhedron(points,concat(faces2,faces),convexity=15);
 
-HelpTxt("Zylinder",["h",h,"r",r,"d",d,"fn",fn,"fnh",fnh,"grad",grad,"grad2",grad2,"f",f,"f2",f2,"f3",f3,"a",a,"a3",a3,"fz",fz,"az",az,"deltaFz",deltaFz,"deltaF",deltaF,"deltaF2",deltaF2,"deltaF3",deltaF3,"twist",twist,"winkelF3",winkelF3,"scale",scale,"sphere",sphere,"lz",lz,"altFaces",altFaces,"center",center,"lambda",lambda,"name",name],help);
+HelpTxt("Zylinder",["h",h,"r",r,"d",d,"fn",fn,"fnh",fnh,"grad",grad,"grad2",grad2,"f",f,"f2",f2,"f3",f3,"a",a,"a3",a3,"fz",fz,"az",az,"deltaFz",deltaFz,"deltaF",deltaF,"deltaF2",deltaF2,"deltaF3",deltaF3,"twist",twist,"winkelF3",winkelF3,"scale",scale,"sphere",sphere,"lz",lz,"altFaces",altFaces,"center",center,"lambda",lambda,"fnE",fnE,"name",name],help);
 
 }
 
@@ -6942,9 +7038,11 @@ HelpTxt("REcke",["h",h,"r",r,"rad",rad,"rad2",rad2,"single",single,"grad",grad,"
  if(grad!=90)Echo("WIP grad!=90",color="warning");   
 }
 
+//SBogen(2D=true);
 
 
-module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2D=0,extrude=false,grad2=0,x0=0,name,help,spiel=0){
+module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2D=0,extrude=false,grad2=0,x0=0,name,help,spiel,lap=0){
+    lap=is_undef(spiel)?lap:spiel;
     center=is_bool(center)?center?1:0:sign(center);
     r2=!is_undef(r2)?r2:r1;
     l2=!is_undef(l2)?l2:l1;
@@ -6996,7 +7094,7 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
 
 
  if(grad&&!extrudeTrue)mirror(gradN<0?[1,0]:[0,0])translate(center?[0,0,0]:[dist/2,l1]){
-    translate([dist/2,y/2,0])T(-r2)rotate(grad2[1])T(r2)Bogen(rad=r2,grad=grad+grad2[1],center=false,l1=l2-y/2,l2=l2m,help=0,name=0,messpunkt=messpunkt,2D=2D,fn=fn,d=2D,ueberlapp=spiel)
+    translate([dist/2,y/2,0])T(-r2)rotate(grad2[1])T(r2)Bogen(rad=r2,grad=grad+grad2[1],center=false,l1=l2-y/2,l2=l2m,help=0,name=0,messpunkt=messpunkt,2D=2D,fn=fn,d=2D,lap=lap)
     if($children){
 
       $idx=is_undef($idx)?0:$idx;
@@ -7004,7 +7102,7 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
       children();
     }
     else circle($fn=fn);
-  T(-dist/2,-y/2) mirror([1,0,0])rotate(180)T(r1)rotate(-grad2[0])T(-r1)Bogen(rad=r1,grad=-grad-grad2[0],center=false,l1=l1-y/2,l2=l2m,help=0,name=0,messpunkt=messpunkt,2D=2D,fn=fn,d=2D,ueberlapp=spiel)
+  T(-dist/2,-y/2) mirror([1,0,0])rotate(180)T(r1)rotate(-grad2[0])T(-r1)Bogen(rad=r1,grad=-grad-grad2[0],center=false,l1=l1-y/2,l2=l2m,help=0,name=0,messpunkt=messpunkt,2D=2D,fn=fn,d=2D,lap=lap)
     if($children){
       $idx=1;
       children();
@@ -7061,7 +7159,7 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
 
     //Warnings    
   Echo(str(name," SBogen has no 2D-Object"),color=Hexstring([1,0.5,0]),size=4,condition=!$children&&!2D&&!extrudeTrue);
-  Echo(str(name," SBogen width is determined by var 2D=",2D,"mm"),color="info",size=4,condition=2D==1&&!extrudeTrue&&$idx==0);       
+  Echo(str(name," SBogen width is determined by var 2D=",2D,"mm"),color="info",size=4,condition=2D==1&&!extrudeTrue&&(is_undef($idx)||!$idx));       
    
   Echo(str(name," SBogen r1/r2 to big  middle <0"),condition=l2m<0);
   Echo(str(name," SBogen radius 1 negative"),condition=r1<0);
@@ -7069,7 +7167,7 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
   Echo(str(name," SBogen r1/r2 to big or angle or dist to short"),condition=grad!=0&&r1-cos(grad)*r1+r2-cos(grad)*r2>abs(dist));
   Echo(str(name," SBogen angle to small/ l1+l2 to short"),condition=l1-y/2<0||l2-y/2<0);
    //Help    
-  HelpTxt("SBogen",["dist",dist,"r1",r1,"r2",r2,"grad",grad,"l1",l1,"l2",l2,"center",center,"fn",fn,"messpunkt",messpunkt,"2D",2D,"extrude",extrude,"grad2",grad2,"x0",x0,"spiel",spiel," ,name=",name],help); 
+  HelpTxt("SBogen",["dist",dist,"r1",r1,"r2",r2,"grad",grad,"l1",l1,"l2",l2,"center",center,"fn",fn,"messpunkt",messpunkt,"2D",2D,"extrude",extrude,"grad2",grad2,"x0",x0,"lap",lap," ,name=",name],help); 
 
 }
 
@@ -7471,12 +7569,12 @@ module RStern(e=3,r1=30,r2=10,rad1=5,rad2=+30,l,grad=0,rand=0,os=0,randh=2,r=0,f
     
     
   if($children||!(grad<180))union(){
-    Polar(e,r1,name=0)Bogen(grad=grad,rad=rad1,l=l,help=0,name=0,tcenter=1,fn=fn,messpunkt=messpunkt,ueberlapp=spiel)T(os){
+    Polar(e,r1,name=0)Bogen(grad=grad,rad=rad1,l=l,help=0,name=0,tcenter=1,fn=fn,messpunkt=messpunkt,lap=spiel)T(os){
         children();
         if(grad>=180)T(rand/2,randh/2)square([abs(rand),randh],true);
       }
       
-    Polar(e,-r2,r=e%2?0:180/e,re=0,name=0)Bogen(grad=g2,rad=rad2,l=l,help=0,name=0,tcenter=true,fn=fn,messpunkt=messpunkt,ueberlapp=spiel)T(-os){
+    Polar(e,-r2,r=e%2?0:180/e,re=0,name=0)Bogen(grad=g2,rad=rad2,l=l,help=0,name=0,tcenter=true,fn=fn,messpunkt=messpunkt,lap=spiel)T(-os){
         R(0,180)children();
         if(grad>=180)T(-rand/2,randh/2)square([abs(rand),randh],true);
         }
