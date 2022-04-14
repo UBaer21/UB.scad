@@ -94,7 +94,7 @@ Release
 104|22 CHG Riemen UPD Zylinder CHG Bogen SBogen
 106|22 ADD kreisSek CHG Points
 108|22 CHG Pivot FIX/UPD kreisSek
-110|22
+110|22 UPD Cut CHG GewindeV4
 */
 
 { // Constants
@@ -163,7 +163,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.108;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.110;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -871,48 +871,10 @@ sekR=[for(i=rev?[fn[1]:-1:0]:[0:fn[1]])
               [sin(stepR)*r[1]+(center?0:hxL+xL),(mirror?-1:1)*(cos(stepR)*r[1]+yR),z]+tR
      ]
 )
-
-
 !rev?concat(y0L,sekL,sekR,y0R)
 :concat(y0R,sekR,sekL,y0L);
 
 
-
-
-function kreisSekORG(r=10,grad=90,fn=fn,h,center=true,mirror=false,rev=0,t=[0,0],z)=let(
-t=v3(t),
-grad=grad%360,
-hSek=r-cos(grad/2)*r,
-hy=is_undef(h)?0:max(hSek,h)-hSek,
-y=-cos(grad/2)*r + hy,
-x=center?0:sin(grad/2)*r,
-hx=hy/tan(grad/2)
-)
-is_undef(z)?[
-
-if(rev)[(center?1:2)*(sin(grad/2)*r+hx),0]+t,
-if(!rev)[center?-sin(grad/2)*r-hx:0,0]+t,
-
-for(i=rev?[fn:-1:0]:[0:fn])
-let(
-step=(i*grad/fn - grad/2)%360,
-)
-[sin(step)*r+x+(center?0:hx),(mirror?-1:1)*(cos(step)*r+y)]+t,
-if(rev)[center?-sin(grad/2)*r-hx:0,0]+t,
-if(!rev)[(center?1:2)*(sin(grad/2)*r+hx),0]+t
-]:
-[
-if(rev)[(center?1:2)*(sin(grad/2)*r+hx),0]+t,
-if(!rev)[center?-sin(grad/2)*r-hx:0,0]+t,
-
-for(i=rev?[fn:-1:0]:[0:fn])
-let(
-step=(i*grad/fn - grad/2)%360,
-)
-[sin(step)*r+x+(center?0:hx),(mirror?-1:1)*(cos(step)*r+y),z]+t,
-if(rev)[center?-sin(grad/2)*r-hx:0,0]+t,
-if(!rev)[(center?1:2)*(sin(grad/2)*r+hx),0]+t
-];
 
 
 
@@ -1067,8 +1029,7 @@ echo    ("
 ••• nut (e=2,es=10,a=6,b=6,base=1,h=1,s,center=true,shift=0,grad,z) •••\n
 ••• involute(r=10,grad=45,fn=fn,rot=0,rev=0,delta=0,z) ••• \n
 ••• riemen(r1=5,r2=10,tx=20,fn=fn,z,center=false) ••• \n
-••• kreisSek(r=10,grad=45,h,mitte=0,fn=fn,center=true,mirror=false,rev=0,z) ••• \n
-
+••• kreisSek(r=10,grad=90,h=0,mitte=0,fn=fn,center=true,mirror=false,rev=0,t=[0,0],z) ••• \n
 ");
     
 }
@@ -1931,7 +1892,7 @@ MO(!$children);
 }
 
 
-module Cut(on=1,cut=[+1,+1,+1],t=[+0,0,+0.01],rot=+0,size=500,color,ghost=true,help){
+module Cut(on=1,cut=[+1,+1,+1],t=[+0,0,+0.01],rot=+0,z=0,size=500,color,ghost=true,help){
 
 cut=v3(cut);
 t=v3(t);
@@ -1944,16 +1905,18 @@ intersection(){
   if($preview&&on||on==2)color(color)rotate(rot){
     if(cut.x)color("red")translate([(cut.x>0?-size.x:0) + t.x,- size.y/2               , - size.z/2])cube(size);
     if(cut.y)color("green")translate([-size.x/2                ,(cut.y>0?0:-size.y) + t.y, - size.z/2])cube(size);
-    if(cut.z)color("blue")translate([-size.x/2                ,- size.y/2               ,(cut.z>0? -size.z:0) + t.z])cube(size);
+    if(cut.z)color("blue")translate([-size.x/2                ,- size.y/2               ,(cut.z>0? -size.z:0) + t.z+z])cube(size);
   }
 }
 
 if(ghost&&on){
  $info=false;
+ $idx=1;
+ 
  color("lightSkyBlue",alpha=ghost)%scale(ghostscale)children();
  }
 Echo("»»»»––Cut is rendered! ––«««« \n",color="warning",condition=on==2);
-HelpTxt("Cut",["on",on,"cut",cut,"t",t,"rot",rot,"size",size,"color",color,"ghost",ghost],help);
+HelpTxt("Cut",["on",on,"cut",cut,"t",t,"rot",rot,"z",z,"size",size,"color",color,"ghost",ghost],help);
 MO(!$children);     
 }
 
@@ -2148,6 +2111,7 @@ module Echo(title,color="#FF0000",size=2,condition=true,help=false){
      else if (color=="#FFFFFF"||color=="white") echo(str("◯\t ",title));
      else if (color=="#FFFF00"||color=="yellow"||color=="warning") echo(str("⚠\t ",title));    
          else echo(str("• ",title)); 
+
  HelpTxt("Echo",["title",title,"color",color,"size",size,"condition",condition],help);
 }
 
@@ -6515,28 +6479,28 @@ help
     gangH=(d1-d2)/2; // gang Höhe radial (H)
     h=grad*p/360+p;
     flankenBreite=[tan(halbWinkel[0])*gangH,tan(halbWinkel[1])*gangH];
-    
-    breite=is_undef(ratio)||!ratio?is_undef(breite)?gb/g/8:
+    gi=grad<360/g?1:g;
+    breite=is_undef(ratio)||!ratio?is_undef(breite)?gb/gi/8:
                                                     breite:
-                                   (gb/g-flankenBreite[0]-flankenBreite[1])/2*(b(ratio,false));
+                                   (gb/gi-flankenBreite[0]-flankenBreite[1])/2*(b(ratio,false));
 
 
-    breite2=gb/g -breite -flankenBreite[0] -flankenBreite[1];
+    breite2=gb/gi -breite -flankenBreite[0] -flankenBreite[1];
 
     rad1Max=min(breite /2/tan(Kwinkel[0]/2),breite /2/tan(Kwinkel[1]/2));
     rad2Max=min(breite2/2/tan(Kwinkel[0]/2),breite2/2/tan(Kwinkel[1]/2));
     
-    Echo(str(name," Gewinde rad1 zu groß",rad1,">",rad1Max),color="red",
+    Echo(str(name," Gewinde rad1 zu groß ",rad1,">",rad1Max),color="red",
       condition=is_num(rad1)&&rad1>rad1Max);
-    Echo(str(name," Gewinde rad2 zu groß",rad2,">",rad2Max),color="red",
+    Echo(str(name," Gewinde rad2 zu groß ",rad2,">",rad2Max),color="red",
       condition=is_num(rad2)&&rad2>rad2Max);                
 
     rad1=min(rad1Max,b(rund,false)==1||b(rund,false)==2?rad1Max:
-              is_undef(rad1)?p/20/g:
+              is_undef(rad1)?p/20/gi:
                              rad1);
 
     rad2=min(rad2Max,b(rund,false)==1||b(rund,false)==3?rad2Max:
-              is_undef(rad2)?p/10/g:
+              is_undef(rad2)?p/10/gi:
                              rad2);
 
     step=180/max(start,end,1);
@@ -6595,6 +6559,7 @@ HelpTxt("Gewinde",
 ,"rund",rund
 ,"ratio",ratio
 ,"spiel",spiel
+,"g",g
 ,"name",name   
 ],help);
 
