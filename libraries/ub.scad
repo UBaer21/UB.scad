@@ -95,6 +95,9 @@ Release
 106|22 ADD kreisSek CHG Points
 108|22 CHG Pivot FIX/UPD kreisSek
 110|22 UPD Cut CHG GewindeV4
+112|22 UPD HexGrid UPD Grid FIX vollwelle
+114|22 CHG RotEx CHG DGlied0
+116|22 FIX SGlied,DGlied upd Seg7
 */
 
 { // Constants
@@ -163,7 +166,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.110;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.116;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -1551,7 +1554,7 @@ module Halb(i=0,x=0,y=0,z=0,2D=0,size=max(400,viewportSize*5),help=false)
 module RotEx(grad=360,fn=fn,center=false,cut=false,convexity=5,help=false){
   fnrotex=$fn;
     rotate(center?sign(grad)*-min(abs(grad)/2,180):grad>=360?180:0)
-  rotate_extrude(angle=grad,convexity=convexity, $fa =fn?abs(grad/fn):$fa,$fs=.2,$fn=0)intersection(){
+  rotate_extrude(angle=grad,convexity=convexity, $fa =fn?abs(grad/fn):$fa,$fs=.05,$fn=0)intersection(){
     $fn=fnrotex;
     $fa=fa;
     $fs=fs;
@@ -1612,6 +1615,7 @@ module Grid(e=[2,2,1],es=10,s,center=true,name,help){
        $idx=[x,y,z];
        $info=norm($idx)?false:name;
        $tab=is_undef($tab)?1:b($tab,false)+1;
+       $es=es;
       // $helpM=norm($idx)?false:$helpM;
        T(x*es[0],y*es[1],z*es[2])children();
    }
@@ -1619,8 +1623,13 @@ module Grid(e=[2,2,1],es=10,s,center=true,name,help){
 
 
 // Grid but with alternating row offset - hex or circle packing
+//HexGrid()circle(d=$es.y);
+//HexGrid()circle(d=Umkreis(6,$d-.1),$fn=6);
+
 module HexGrid(e=[11,4],es=5,center=true,name){
+  
   es=is_list(es)?es:[es*sin(60),es];
+  $d=es.y;
     Grid(e=e,es=es,center=center,name=name)
     translate([0,
     $idx[0]%2?is_list(es)?es[1]/2:es/2:
@@ -3318,7 +3327,7 @@ let(
            
     mitte=max(0,is_undef(tMitte)?mitte:tMitte - tan(grad[0]/2)*r - tan(grad[1]/2)*r),
     w=grad[0]-90,//del=echo(w,grad[0]-90),
-    wOben=(2*grad[1]-180)/2,
+    wOben=(grad[1]-90),
     hR=r-sin(90-grad[0])*r,
     hRO=r-sin(90-grad[1])*r,
     hR2=r2-sin(90-grad[0])*r2,
@@ -3328,24 +3337,25 @@ let(
     hDivOben=h-(hRO+hR2O),
     //hDiv=is_undef(h)?0:w>0?h-(sin(w)*r+sin(w)*r2):h-((sin(w)*r+sin(w)*r2))*0,
     y=2*cos(w)*r*sc+(hDiv*-tan(w)*2),
-    yOben=2*cos(wOben)*r*sc+(hDivOben*-tan(wOben)*2),
-    y2Oben=2*cos(wOben)*r2,
+    yOben=2*cos(wOben)*r*sc+(hDivOben*-tan(wOben)*2),// kreis r2 oben incl. l1
+    y2Oben=2*cos(wOben)*r2,// kreis r2 oben ohne l1
     y2=2*cos(w)*r2,
     
     x=  sin(w)*r+hDiv*1,
     x2= sin(w)*r2 ,
-    l1=is_undef(l)?y/2+y2/2+sin(grad2[0])*r2+mitte/2:is_list(l)?is_undef(l[0])?y/2+y2/2+sin(grad2[0])*r2+mitte/2:l[0]:l/2,
-    l2=is_undef(l)?yOben/2+y2/2+sin(grad2[1])*r2+mitte/2:is_list(l)?is_undef(l[1])?yOben/2+y2/2+sin(grad2[1])*r2+mitte/2:l[1]:l/2,
+//    l0 länge unterhalb (-y) l1 länge oberhalb (+y)
+    l0=is_undef(l)?y/2+y2/2+sin(grad2[0])*r2+mitte/2:is_list(l)?is_undef(l[0])?y/2+y2/2+sin(grad2[0])*r2+mitte/2:l[0]:l/2,
+    l1=is_undef(l)?yOben/2+y2Oben/2+sin(grad2[1])*r2+mitte/2:is_list(l)?is_undef(l[1])?yOben/2+y2Oben/2+sin(grad2[1])*r2+mitte/2:l[1]:l/2,
     extrude=xCenter==0?extrude-hDiv/2
                        :xCenter>0?extrude-x-r
                                    :xCenter<-1?xCenter<-2?extrude+x2+cos(grad2[1])*r2
                                                           :extrude+x2+cos(grad2[0])*r2
                                                :extrude+x2+r2,
    
-    trans=[+0,center?0:l1],// all points translation
+    trans=[+0,center?0:l0],// all points translation
     g2End=is_list(g2End)?g2End:[g2End,g2End],
-    yKL1=l2-(yOben/2+y2Oben/2+mitte/2+sin(grad2[1])*r2),   // Abstand Kreisende bis l2
-    yKL0=l1+(-y/2-y2/2-mitte/2-sin(grad2[0])*r2),         // Abstand Kreisende bis l1
+    yKL1=l1-(yOben/2+y2Oben/2+mitte/2+sin(grad2[1])*r2),   // Abstand Kreisende bis l1
+    yKL0=l0+(-y/2-y2/2-mitte/2-sin(grad2[0])*r2),         // Abstand Kreisende bis l0
     g2EndX0=grad2[0]!=90? g2End[0]? yKL0*tan(grad2[0]):  // End Punkt unten winkel verlängerung
                                     0:
                           0,
@@ -3355,15 +3365,15 @@ let(
     )
 concat(
 
-    [[extrude-x2-cos(grad2[1])*r2+g2EndX1,l2]]+[trans]//oben Kreis verl.
+    [[extrude-x2-cos(grad2[1])*r2+g2EndX1,l1]]+[trans]//oben Kreis verl.
     , kreis(r=r2,rand=0,rot=-90+grad2[1],center=false,grad=-grad[1]-grad2[1],t=[extrude-x2,yOben/2+y2Oben/2+mitte/2]+trans,fn=fn[0])//oben
     , kreis(r=r,r2=r*sc,rand=0,rot=90-grad[1],grad=grad[1],t=[extrude+x,mitte/2]+trans,fn=fn[1],center=false)//mitte oben
     , kreis(r=r,r2=r*sc,rand=0,rot=90,grad=grad[0],t=[extrude+x,-mitte/2]+trans,fn=fn[1],center=false)//mitte unten
     , kreis(r=r2,rand=0,rot=grad[0]-90,center=false,grad=-grad[0]-grad2[0],t=[extrude-x2,-y/2-y2/2-mitte/2]+trans,fn=fn[0])  //unten 
    
-    ,[[extrude-x2-cos(grad2[0])*r2+g2EndX0,-l1]]+[trans]//unten Kreis verl.
-    ,[[x0,-l1]]+[trans]//unten
-    ,[[x0,l2]]+[trans]//oben
+    ,[[extrude-x2-cos(grad2[0])*r2+g2EndX0,-l0]]+[trans]//unten Kreis verl.
+    ,[[x0,-l0]]+[trans]//unten
+    ,[[x0,l1]]+[trans]//oben
 
     );
 
@@ -3688,7 +3698,7 @@ module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,ratio=1,deg=45,spacing=1
     y=l/2;
     x=b/2;
     y2=y-x *(tan(90-deg));
-    
+    assert(l!=0,"change b");
     /*
     num=[for(n)each
     if(n==0)[1,1,1,1,1,0,1]
@@ -8733,36 +8743,36 @@ module Knochen(l=+15,d=3,d2=5,b=0,fn=fn,help)
 
 }
 
-module DGlied(sym,l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=20,help){
-if (sym) DGlied1(l=l,l1=l1,l2=l2,la=la,spiel=spiel,d=d,h=h,rand=rand,spielZ=spielZ,freiwinkel=freiwinkel);
-else DGlied0(l=l,l1=l1,l2=l2,la=la,spiel=spiel,d=d,h=h,rand=rand,spielZ=spielZ,freiwinkel=freiwinkel);
+module DGlied(sym,l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=20,fn=36,help){
+if (sym) DGlied1(l=l,l1=l1,l2=l2,la=la,spiel=spiel,d=d,h=h,rand=rand,spielZ=spielZ,freiwinkel=freiwinkel,fn=fn);
+else DGlied0(l=l,l1=l1,l2=l2,la=la,spiel=spiel,d=d,h=h,rand=rand,spielZ=spielZ,freiwinkel=freiwinkel,fn=fn);
 
 HelpTxt("DGlied",["sym",sym,"l",l,"l1",l1,"l2",l2,"spiel",spiel,"spielZ",spielZ,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
 }
 
-module DGlied0(l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=20)
+module DGlied0(l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=20,fn=36)
 {
 l1=is_undef(l1)?is_list(l)?l[0]:l:l1;
 l2=is_undef(l2)?is_list(l)?l[1]:l:l2;
-    Glied(l1,la=la,spiel=spiel,spielZ=spielZ,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
-    mirror([0,1,0])Glied(l2,la=la,spiel=spiel,spielZ=spielZ,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
+    Glied(l1,la=la,spiel=spiel,spielZ=spielZ,d=d,h=h,rand=rand,freiwinkel=freiwinkel,fn=fn);
+    rotate(180)Glied(l2,la=la,spiel=spiel,spielZ=spielZ,d=d,h=h,rand=rand,freiwinkel=freiwinkel,fn=fn);
 }
 
-module DGlied1(l=12,l1,l2,la=0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=20)
+module DGlied1(l=12,l1,l2,la=0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=20,fn=fn)
 {
 l1=is_undef(l1)?is_list(l)?l[0]:l:l1;
 l2=is_undef(l2)?is_list(l)?l[1]:l:l2;
-    mirror([+0,1,0])T(0,-l1)Glied(l1,la=la,spiel=spiel,spielZ=spielZ,d=d,h=h,rand=rand,freiwinkel=freiwinkel);
-    T(0,-l2)Glied(l2,la=la,d=d,h=h,spiel=spiel,spielZ=spielZ,rand=rand,freiwinkel=freiwinkel);
+    mirror([+0,1,0])T(0,-l1)Glied(l1,la=la,spiel=spiel,spielZ=spielZ,d=d,h=h,rand=rand,freiwinkel=freiwinkel,fn=fn);
+    T(0,-l2)Glied(l2,la=la,d=d,h=h,spiel=spiel,spielZ=spielZ,rand=rand,freiwinkel=freiwinkel,fn=fn);
 }
 
 
 
-module SGlied(sym=0,l=12,la=-.5,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=30,help,messpunkt=messpunkt){
+module SGlied(sym=0,l=12,la=-.5,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=30,help,messpunkt=messpunkt,fn=36){
 
   T(0,l/2){
-  Halb(!sym,x=1)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,freiwinkel=sym?freiwinkel:90,messpunkt=false);
-  Halb(sym,x=1)rotate(180)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,messpunkt=false,freiwinkel=sym?freiwinkel:90);
+  Halb(!sym,x=1)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,fn=fn,freiwinkel=sym?freiwinkel:90,messpunkt=false);
+  Halb(sym,x=1)rotate(180)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,fn=fn,messpunkt=false,freiwinkel=sym?freiwinkel:90);
   }
   HelpTxt("SGlied",["sym",sym,"l",l,"spiel",spiel,"spielZ",spielZ,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
 
@@ -8779,7 +8789,7 @@ rotate(30+180)T(0,-31)Glied(l=31,d=3,la=-1,spielZ=0);
 }
 //*/
 
-module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,fn=20,d=3,h=5,rand=n(1.5),freiwinkel=30,name=0,help,messpunkt=messpunkt)
+module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,d=3,h=5,rand=n(1.5),freiwinkel=30,fn=36,name=0,help,messpunkt=messpunkt)
 
 {
   freiwinkel= is_num(freiwinkel)?[freiwinkel,freiwinkel]:freiwinkel;
