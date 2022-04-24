@@ -98,6 +98,9 @@ Release
 112|22 UPD HexGrid UPD Grid FIX vollwelle
 114|22 CHG RotEx CHG DGlied0
 116|22 FIX SGlied,DGlied upd Seg7
+118|22 ADD vSum CHG Rund CHG CycloidZahn
+120|22 
+
 */
 
 { // Constants
@@ -140,7 +143,7 @@ fn=$fn?$fn:$preview?36:
                                 72;
 
 
-fs=$preview?1.25:hires?.4:.75;
+fs=$preview?.85:hires?.1:.2;
 fa=$preview?5:hires?.5:1;
 //demo objects
 show=0;
@@ -166,7 +169,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.116;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.118;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -715,9 +718,13 @@ T(0,20))polygon(star(angle=180,fn=3,grad=4));
 
 //*/
 
-
+// vector multiplication  
 function vMult(v1=[1],v2=1)=[for(i=[0:min(len(v1),len(v2))-1])v1[i]*v2[i]];
 
+// sum up vector constituents
+//echo( vSum([1,1,1]) );
+function vSum(v,start=0,end,val=0) = 
+  let( end = is_undef(end)?len(v)-1:min(len(v)-1,end) ) start<end+1? vSum(v,start+1,end,v[start]+val) : val;
 
 
 // NACA profile points
@@ -1026,6 +1033,7 @@ echo    ("
 ••• star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0) ••• \n
 ••• wall(soll,min=1.75,even=false,nozzle=nozzle) adapt to line width (nozzle) ••• \n
 ••• vMult(v1,v2) vector multiplication ••• \n
+••• vSum(v,start=0,end,val=0) ••• \n
 ••• naca(l,0012) NACA airfoil ••• \n
 ••• pathLength(points,start=0,end,close=0) ••• \n
 ••• stringChunk(txt,start=0,length) •••\n
@@ -1043,7 +1051,7 @@ if (helpMod){
 echo    ("•••••••••• Objektmodifikatoren:   ••••••");
 echo    ("•••• T(x=0,y=0,z=0)•Tz(z=0) ••• R(x=0,y=0,z=0)  ••");
 echo    ("•••• M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=1,scalexz=1,scaleyz=1)••");
-echo    ("•••• Rund(or=+0,ir=0,chamfer=false,fn=fn)polygon••");
+echo    ("•••• Rund(or=+0,ir=0,chamfer=false,fn,fs=fs)polygon••");
 echo    ("•••• Linear(es=1,s=100,e=2,x=1,y=0,z=0,r=0,re=0,center=0,cx=0,cy=0,cz=0 ••");   
 echo    ("•••• Polar(e=3,x=0,y=0,r=0,re=0,end=360,dr=0,mitte=false,name)dr=delta element rotation  ••");
 echo    ("•••• Grid(es=[10,10,10],e=[2,2,1],center=true) ••");
@@ -1780,14 +1788,15 @@ if(center)
 }
 
 
+//Rund(1,2)Star();
 
-
-module Rund(or=+0,ir,chamfer=false,fn=fn) {
+module Rund(or=+0,ir,chamfer=false,fn,fs=fs) {
+    
     ir=is_undef(ir)?is_list(or)?or[1]:or:ir;
     or=is_list(or)?or[0]:or;
     chamfer=chamfer?true:false;
-   if(!chamfer)offset(r = or,$fn=fn)offset(r = -or,$fn=fn)
-               offset(r = -ir,$fn=fn)offset(r = ir,$fn=fn) 
+   if(!chamfer)offset(r = or,$fn=fn,$fs=fs)offset(r = -or,$fn=fn,$fs=fs)
+               offset(r = -ir,$fn=fn,$fs=fs)offset(r = ir,$fn=fn,$fs=fs) 
        children();
      
    
@@ -3219,9 +3228,10 @@ HelpTxt("Pfeil",[
 CycloidZahn(z=2.0,f=2,d=1,linear=true,spiel=0.04);
 //CycloidZahn(z=4.4,f=5,d=10,kreisDivisor=4);
 //*/
+//CycloidZahn(modul=4,z=4.4,f=5,d=10,kreisDivisor=5);
 
 
-module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,kreisDivisor=3.50,f=2,name,help){
+module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,fs=0.075,kreisDivisor=3.50,f=2,name,help){
   //if(is_undef(UB)) echo(str("<H1><font color=red> include ub.scad> "));
       
   z1=z%1?floor(z)+0.4999999:z;
@@ -3243,7 +3253,7 @@ module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,
 
 //current
   if(!linear)
-  Rund(rund[0],rund[1],fn=fn)
+  Rund(rund[0],rund[1],fs=fs)
    intersection(){
     Polar(z*f,rot=d<r*2?0:180/z/f)//rot=z%1?45/z:90/z)
      intersection (){
@@ -3259,7 +3269,7 @@ module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,
   lambda=modul*PI;
   //T(0,0.3)square([lambda/f,.1]);
   if(b(linear,bool=false)>0){
-  T(center?-l/2:0)Rund(rund[0],rund[1],fn=18)intersection(){
+  T(center?-l/2:0)Rund(rund[0],rund[1],fs=fs)intersection(){
     T(-tra/2+ lambda/f/4) Linear(e=f,es=lambda/f) intersection(){
         T(+tra/2+spiel-lambda) Cycloid(modul=modul,z=z+2,d=d,linear=linear,fn=fn);
         T(-tra/2-spiel-lambda) Cycloid(modul=modul,z=z+2,d=d,linear=linear,fn=fn);
@@ -3270,7 +3280,7 @@ module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,
   
 //old ∇
   if(b(linear,bool=false)<0)Polar(z%1?2:1,end=z%1?180+rot:360,r=z%1?0:180/(z*4))
-  Rund(modul/10,fn=18){
+  Rund(modul/10,fs=fs){
     intersection (){
      rotate(-spielwinkel)    Cycloid(modul=modul,z=z1,d=d,fn=fn);
      rotate(rot+spielwinkel) Cycloid(modul=modul,z=z1,d=d,fn=fn);
@@ -3290,7 +3300,7 @@ module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,
   }
   
 InfoTxt("CycloidZahn",["Zähne=",z*2,linear?str(" Länge=",l):str(" Wälzkreis r=",r)," spiel",spiel],name);  
-HelpTxt("CycloidZahnrad",["modul",modul,"z",z," d",d," linear",linear,"center",center,"spiel",spiel,"fn",fn,"kreisDivisor",kreisDivisor,"f",f,"name",name],help);
+HelpTxt("CycloidZahnrad",["modul",modul,"z",z," d",d," linear",linear,"center",center,"spiel",spiel,"fn",fn,"fs",fs,"kreisDivisor",kreisDivisor,"f",f,"name",name],help);
 }
 
 
