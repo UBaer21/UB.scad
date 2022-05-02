@@ -99,7 +99,8 @@ Release
 114|22 CHG RotEx CHG DGlied0
 116|22 FIX SGlied,DGlied upd Seg7
 118|22 ADD vSum CHG Rund CHG CycloidZahn
-120|22 
+120|22 CHG Roof FIX gradS UPD Coil CHG quad chg pPos
+130|22
 
 */
 
@@ -134,8 +135,8 @@ layer=0.08;// one step = 0.04 (8mm/200steps)
 //Print Bed
 printBed=[220,220];
 //Printposition;
-pPos=[0,0];
-printPos=bed?concat(printBed,0)/2+pPos:[0,0,0];
+pPos=[0,0,0];
+printPos=bed?concat(printBed,0)/2+v3(pPos):[0,0,0];
 //global fragment size
 hires=false;
 fn=$fn?$fn:$preview?36:
@@ -169,7 +170,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.118;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.120;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -322,7 +323,7 @@ function RotPoints(grad,points)=[for(i=[0:len(points)-1])RotLang(rot=atan2(point
 function negRed(num)=num<0?str("🔻",num):num==0?str("⚠",num):num; // display console text
 function gradB(b,r)=360/(PI*r*2)*b; // winkel zur Bogen strecke b des Kreisradiuses r
 
-function gradS(s,r)=abs(s)>abs(2*r)&&!$idx?echo("\t⭕ ‼ gradS s > diameter (2×r) max ❗")180*sign(s)*sign(r):abs(s)>abs(2*r)?180*sign(s)*sign(r):asin(s/(2*r))*2;// winkel zur Sehne s des Kreisradiuses r
+function gradS(s,r)=abs(s)>abs(2*r)&&(is_undef($idx)||!$idx)?echo("\t⭕ ‼ gradS s > diameter (2×r) max ❗")180*sign(s)*sign(r):abs(s)>abs(2*r)?180*sign(s)*sign(r):asin(s/(2*r))*2;// winkel zur Sehne s des Kreisradiuses r
 
 function radiusS(n,s,a)=(s/2)/(sin((is_undef(n)?a:360/n)/2));// Radius  zur Sehne
 function runden(x,dec=2)=round(x*pow(10,dec))/pow(10,dec);//auf komastelle runden
@@ -548,22 +549,24 @@ s=is_list(s)?s:
 
 //hull() polyhedron(octa(),[[for(i=[0:len(octa())-1])i]]);
 
-function quad  (x=10,y,r=1, z,fn=fn) = 
+function quad  (x=10,y,r,t=[0,0], z,center=true,fn=fn) = 
  let(
  y=is_list(x)?x.y:is_undef(y)?x:y,
  x=is_list(x)?x.x:x,
- r=is_list(r)?r:[r,r,r,r],
+ rdg=runden(min(x,y)/PHI/2,2),
+ r=is_list(r)?r:is_undef(r)?[rdg,rdg,rdg,rdg]:[r,r,r,r],
+ tC=t+(center?[0,0]:[x,y]/2),
  fn=fn/4+0
 ) 
 concat(
-  kreis(t=[ x/2 -r[0],  y/2 -r[0] ],r=r[0],rand=0,grad=90,rot=0  , center=false,fn=fn,z=z),
-  kreis(t=[ x/2 -r[1], -y/2 +r[1] ],r=r[1],rand=0,grad=90,rot=90 , center=false,fn=fn,z=z),
-  kreis(t=[-x/2 +r[2], -y/2 +r[2] ],r=r[2],rand=0,grad=90,rot=180, center=false,fn=fn,z=z),
-  kreis(t=[-x/2 +r[3],  y/2 -r[3] ],r=r[3],rand=0,grad=90,rot=270, center=false,fn=fn,z=z)
+  kreis(t=[ x/2 -r[0],  y/2 -r[0] ]+tC,r=r[0],rand=0,grad=90,rot=0  , center=false,fn=fn,z=z),
+  kreis(t=[ x/2 -r[1], -y/2 +r[1] ]+tC,r=r[1],rand=0,grad=90,rot=90 , center=false,fn=fn,z=z),
+  kreis(t=[-x/2 +r[2], -y/2 +r[2] ]+tC,r=r[2],rand=0,grad=90,rot=180, center=false,fn=fn,z=z),
+  kreis(t=[-x/2 +r[3],  y/2 -r[3] ]+tC,r=r[3],rand=0,grad=90,rot=270, center=false,fn=fn,z=z)
 );
 
 /*
-polygon(quad(x=15,fn=16));
+polygon(quad(x=15,fn=16,t=[5,5],center=false));
 points=[for(i=[0:10])each quad(z=i,r=1.000+sin(i*36-90)*1,fn=36)];
 PolyH(points,loop=fn +4 );
 Points(points,loop=(fn+4)*3,start=(fn+4)*5,hull=0);
@@ -1026,7 +1029,7 @@ echo    ("
 ••• pathPoints(points,path,twist,scale) •••\n
 ••• tetra(r) tetrahedron points •••\n
 ••• octa(r,n,d)  octaheadron points (subdiv n) ••• \n
-••• quad(x,y,r,fn,z)  Quad points ••• \n
+••• quad(x,y,r,t,center,fn,z)  Quad points ••• \n
 ••• stern(e=5,r1=10,r2=5,mod=2,delta=+0,z)  Stern points ••• \n
 ••• wStern(f=5,r=1.65,a=.25,r2,fn=fn,rot=0,z)  ••• \n
 ••• superellipse(n=2.5,r=10,z,fn=fn) ••• \n
@@ -1790,7 +1793,7 @@ if(center)
 
 //Rund(1,2)Star();
 
-module Rund(or=+0,ir,chamfer=false,fn,fs=fs) {
+module Rund(or=+0,ir,chamfer=false,fn,fs=$preview?.3:fs) {
     
     ir=is_undef(ir)?is_list(or)?or[1]:or:ir;
     or=is_list(or)?or[0]:or;
@@ -4399,7 +4402,7 @@ opt = straight / voronoi
 //Roof(10,h=1,base=5,floor=true,twist=50,scale=[0.3,1])circle(5,$fn=3);
 
 
-module Roof(height,h,base=0,deg=45,opt=1,floor=false,center=false,twist=0,scale=1,fn=fn,convexity=5,overlap=0,name,help){
+module Roof(height,h,base=0,deg=45,opt=1,floor=false,center=false,twist=0,scale=1,fn=fn,convexity=5,lap=0,name,help){
 
 s=is_list(deg)?[tan(deg[0]),tan(deg[1])]:[tan(deg),tan(deg)];
 floor=is_list(h)?true:floor;
@@ -4414,7 +4417,7 @@ InfoTxt("Roof",["h",h,"deg",str(deg,"° (",s,")")],name);
 Echo("Roof is experimental - use Dev Snapshot version and activate",color="warning",condition=version()[0]<2022);
   Tz(center?0:h[0]?h[0]:0){
   $tab=is_undef($tab)?1:b($tab,false)+1;
-  linear_extrude(base+overlap,center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
+  linear_extrude(base+lap,center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
   }
  if(version()[0]>2021)union(){ 
  $idx=1;
@@ -4433,7 +4436,7 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
   }
   
 
-HelpTxt("Roof",["height",height,"h",h,"base",base,"deg",deg,"opt",opt,"floor",floor,"center",center,"twist",twist,"scale",scale,"fn",fn,"convexity",convexity,"overlap",overlap,"name",name],help);
+HelpTxt("Roof",["height",height,"h",h,"base",base,"deg",deg,"opt",opt,"floor",floor,"center",center,"twist",twist,"scale",scale,"fn",fn,"convexity",convexity,"lap",lap,"name",name],help);
 }
 
 
@@ -6653,6 +6656,7 @@ else Tz(center?center<0?-p/2+tz:tz:tz+p/2)color(innen?"slategrey":"gold"){
     }
 }
 
+//Coil(h=20,scale=.5,center=-1);
 
 module Coil(
 r=20,
@@ -6663,24 +6667,28 @@ id,
 grad=3*360,
 p,
 pitch=10,
+h,
 points,
 twist=0,
 scale=1,
 fn=fn,fn2=36,
-open=true,
+center=true,
+open=true,//open Path
 name,
 help){
 
 d=is_num(od)&&is_num(id)?(od-id)/2 : d;
 r=is_undef(points)?is_num(od)?(od-d)/2:is_num(id)?(id+d)/2:r:r;
 r2=is_undef(r2)?r:r2;
-
-Echo("Coil using points od id or d can't compute",color="warning",condition=points&&od||points&&id);
+$d=d;
+Echo("Coil using points - od, id, h or d can't compute",color="warning",condition=points&&od||points&&id);
 Echo("Coil intersecting",color="warning",condition=!points&&norm([(r-r2)/grad*360,pitch])<d);
 
 ipoints=is_undef(points)?kreis(d=d,rand=0,fn=fn2):points;
 
-
+pitch=is_undef(h)?pitch:(h-d/2-d/2*scale)/grad*360;
+h=pitch*grad/360+d/2+d/2*scale;
+Echo("Coil h < d",color="warning",condition=h<d);
 
 iFN=round(fn*grad/360*max(1,twist/360/3))-1;
 
@@ -6689,12 +6697,17 @@ let(deg=grad/iFN,
 p=is_undef(p)?pitch/360*deg:p/360*deg,
 rDiff=(r2-r)/iFN
 )
-
 [sin(i*deg)*(r+rDiff*i),cos(i*deg)*(r+rDiff*i),p*i]];
-PolyH(pathPoints(ipoints,path,twist=twist,scale=scale,open=open),
-loop=len(ipoints),name=false);
-InfoTxt("Coil",["length",pathLength(path)],name);
-HelpTxt("Coil",["r",r,"d",d,"r2",r2,"od",od,"id",id,"grad",grad,"pitch",is_undef(p)?pitch:p,"points","kreis(d=d)","twist",twist,"scale",scale,"fn",fn,"fn2",fn2,"open",open],help);
+
+translate([0,0,center?b(center,false)<0?-h/2+d/2
+                               :0
+                      :d/2])
+  PolyH(
+          pathPoints(ipoints,path,twist=twist,scale=scale,open=open),
+        loop=len(ipoints),name=false);
+      
+InfoTxt("Coil",["length",pathLength(path),"heigth(h)",h],name);
+HelpTxt("Coil",["r",r,"d",d,"r2",r2,"od",od,"id",id,"grad",grad,"pitch",is_undef(p)?pitch:p,"h",h,"points","kreis(d=d)","twist",twist,"scale",scale,"fn",fn,"fn2",fn2,"center",center,"open",open],help);
 }
 
 
