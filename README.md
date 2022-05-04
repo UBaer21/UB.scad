@@ -9,10 +9,10 @@ There are a lot of settings available but most is using  pre configuration - so 
   * [functions](#functions)
   *  tools to [modify](#modifier) objects
   *  to [generate](#generator) 3D objects
-  *   [helper](#helper) for viewing
-  *   [2D polygones](#polygones)
-  *   [basic objects](#objects)
-  *    and [products](#products)
+  *  [helper](#helper) for viewing
+  *  [2D polygones](#polygones)
+  *  [basic objects](#objects)
+  *  and [products](#products)
 
 🌐**But why would you need it? Best to judge from what you can accomplish - i build this lib to make these [Prints](https://www.prusaprinters.org/social/167780)**
 
@@ -67,6 +67,22 @@ There are a lot of settings available but most is using  pre configuration - so 
 # Modifier
 
 ![modifier](https://github.com/UBaer21/UB.scad/blob/main/Images/modifier.png)
+
+* `T(x,y,z)` translates
+* `R(x,y,z)` rotates
+* `M()` skew (multmatrix)
+* `Linear()` linear copies
+* `Polar()`  polar copies
+* `Grid()`   grid copies
+* `HexGrud()`interlaced grid copies
+* `MKlon()`  mirror clone
+* `Klon()`   clone
+* `Rund()`   round polygons
+* `Scale()`  scale axis±
+* `Drehpunkt()` vulcrum for rotations
+* `Halb()`   cut Objects half
+* `Rand()`   creates border on polygons
+* `Row()`    places $d size copies with same space
 
 # Generator
 
@@ -149,10 +165,13 @@ There are a lot of settings available but most is using  pre configuration - so 
 * `mPoints(points, r, t, s)` transform (rotate translate scale ) point or points (2D/3D)
 * `wall(soll=.5,min=1.25,even=false,nozzle=nozzle)` calculates perimeter for "soll" according to nozzle size
 * `vMult(v1=[1],v2=1)` multiplicates vectors v1.x × v2.x …
+* `vSum(v,start,end)` addition of vector constituents from start to end
 * `pathLength(points,close=false)` calculates the sum length of segments (perimeter) 
+* `stringChunk(txt,start,length,string)` extract string parts
+* `wall(soll,min,even,line)` create width as multiple of line
 
 * Points generating
-  * 
+  
   * `pathPoints(points,path,twist=0,scale=1,open=true)` points along path 
   * `kreis(r=10, rand=+5, grad=360, grad2=+0, fn=fn, center=true, sek=true, r2=0, rand2=0, rcenter=0, rot=0, t=[0,0])` points circle or arc
   * `bezier( t, p0=[0,0], p1=[-20,20], p2=[20,20], p3=[0,0])` single point  for t=[0:.1:1]
@@ -165,4 +184,11 @@ There are a lot of settings available but most is using  pre configuration - so 
   * `octa(s)` octahedron points (s can be list)
   * `star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,z,angle=360,rot=0)` star points ⇒ Star polygon
   * `superellipse(n=2.5,r=10,z,fn=fn` points for a superellipse
+  * `kreisSek(r,grad)` points circle part
+  * `naca(l,naca,m,p,t,fn,z)` NACA profile
+  * `nut()` points for grooves
+  * `involute(r,grad)` points involutes
+  * `riemen()` points for two connected circles
+  * `sq(size,fn)` points square subdivided
+  * `bend(points)` bending points polar
   
