@@ -100,7 +100,9 @@ Release
 116|22 FIX SGlied,DGlied upd Seg7
 118|22 ADD vSum CHG Rund CHG CycloidZahn
 120|22 CHG Roof FIX gradS UPD Coil CHG quad chg pPos
-130|22
+130|22 ADD bend ADD sq upd needs2D UPD mPoints UPD m UPD Bezier UPD Coil chg pathPoints
+132|22 CHG Spiral UPD pathPoints
+134|22 
 
 */
 
@@ -170,7 +172,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.120;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.132;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -180,7 +182,7 @@ twF=acos(1/3);// tetraeder winkel face edge face;
 inch=25.4; // inch/Zoll
 minVal=0.0000001; // minimum für nicht 0
 
-needs2D=["Rand","WKreis","Welle","Rund","Rundrum", "LinEx", "RotEx","SBogen","Bogen","HypKehle"]; // modules needing 2D children 
+needs2D=["Rand","WKreis","Welle","Rund","Rundrum", "LinEx", "RotEx","SBogen","Bogen","HypKehle","Roof"]; // modules needing 2D children 
 //echo(tw,twF);
 //PHI=(1+sqrt(5))/2;
 
@@ -434,13 +436,12 @@ is_list(parent)?is_num(search(parent,parentList())[i])?true:
 */
 
 
-
 m = function (r=[0,0,0], t=[0,0,0], s=[1,1,1])//t2=[0,0,0],
 let(
 s=is_num(s)?[s,s,s]:
             len(s)==2?concat(s,[1]):
                       s,
-r=is_num(r)?[0,0,r]:len(r)==3?r:v3(r),
+r=is_num(r)?[0,0,r]: is_list(r)?len(r)==3?r:v3(r) : [0,0,0],
 t=is_list(t)?len(t)==2?concat(t,[0]):len(t) == 3?t:v3(t):v3(t),
 //t2=len(t2)==2?concat(t2,[0]):t2,
 
@@ -492,12 +493,33 @@ let(
 pointsI=is_list(points[0])?points:[points],
 dimension=len(pointsI[0]),
 out=
+[for(i=pointsI)m(r=r,t=t,s=s)*
+  concat(i,
+    dimension==3?[1]:concat([for(dim=[1:3-dimension])0],[1]) // add to vector
+  )
+    +[for(dim=[0:dimension-1])0]] // mask vector
+)is_list(points[0])?out:out[0];
+
+
+//version prior β22|130
+function mPointsORG(points=[0,0], r=[0,0,0], t=[0,0,0], s=[1,1,1])=
+let(
+pointsI=is_list(points[0])?points:[points],
+dimension=len(pointsI[0]),
+out=
 [for(i=[0:len(pointsI)-1])m(r=r,t=t,s=s)*
   concat(pointsI[i],
     dimension==3?[1]:concat([for(dim=[1:3-dimension])0],[1]) // add to vector
   )
     +[for(dim=[0:dimension-1])0]] // mask vector
 )is_list(points[0])?out:out[0];
+
+
+
+
+
+//echo(mPoints([[0,1]],r=50) );
+
 
   /*
     rot=[+27,+28,+75];
@@ -521,16 +543,31 @@ p2=mPoints(mPoints(p,t=tr,r=rot,s=sc),t=[0,0]);
 
 //*/
 
-function pathPoints(points=[[0,0,0],[0,10,0],[10,0,0]],path=[[0,0,0],[0,+10,10]],twist=0,scale=1,open=true)=
+function pathPoints(points=[[0,0,0],[0,10,0],[10,0,0]],path=[[0,0,0],[0,+10,10]],twist=0,scale=1,open=true,2D=false,rev=false)=
+  let(
+    pathLen=len(path)-1,
+    scale=is_list(scale)?scale:[scale,scale],
+    points=2D?[for(iPoint=points)[iPoint.x,iPoint.y]]:
+              len(points[0])==3?points:[for(iPoint=points)concat(iPoint,0)]
+    )
+  [for (i=rev?[pathLen:-1:0] : [0:pathLen],jPoints=points)
+    mPoints (  mPoints(jPoints,r=i*twist/pathLen) ,
+      r=vektorWinkel( path[ open? max(0,i-1): (i==0?pathLen -1:i-1)], path[open?min(i+1,pathLen):(i+1)%pathLen])+[-90,0,0],
+      s=[1+i*(-1+scale.x)/pathLen,1+i*(-1+scale.y)/pathLen])
+    + v3(path[i])];
+
+//version prior β22|130
+
+function pathPointsORG(points=[[0,0,0],[0,10,0],[10,0,0]],path=[[0,0,0],[0,+10,10]],twist=0,scale=1,open=true)=
   let(pathLen=len(path)-1,
       scale=is_list(scale)?scale:[scale,scale])
   [for (i=[0:pathLen],j=[0:len(points)-1])
     mPoints ( v3( mPoints(points[j],r=i*twist/pathLen) ) ,
       r=vektorWinkel( path[ open? max(0,i-1): (i==0?pathLen -1:i-1)], path[open?min(i+1,pathLen):(i+1)%pathLen])+[-90,0,0],
       s=[1+i*(-1+scale.x)/pathLen,1+i*(-1+scale.y)/pathLen])
-    + v3(path[i])];
-
-
+    + v3(path[i])];    
+    
+    
 
 
 function octa   (s=1) =
@@ -890,11 +927,60 @@ sekR=[for(i=rev?[fn[1]:-1:0]:[0:fn[1]])
 
 
 
+function sq (size=[10,10],fn=[10,10],diff=0,t=[0,0,0],z,center=true)=
+  let (
+    x=is_list(size)?size[0]:size,
+    y=is_list(size)?size[1]:size,
+    fnx=is_list(fn)?fn[0]:fn,
+    fny=is_list(fn)?fn[1]:fn,
+    diff=is_list(diff)?diff:[diff,diff,diff,diff],
+    t=center?t:size/2+t,
+    points=is_undef(z)?[
+    for(i=[0:fnx])[-x/2+x/fnx*i,-y/2+i%2*-diff[0]]+t,
+    for(i=[0:fny])[x/2+i%2*diff[1],-y/2+y/fny*i]+t,
+    for(i=[0:fnx])[x/2-x/fnx*i,y/2+i%2*diff[2]]+t,
+    for(i=[0:fny])[-x/2-i%2*diff[3],y/2-y/fny*i]+t
+    ]:
+    [
+    for(i=[0:fnx])[-x/2+x/fnx*i,    -y/2+i%2*-diff[0],z]+v3(t),
+    for(i=[0:fny])[x/2+i%2*diff[1], -y/2+y/fny*i,     z]+v3(t),
+    for(i=[0:fnx])[x/2-x/fnx*i,      y/2+i%2*diff[2], z]+v3(t),
+    for(i=[0:fny])[-x/2-i%2*diff[3], y/2-y/fny*i,     z]+v3(t)
+    ]
+  )
+  points;
+  
+  //polygon(sq(center=0));
+  
+  
+function bend (points,r=0,t=[0,0,0],rev=false)= [
+  for (i= [0:len(points)-1])
+    let(
+      x=points[i].x+t.x,
+      y=points[i].y+t.y,
+      z=is_undef(points[0].z)?undef:points[i].z + t.z,//
+      b=2*PI*(r?r:x),
+      deg=b?360/b*y:0
+    )
+    rev? is_undef(z)?[norm([x,y]),b/360*atan2(y,x)]:[norm(x,y),b/360*atan2(x,y),z]
+    
+        :is_undef(z)?[sin(deg+90),cos(deg+90)]*x-v3(t):
+                    concat([sin(deg+90),cos(deg+90)]*x,z)-v3(t)
+    ]
+    ;
 
+/*
+polygon(
+  bend(
+    bend(
+      sq( center=1, t=[ 10, 0 ] ),
+      r=10, rev=true
+    ),
+    r=10
+  )
+);
 
-
-
-
+//*/
 
 
 
@@ -1044,6 +1130,9 @@ echo    ("
 ••• involute(r=10,grad=45,fn=fn,rot=0,rev=0,delta=0,z) ••• \n
 ••• riemen(r1=5,r2=10,tx=20,fn=fn,z,center=false) ••• \n
 ••• kreisSek(r=10,grad=90,h=0,mitte=0,fn=fn,center=true,mirror=false,rev=0,t=[0,0],z) ••• \n
+••• sq (size=[10,10],fn=[10,10],diff=0,t=[0,0,0],z,center=true) ••• \n
+••• bend (points,r=0,t=[0,0,0],rev=false) ••• \n
+
 ");
     
 }
@@ -5828,7 +5917,10 @@ help
     }
     
     if(3D){
-      points=is_undef(points)?kreis(d=d,rand=0,fn=fn2):points;
+      points=is_undef(points)?kreis(d=d,rand=0,fn=fn2,z=0):
+                              len(points[0])==3?points:
+                                                [for(iPoint=points)concat(iPoint,0)];
+
       loop=len(points);
       path=[for (t=[min:((max-min)/fn):(max+(max-min)/fn)-((max-min)/fn)])Bezier(t,p0,p1,p2,p3)];
 
@@ -6126,28 +6218,40 @@ CubeFaces = [
 HelpTxt("Prisma",["x1",helpX1,",y1",helpY1,",z",z,"c1",c1,"s",s,"x2",helpX2,"y2",helpY2,"x2d",x2d,"y2d",y2d,"c2",c2,"vC",vC,"cRot",cRot,"fnC",fnC,",fnS",fnS,"center",center,"name",name],help);
 }
 
+//Spirale(center=0,end=false,diff=5,grad=360);
+//Spirale(center=0,end=false,diff=-10,scale=0.5,hull=false,grad=360)circle(1);
 
-
-module Spirale(grad=400*1,diff=2,radius=10,rand=n(2),$d,detail,fn=fn,exp=1,center=false,hull=true,end=2,old=false,name,help){
+module Spirale(grad=400*1,diff=2,radius=10,rand=n(2),$d,detail,fn=fn,exp=1,center=false,hull=true,end=2,old=false,scale=1,name,help){
    detail=fn;//compatibility
    advance=grad/detail; 
     rand=is_undef($d)?rand:$d;
     $d=rand;
     
- 
-points=!$children?center?[
+/*
+pointsOld=!$children?center?[
     for(i=[0:fn])RotLang(i*-grad/fn,diff/2/360*grad+radius-rand/2-pow(i*(diff/360*grad)/(fn),exp)),
     for(i=[fn:-1:0])RotLang(i*-grad/fn,diff/2/360*grad+radius+rand/2-pow(i*(diff/360*grad)/(fn),exp))]
     :[// center=false
 for(i=[0:fn])RotLang(i*-grad/fn,radius-rand/2-pow(i*(diff/360*grad)/(fn),exp)),
 for(i=[fn:-1:0])RotLang(i*-grad/fn,radius+rand/2-pow(i*(diff/360*grad)/(fn),exp))]
     :[0];// $children=true ⇒ deactivate point calculation
+*/
+
+path=[
+  for(i=[0:fn])RotLang(
+    i*-grad/fn, (center?diff/2/360*grad:0) + radius- pow(i*(diff/360*grad)/fn,exp) )
+];
+
+points=concat(
+  pathPoints(points=[[ rand/2,0]], path=path, 2D=true, scale=scale),
+  pathPoints(points=[[-rand/2,0]], path=path, 2D=true, scale=scale, rev=true),
+  );
 
 
 if(!$children&&!old)rotate(center?-grad/2:0)union(){
     rotate(-90) polygon(points);
-   if(end>0) rotate(0)T((center?diff/2/360*grad:0)+radius-pow(0*diff,exp))circle(d=rand,$fn=36);
-   if(end<0||end==2) rotate(grad)T((center?diff/2/360*grad:0)+radius-pow(grad/360*diff,exp))circle(d=rand,$fn=36);
+   if(b(end,false)>0) rotate(0)T((center?diff/2/360*grad:0)+radius-pow(0*diff,exp))circle(d=rand,$fn=36);
+   if(b(end,false)<0||end==2) rotate(grad)T((center?diff/2/360*grad:0)+radius-pow(grad/360*diff,exp))circle(d=rand*scale,$fn=36);
     
 }
 
@@ -6168,13 +6272,19 @@ if ($children)    for(i=[center?-grad/2:0:advance:(center?grad/2:grad)-minVal]){
         rotate(i)T(radius-pow(i/360*diff,exp))children();
         rotate(j)T(radius-pow(j/360*diff,exp))union(){$idx=j;children();} 
         } 
-      else rotate(i)T(radius-pow(i/360*diff,exp))children();
+      else {
+        if(i==0||i==-grad/2)rotate(i)T(radius-pow(i/360*diff,exp))children();
+        rotate(j)T(radius-pow(j/360*diff,exp))children();
+        
+      }
             
             
     }
  
-    lang=(radius*PI+((radius-diff)*PI))/360*grad;
- InfoTxt("Spirale",["Länge ca.",lang],name);
+    //langold=( 2*radius-diff )* PI/360*grad;echo(langold);
+    lang=pathLength(path);
+    randEnd=end==true||b(end,false)>0?rand/2 + (end==2?rand/2*scale :0) : 0;
+ InfoTxt("Spirale", ["Länge ",lang+randEnd ],name);
      
  HelpTxt("Spirale",[
    "grad",grad,
@@ -6189,6 +6299,7 @@ if ($children)    for(i=[center?-grad/2:0:advance:(center?grad/2:grad)-minVal]){
    "hull",hull,
    "end",end,
    "old",old,
+   "scale",scale,
    "name",name],
    help);
 }
@@ -6684,7 +6795,7 @@ $d=d;
 Echo("Coil using points - od, id, h or d can't compute",color="warning",condition=points&&od||points&&id);
 Echo("Coil intersecting",color="warning",condition=!points&&norm([(r-r2)/grad*360,pitch])<d);
 
-ipoints=is_undef(points)?kreis(d=d,rand=0,fn=fn2):points;
+ipoints=is_undef(points)?kreis(d=d,rand=0,fn=fn2,z=0):points;
 
 pitch=is_undef(h)?pitch:(h-d/2-d/2*scale)/grad*360;
 h=pitch*grad/360+d/2+d/2*scale;
