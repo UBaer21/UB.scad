@@ -56,15 +56,15 @@
         "edge" : "#d33682"
     },
     "keywords" : {
-        "keyword-custom1" : "Konstanten PI PHI inch gradC gw tw twF fs2fn h r r1 r2 d d1 d2 dia dn ir or id od opt center size grad deg rot x y z e es s f fn fn2 spiel height help wand rand rad bed info layer n nozzle name pPos printPos useVersion loop start end twist i j p0 p1 p2 p3 delta",
-        "keyword-custom2" : "Spezial true false undef b Hexstring parentList gcode is_parent stringChunk",
-        "keyword-custom3" : "NummerFunktionen line l Inkreis Umkreis Hypotenuse Kathete Sehne gradB gradS runden radiusS kreisbogen scaleGrad teiler wall vMult pathLength",
-        "keyword-custom4" : "Punktefunktionen path points RotLang bezier kreis nut 5gon zigZag TangentenP vollwelle vektorWinkel v3 m mPoints pathPoints tetra octa quad stern wStern superellipse star naca involute riemen",
+        "keyword-custom1" : "Konstanten index a angle v r r1 r2 d d1 d2 center size height twist slices path points faces convexity PI PHI inch gradC gw tw twF fs2fn h dia dn ir or id od opt grad deg rot x y z e es s f fa fn fn2 fs spiel help wand rand rad bed info layer n nozzle name pPos printPos useVersion loop lap start end i j p0 p1 p2 p3 delta",
+        "keyword-custom2" : "Spezial true false undef b Hexstring parentList gcode is_parent stringChunk scene t3",
+        "keyword-custom3" : "NummerFunktionen line l Inkreis Umkreis Hypotenuse Kathete Sehne gradB gradS runden radiusS kreisbogen scaleGrad teiler wall vMult vSum pathLength map",
+        "keyword-custom4" : "Punktefunktionen RotLang bezier kreis nut 5gon zigZag TangentenP vollwelle vektorWinkel v3 m mPoints pathPoints tetra octa quad stern wStern superellipse star naca involute riemen kreisSek sq bend",
         "keyword-custom5" : "Modifier T Tz R M Linear Polar Grid HexGrid Klon MKlon Halb Drehpunkt Rund Rand Scale",
         "keyword-custom6" : "Generator Rundrum LinEx LinEx2 RotEx Elipse Ttorus Bevel Row Roof",
         "keyword-custom7" : "Helper Col Color Cut Schnitt Anordnen SCT Caliper Points Echo InfoTxt HelpTxt 3Projection Pivot Line",
         "keyword-custom8" : "Objekte Ring RStern Kextrude Gewinde GewindeV3 Kontaktwinkel Bezier Laser3D Bogen SBogen VorterantQ Reuleaux Kugelmantel Kegel MK Kegelmantel Torus Torus2 Coil WaveEx Pille Strebe WStrebe Twins Kehle REcke HypKehle HypKehleD Text W5 Rohr Dreieck Freiwinkel Sinuskoerper Kassette Surface Box Spirale Prisma Ccube Disphenoid Zylinder Anschluss RingSeg Buchtung SpiralCut Isosphere OctaH PolyH",
-        "keyword-custom9" : "Polygone Kreis Trapez Tri Tri90 Quad Linse Bogendreieck Stern ZigZag Superellipse Flower Seg7 WStern WKreis RSternFill Cycloid SQ Vollwelle CycloidZahn Nut DBogen Pfeil Rosette GT Egg VarioFill Welle Area Sichel Tdrop Star NACA Involute Riemen",
+        "keyword-custom9" : "Polygone Kreis Trapez Tri Tri90 Quad Linse Bogendreieck Stern ZigZag Superellipse Flower Seg7 WStern WKreis RSternFill Cycloid SQ Vollwelle CycloidZahn Nut DBogen Pfeil DPfeil Rosette GT Egg VarioFill Welle Area Sichel Tdrop Star NACA Involute Riemen",
         "keyword-custom10" : "Produkte Gardena Servotraeger Knochen Glied DGlied SGlied DGlied0 DGlied1 Luer Bitaufnahme Imprint Achshalter Achsenklammer Vorterantrotor Tugel ReuleauxIntersect Glied3 Gelenk Balg Tring Servokopf Halbrund Riemenscheibe Cring PCBcase Klammer Pin CyclGetriebe CyclGear SRing DRing BB Abzweig GT2Pulley KBS",
         "keyword-custom11" : "Keyword11 doesnt work"
     }
