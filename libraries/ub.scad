@@ -118,7 +118,9 @@ Release
 152|22 ADD Schlaufe
 156|22 CHG Menu FIX Torus help FIX Torus2 help
 158|22 CHG Pin CHG RStern CHG Schlaufe
-160|22
+160|22 CHG Schlaufe UPD Ellipse UPD MO
+162|22 UPD Involute
+164|22 UPD Schlaufe
 */
 
 { /// Constants
@@ -203,7 +205,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.158;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.164;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -2293,7 +2295,8 @@ module Color(hue=0,alpha=1,v=1,l=0.5,spread=1,$idxON=true,name=0,help=false){
 
 /// missing object text
 module MO(condition=true,warn=false){
-Echo(str(parent_module(2)," has no children!"),color=warn?"warning":"red",condition=condition&&$parent_modules>1,help=false);    
+$idx=is_undef($idx)?false:$idx;
+Echo(str(parent_module(2)," has no children!"),color=warn?"warning":"red",condition=condition&&$parent_modules>1&&!$idx,help=false);    
 }
 
 
@@ -2889,8 +2892,10 @@ HelpTxt("Riemen",["r1",r1,"r2",r2,"tx",tx,"fn",fn,"center",center,"spiel",spiel,
 module Involute(r=10,s=1,grad=90,end=1,delta=0,delta2,center=true,oppose=false,centerP=false,fn=fn,name,help){
 
 fn=ceil(grad/360)*fn;
-deltai =is_undef(delta2)? delta/2:delta ;
-delta2=is_undef(delta2)?-delta:delta2;
+deltaList=delta;
+delta=is_list(delta)?delta[0]:delta;
+deltai =is_undef(delta2)&&is_num(deltaList)? delta/2:delta ;
+delta2=is_undef(delta2)&&is_num(deltaList)?-delta:is_list(deltaList)?deltaList[1]:delta2;
 grads=gradS(s=s,r=r);
 
 
@@ -4416,7 +4421,7 @@ Schlaufe()circle() creates a 3D loop with the child polygon
 //Schlaufe(end=1,grad2=150,l=30)circle($fn=6,r=2);
 
 
-module Schlaufe(grad=120,r=10,r2,mitte=0,grad2=0,l=0,h,lap=.001,center=true,edge=true,end=false,$messpunkt=false,name,help){
+module Schlaufe(grad=120,r=10,r2,mitte=0,grad2=0,l=0,h,lap=.001,center=true,edge=true,end=false,$messpunkt=false,name,help,$fn=0){
 
 end=is_list(end)?end:[end,end];
 
@@ -4458,10 +4463,13 @@ endDist2=[(-r1*sin(grad20)+y1+yh),(-r1*sin(grad21)+y1+yh)];//  enden abstand
 
 edge=grad2%180==0?0:edge;
 
-centerDist=norm([endDist,endDist*tan(grad2/2)]);
-cDl=grad2%180==0?0:centerDist;
+//centerDist=norm([endDist,endDist*tan(grad2/2)]);
+centerDist=[norm([endDist,endDist*tan(grad20)]),norm([endDist,endDist*tan(grad21)])];
 
-l=is_list(l)?l-cDl*[1,1]:[l,l]-cDl*[1,1];
+cDl=grad2>=180?[0,0]:centerDist;
+
+l=(is_list(l)?l:[l,l]) - (edge?cDl:[0,0]);
+
 if(h<minH)echo(str("h min",minH));
 if(grad-grad2/2==0)echo("r1  angle 0!");
 
@@ -4474,7 +4482,7 @@ pos=center?center==-1?[-h+r2,0]:
                               0]:
            [0,endDist];
 
-InfoTxt("Schlaufe",["endDist",str(endDist2,"/",[l[0]/tan(grad20),l[1]/tan(grad21)]+(endDist2)),"centerDist",centerDist+pos.x,"height",h,"r2center",h-r2+pos.x,"l",l],name);
+InfoTxt("Schlaufe",["endDist",str(endDist2,"/",[l[0]/tan(grad20),l[1]/tan(grad21)]+(endDist2)),"centerDist",centerDist+pos.x*[1,1],"height",h,"r2center",h-r2+pos.x,"l",l],name);
 
 grad3=180-(grad20+grad21);// winkel gamma
 //echo(grad3,grad20,grad21,vSum(endDist2));
@@ -4497,8 +4505,8 @@ $idx=true;
 $tab=is_undef($tab)?1:b($tab,false)+1;
 $info=false;
 
-if(end[0])T(0,-endDist2[0])rotate(-grad20)T(0,-max(0,l[0]))RotEx(cut=true)children();
-if(end[1])T(0,endDist2[1])rotate(+grad21)T(0,max(0,l[1]))RotEx(cut=true)children();
+if(end[0])T(0,-endDist2[0])rotate(-grad20)T(0,-max(0,l[0]))rotate(-90)RotEx(cut=true,center=true,grad=180+lap*2,fn=fn/4)children();
+if(end[1])T(0,endDist2[1])rotate(+grad21)T(0,max(0,l[1]))rotate(90)RotEx(cut=true,center=true,grad=180+lap*2,fn=fn/4)children();
 
   translate([x1,y1]){
     translate([0,yh])rotate(grad21){
@@ -6170,30 +6178,38 @@ module Laser3D(h=4,layer=10,var=0.002,name,on=-1){
 }
 
 
+
 module Ellipse(x=2,y=2,z=0,rand=1,fn=36,help){
   
+  
+  x=is_list(x)?x:[x,x];
+  y=is_list(y)?y:[y,y];
+  z=is_list(z)?z:[z,z];
   //ToDo z rot;
   //function rota(i)=-atan2(sin(i)*y,cos(i)*x)+90;
-  function rot(i)=atan2(cos(i)*x,sin(i)*y);
+  function rot(i)=
+    let(i=i%360)
+    atan2(cos(i)*(i>=180?x[0]:x[1]),sin(i)*(i>=90&&i<270?y[0]:y[1]));
+    
    for (n=[0:fn-1]){
      $idx=n;
      i=360/fn*n;
     j=i+360/fn;
      
      if($children)  Color(1/fn*n)hull(){
-           T(sin(i)*x,cos(i)*y,cos(i)*z)rotate(rot(i))children();   
+           T(sin(i)*(i>=180?x[0]:x[1]),cos(i)*(i>=90&&i<270?y[0]:y[1]),cos(i)*(i>=90&&i<270?z[0]:z[1]))rotate(rot(i))children();   
            union(){
              $idx=$idx+1;
-             T(sin(j)*x,cos(j)*y,cos(j)*z)rotate(rot(j))children();   
+             T(sin(j)*(i>=180?x[0]:x[1]),cos(j)*(i>=90&&i<270?y[0]:y[1]),cos(j)*(i>=90&&i<270?z[0]:z[1]))rotate(rot(j))children();   
            }
        }
      if(!$children)hull(){
-           T(sin(i)*x,cos(i)*y,cos(i)*z)rotate(rot(i))circle(rand/2,$fn=36);   
-           T(sin(j)*x,cos(j)*y,cos(j)*z)rotate(rot(j))circle(rand/2,$fn=36);   
+           T(sin(i)*(i>=180?x[0]:x[1]),cos(i)*(i>=90&&i<270?y[0]:y[1]))rotate(rot(i))circle(rand/2,$fn=36);   
+           T(sin(j)*(i>=180?x[0]:x[1]),cos(j)*(i>=90&&i<270?y[0]:y[1]))rotate(rot(j))circle(rand/2,$fn=36);   
        }  
        
    }
-  MO(!$children);
+  MO(!$children,warn=true);
   HelpTxt("Ellipse",["x",x,"y",y,"z",z,"rand",rand,"fn",fn],help);
 }
 
@@ -6466,14 +6482,26 @@ HelpTxt("Ttorus",[
   "fn=",fn],help);    
 }
 
+/** \page Modifier
+\name Kontaktwinkel
+Kontaktwinkel(d=1)Torus(d=$d,winkel=60); cuts children at contact angle 
 
-module Kontaktwinkel(winkel=50,d,baseD,r,center=true,2D=0,inv=false,centerBase=0,name,help){
+\param winkel contact angle
+\param d r   diameter/radius of children
+\param baseD calculates d for desired base diameter
+\param center cut both sides if true
+\param 2D     cuts 2D 
+\param inv    inverts cut
+\param centerBase move Object so cut is at center if true
+*/
+
+module Kontaktwinkel(winkel=50,d,baseD,r,center=false,2D=0,inv=false,centerBase=0,name,help){
 grad=-winkel+90;
 d=is_num(baseD)?(baseD/2)/sin(winkel)*2:is_undef(r)?is_undef(d)?0:d:2*r;
 
-h=sin(grad)*d/2;
+h=assert(d,"baseD or d or r not set!")sin(grad)*d/2;
 b=sqrt(pow(d/2,2)-pow(h,2));    
-viewportSize=is_undef(viewportSize)?1000:max(d*2,viewportSize);
+viewportSize=is_undef(viewportSize)?1000:max(d*2,100,viewportSize);
 
 
 centerBase=b(centerBase,false);
