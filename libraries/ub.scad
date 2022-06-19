@@ -121,6 +121,9 @@ Release
 160|22 CHG Schlaufe UPD Ellipse UPD MO
 162|22 UPD Involute
 164|22 UPD Schlaufe
+166|22 FIX Schlaufe
+168|22 ADD PrevPos
+170|22 FIX Torus Fix Rundrum
 */
 
 { /// Constants
@@ -205,7 +208,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.164;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.170;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -311,10 +314,12 @@ function 5gon(b1=20,l1=15,b2=10,l2=30)=[[0,0],[b1,l1],[b2,l2],[-b2,l2],[-b1,l1]]
 function ZigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)=zigZag(e,x,y,mod,delta,base,shift);
 function zigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)=[for(i=[0:e*mod])[i%mod<mod/2+delta?i*x/(e*mod):i*x/(e*mod)+shift,i%mod<mod/2+delta?base:y],[x,0],[0,0]];
 
+
+function tangentenP(grad=60,rad=20,r=0)=TangentenP(grad,rad,r);
 function TangentenP(//Tangenten schnittpunkt ab Kreis mit radius rad
 grad=150, // Winkel der Tangenten
 rad=20, // Kreis radius
-r=0// Kreislinien abstand von 0 
+r=0// Kreislinien abstand von 0 (radius für Kreise)
 )=
     let(
     c=sin(abs(grad)/2)*rad*2,//  Sekante 
@@ -1141,6 +1146,7 @@ echo    ("•••••••••• Helper:   •••••••••�
 • HelpTxt(help=1) output helptxt \n
 • Echo(help=1) output txt \n
 • 3Projection(help=1) projects child along axis \n
+• PrevPos(help=1) moves only for preview \n
   
   ");
 }
@@ -1995,9 +2001,23 @@ MO(!$children);
 }// /ΔΔ Modificatoren ΔΔ/ //
 { // \∇∇ Helper ∇∇/ // (not for creating geometry or objects)
 
+/** \page Helper
+PrevPos() object position Object for preview only
+\name PrevPos
+\param t translate 
+\param rot rotates
+*/
 
+module PrevPos(on=true,t=[0,0,0],rot=[180,0,0],help){
+if($preview&&on||on==2)translate(v3(t))rotate(v3(rot))children();
+else children();
 
+Echo("Render with PrevPos!",color="warning",condition=on==2);
 
+MO(!$children);
+
+HelpTxt("PrevPos",["on",on,"t",t,"rot",rot],help);
+};
 
 
 
@@ -4418,7 +4438,7 @@ Schlaufe()circle() creates a 3D loop with the child polygon
 
 //Schlaufe($messpunkt=true,center=-1)circle();
 
-//Schlaufe(end=1,grad2=150,l=30)circle($fn=6,r=2);
+//Schlaufe(end=1,grad2=[80,-5],l=[+0,5],r=20,h=61,edge=false,center=+1)circle($fn=6,r=2);
 
 
 module Schlaufe(grad=120,r=10,r2,mitte=0,grad2=0,l=0,h,lap=.001,center=true,edge=true,end=false,$messpunkt=false,name,help,$fn=0){
@@ -4439,17 +4459,25 @@ r1=is_list(r)?r[0]:
 
 grad=max(grad2/2,grad);
 
+r10=r1;
+r20=r2;
+r11=r1;
+r21=r2;
 
 gradR1=grad;
+gradR10=grad;
+gradR11=grad;
+
 gradR2=grad;
 
-x1=r1*cos(grad20);
-y1=r1*sin(grad)+r2*sin(grad)+mitte/2;
+x1=r10*cos(grad20);
+x12=r11*cos(grad21);
+y1=r10*sin(grad)+r20*sin(grad)+mitte/2;
 
-minH=x1-r1*cos(gradR1)-cos(gradR2)*r2+r2;
+minH=x1-r10*cos(gradR10)-cos(gradR2)*r20+r20;
 
 h=is_undef(h)?minH:h; // höhe
-hDelta=h-(x1-r1*cos(gradR1)-cos(gradR2)*r2+r2); // hight diff for r2 to be at h
+hDelta=h-(x1-r10*cos(gradR10)-cos(gradR2)*r20+r20); // hight diff for r2 to be at h
 
 l2=grad!=180?norm([hDelta,hDelta/tan(grad)]):hDelta;// h extension
 
@@ -4458,13 +4486,13 @@ yh=cos(grad)*l2;// h y delta
 
 //xMitte=x1-r1*cos(gradR1)-cos(gradR2)*r2+r2+hx;// center extrude x distance
 
-endDist=(-r1*sin(grad20)+y1+yh);// halber enden abstand
-endDist2=[(-r1*sin(grad20)+y1+yh),(-r1*sin(grad21)+y1+yh)];//  enden abstand
+//endDist=(-r1*sin(grad20)+y1+yh);// halber enden abstand
+endDist2=[(-r10*sin(grad20)+y1+yh),(-r11*sin(grad21)+y1+yh)];//  enden abstand
 
 edge=grad2%180==0?0:edge;
 
 //centerDist=norm([endDist,endDist*tan(grad2/2)]);
-centerDist=[norm([endDist,endDist*tan(grad20)]),norm([endDist,endDist*tan(grad21)])];
+centerDist=[norm([endDist2[0],endDist2[0]*tan(grad20)]),norm([endDist2[1],endDist2[1]*tan(grad21)])];
 
 cDl=grad2>=180?[0,0]:centerDist;
 
@@ -4490,6 +4518,8 @@ centerDistB=(vSum(endDist2)/sin(grad3)) * sin(grad21); // end0↦pC
 pC=RotLang(grad20,centerDistB)-[0,endDist2[0]];
 
 
+
+
 translate(pos){
 Pivot(p0=[h-r2,0],active=[1,0,0,1,0,1],txt="M2");
 Pivot(p0=[x1,y1],active=[1,0,0,1,0,1],txt="M1");
@@ -4506,15 +4536,15 @@ $tab=is_undef($tab)?1:b($tab,false)+1;
 $info=false;
 
 if(end[0])T(0,-endDist2[0])rotate(-grad20)T(0,-max(0,l[0]))rotate(-90)RotEx(cut=true,center=true,grad=180+lap*2,fn=fn/4)children();
-if(end[1])T(0,endDist2[1])rotate(+grad21)T(0,max(0,l[1]))rotate(90)RotEx(cut=true,center=true,grad=180+lap*2,fn=fn/4)children();
+if(end[1])T(x1-x12,endDist2[1])rotate(+grad21)T(0,max(0,l[1]))rotate(90)RotEx(cut=true,center=true,grad=180+lap*2,fn=fn/4)children();
 
   translate([x1,y1]){
     translate([0,yh])rotate(grad21){
-      rotate_extrude(angle=gradR1-grad21)translate([-r1,0])children();// r1
-      if(l[1]>0)color("green")translate([-r1,l[1]])rotate([90])linear_extrude(l[1]+lap,center=false,convexity=5)children();//l[1]
-      if(l2)color("green")rotate(gradR1-grad21)translate([-r1,lap])rotate([90])linear_extrude(l2+lap*2,center=false,convexity=5)children();//l2
+      rotate_extrude(angle=gradR11-grad21)translate([-r11,0])children();// r1
+      if(l[1]>0)color("green")translate([-r11,l[1]])rotate([90])linear_extrude(l[1]+lap,center=false,convexity=5)children();//l[1]
+      if(l2)color("green")rotate(gradR11-grad21)translate([-r11,lap])rotate([90])linear_extrude(l2+lap*2,center=false,convexity=5)children();//l2
     }
-    translate([hDelta,0])rotate(gradR1)translate([-r1-r2,0])rotate((l2?0:lap))rotate_extrude(angle=-gradR2-(l2?0:lap)-(mitte?0:lap/2))translate([r2,0]){
+    translate([hDelta,0])rotate(gradR11)translate([-r11-r21,0])rotate((l2?0:lap))rotate_extrude(angle=-gradR2-(l2?0:lap)-(mitte?0:lap/2))translate([r21,0]){
     $idx=false;
     $info=name;
     children();
@@ -4525,11 +4555,11 @@ if(end[1])T(0,endDist2[1])rotate(+grad21)T(0,max(0,l[1]))rotate(90)RotEx(cut=tru
 
   translate([x1,-y1]){
     translate([0,-yh])rotate(-grad20){
-      rotate_extrude(angle=-gradR1+grad20)translate([-r1,0])children();//r1
+      rotate_extrude(angle=-gradR10+grad20)translate([-r10,0])children();//r1
       if(l[0]>0)color("orange")translate([-r1,+lap])rotate([90])linear_extrude(l[0]+lap,center=false,convexity=5)children();//l[0]
-      if(l2)color("orange")rotate(-gradR1+grad20)translate([-r1,l2+lap])rotate([90])linear_extrude(l2+lap*2,center=false,convexity=5)children();//l2
+      if(l2)color("orange")rotate(-gradR10+grad20)translate([-r10,l2+lap])rotate([90])linear_extrude(l2+lap*2,center=false,convexity=5)children();//l2
     }
-    translate([hDelta,0])rotate(-gradR1)translate([-r1-r2,0])rotate(l2?0:-lap)rotate_extrude(angle=gradR2+(l2?0:lap)+(mitte?0:lap/2))translate([r2,0])children();
+    translate([hDelta,0])rotate(-gradR10)translate([-r10-r20,0])rotate(l2?0:-lap)rotate_extrude(angle=gradR2+(l2?0:lap)+(mitte?0:lap/2))translate([r20,0])children();
   }
 }
 
@@ -4792,7 +4822,7 @@ else T(-shiftx/2*0){
             $info=0;
             $idx=i*2+1;
             //rotate(i*stepDeg+180/eck)T(x) R(-90)linear_extrude(l[0]+lap,center=false,twist=twist/eck,$fn=fn,convexity=5)rotate(+twist/eck+i*(twist/eck))children();
-            rotate(i*stepDeg+180/eck)T(x,l[0]) R(90)linear_extrude(vSum(l)+lap,center=false,twist=twist/eck,$fn=fn,convexity=5)rotate(+twist/eck+i*(twist/eck))children();
+            rotate(i*stepDeg+180/eck)T(x,l[0]+lap) R(90)linear_extrude(vSum(l)+lap*2,center=false,twist=twist/eck,$fn=fn,convexity=5)rotate(+twist/eck+i*(twist/eck))children();
         }
     }
     
@@ -4808,6 +4838,19 @@ MO(!$children);
   
 HelpTxt("Rundrum",["x",x,"y",y,"r",r,"eck",eck,"twist",twist,"grad",grad,"lap",lap,"fn",fn,"name",name],help);    
 }
+
+/** \page Objects
+Torus() creates a torus with optional child();
+
+\param trx radius torus
+\param d,r   diameter or radius rim (use $d,$r in children)
+\param a,grad   angle torus
+\param fn,fn2 fragments
+\param dia  outer diameter torus optional to trx
+\param end  add Ends
+\param trxEnd,gradEnd  end Torus radius and angle
+\param lap  overlap of extrusions 
+*/
 
 
 
@@ -4836,7 +4879,7 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gr
                   0){
      $idx=true;
      $info=is_undef(name)?is_undef($info)?false:$info:name;
-      translate([0,0,center?0:d/2]) RotEx(grad=a,fn=fn,cut=1,help=false){
+      translate([0,0,center?0:d/2])rotate(end?-lap:0) RotEx(grad=end?a+lap*2:a,fn=fn,cut=1,help=false,center=0){
         $idx=0;
         $tab=is_undef($tab)?1:b($tab,false)+1;
         if($children)T(x=trx)R(0,0,r)children();
@@ -4860,7 +4903,7 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gr
               RotEx(grad=(gradEnd+lap)*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
               if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/4,help=false)rotate(endRot[0])children();
               }
-         rotate(180+grad-lap*0)T(-trx+trxEnd)rotate(180+lap){
+         rotate(180+grad-lap*0)T(-trx+trxEnd)rotate(180-lap){
               RotEx(grad=(gradEnd+lap)*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
               if(end)rotate((gradEnd+lap)*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/4,help=false)rotate(endRot[1])children();
               } 
@@ -4870,7 +4913,7 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gr
               RotEx(grad=(gradEnd+lap)*sign(trxEnd),fn=fn/360*gradEnd,cut=+0)T(trxEnd)circle(d=d,$fn=fn2);
               if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,help=false)circle(d=d,$fn=fn2);
               }
-         rotate(180+grad)T(-trx+trxEnd)rotate(180+lap){
+         rotate(180+grad)T(-trx+trxEnd)rotate(180-lap){
               RotEx(grad=(gradEnd+lap)*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)circle(d=d,$fn=fn2);
               if(end)rotate((gradEnd+lap)*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,help=false)circle(d=d,$fn=fn2);
               }  
