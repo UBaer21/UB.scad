@@ -9,7 +9,7 @@
 
 /** \mainpage
  * ##Open SCAD library www.openscad.org 
- * **Author:** ulrich.baer+openscad@gmail.com (mail me if you need help - i am happy to assist)
+ * **Author:** ulrich.baer+UBscad@gmail.com (mail me if you need help - i am happy to assist)
 
 Copy this file into your libaries directory (File » show Libraries)
 [https://en.wikibooks.org/wiki/OpenSCAD_User_Manual/Libraries]
@@ -123,7 +123,10 @@ Release
 164|22 UPD Schlaufe
 166|22 FIX Schlaufe
 168|22 ADD PrevPos
-170|22 FIX Torus Fix Rundrum
+170|22 FIX Torus FIX Rundrum
+172|22 UPD Rund FIX Spirale
+174|22 UPD kreis ADD polyRund PolyRund PolyDeg
+176|22 CHG stern
 */
 
 { /// Constants
@@ -208,7 +211,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.170;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.176;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -263,7 +266,7 @@ is_list(p)?p[0]*(omt2*omt) + p[1]*(3*omt2*t) + p[2]*(3*omt*t2) + p[3]*(t2*t):
            p0*(omt2*omt) + p1*(3*omt2*t) + p2*(3*omt*t2) + p3*(t2*t);
 
 function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=kreis(r,rand,grad,grad2,fn,center,sek,r2,rand2,rcenter,rot,t);
-function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d,endPoint=true)=
+function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d,endPoint=true,fs)=
 let (
 grad2=is_undef(grad2)?grad:grad2,
 r=is_num(d)?rcenter?(d+rand)/2:d/2:
@@ -272,7 +275,7 @@ rand2=is_undef(rand2)?rand:rand2,
 r2=r2?
     rcenter?r2+rand2/2:r2
     :r,
-fn=max(1,floor(abs(fn))),
+fn=is_undef(fs)?max(1,floor(abs(fn))):max(abs(grad)<180?1:abs(grad)==360?3:2,ceil(abs(PI*r*2/360*grad/max(fs,0.001)))),
 step=grad/fn,
 step2=grad2/fn,
 t=is_list(t)?t:[t,0],
@@ -374,7 +377,7 @@ function gradC(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)=grad+h/24*360+min/6
 
 function inch(inch=1)=inch*25.4;
 function kreisbogen(r,grad=360)=PI*r*2/360*grad;
-function fs2fn(r,grad=360,fs=fs,minf=3)=max(minf,PI*r*2/360*grad/fs);
+function fs2fn(r,grad=360,fs=fs,minf=3)=max(minf,PI*r*2/360*grad/max(fs,0.001));
 function clampToX0(points,interval=minVal)=is_list(points[0])?[for(e=points)[abs(e[0])>interval?e[0]:0,e[1]]]:
     [abs(points[0])>interval?points[0]:0,points[1]];
   
@@ -649,15 +652,27 @@ Points(points,loop=(fn+4)*3,start=(fn+4)*5,hull=0);
 // */
 
 
+/** \page Functions
+stern() creates points for a star shape
+\name stern
+\param e= number of tips
+\param r1 tip radius
+\param r2 groove radius
+\param mod add points
+\param delta shifts junction of r1 to r2 to next point
+*/
+
+//polygon(stern(mod=9,delta=-1));
+
 function stern (e=5,r1=10,r2=5,mod=2,delta=+0,z)=
 let(
   schritt=360/(e*mod))
   is_num(z)?
-    [for(i=[0:e*mod])
+    [for(i=[0:e*mod-1])
     i%mod<mod/2+round(delta)?[sin(i*schritt%360)*r1,cos(i*schritt%360)*r1,z]:
                              [sin(i*schritt%360)*r2,cos(i*schritt%360)*r2,z]
     ]:
-    [for(i=[0:e*mod])
+    [for(i=[0:e*mod -1])
       i%mod<mod/2+round(delta)?[sin(i*schritt%360)*r1,cos(i*schritt%360)*r1]:
                                [sin(i*schritt%360)*r2,cos(i*schritt%360)*r2]
     ];
@@ -1054,7 +1069,25 @@ function map(val=$t,from=[0,1],to=[0,1],constrain=true)=
   
   
   
-  
+function polyRund(points,r=0,ir,ofs=0,fn=12,fs)=
+[for(p=[0:len(points)-1])
+let(
+      ir=is_undef(ir)?r:ir,
+      lp=len(points),
+      pBef=points[(p+lp-1)%lp],
+      pNow=points[p],
+      pNex=points[(p+1)%lp],
+      grad1=atan2(pBef.x-pNow.x,pBef.y-pNow.y),
+      grad2=atan2(pNex.x-pNow.x,pNex.y-pNow.y),
+      gradDiff=grad1-grad2,
+      grad=gradDiff<0?abs(gradDiff):360-gradDiff,
+      gradSup=360-grad,
+      tPgrad=grad2+gradSup/2,
+      r=is_num(r)?(grad<180?-max(r,-ofs) : max(ir,-ofs)):max(r[p%len(r)],-ofs)*(grad<180?-1:1),
+      tP=[sin(tPgrad),cos(tPgrad)]*tangentenP(grad=gradSup-180,r=r,rad=r)*(grad<180? -1:+1)
+   )
+each kreis(r=r+ofs,rand=0,rot=grad1+90,grad=(grad-180),t=pNow+tP,center=false,z=pNow.z,fn=fn,fs=fs)
+];
   
   
   
@@ -1147,6 +1180,7 @@ echo    ("•••••••••• Helper:   •••••••••�
 • Echo(help=1) output txt \n
 • 3Projection(help=1) projects child along axis \n
 • PrevPos(help=1) moves only for preview \n
+• PolyDeg(help=1) show angle in points (2D)\n
   
   ");
 }
@@ -1214,6 +1248,7 @@ echo    ("
 ••• bend (points,r=0,t=[0,0,0],rev=false) ••• \n
 ••• scene (scenes,t) ••• \n
 ••• map (val,from,to=[0,1],constrain=true) ••• \n
+••• polyRund(points,r,ir,ofs,fn,fs) round and offset input points••• \n
 
 ");
     
@@ -1306,6 +1341,7 @@ echo    ("•••••• Polygons ••••••\n
 •• NACA(help=1);\n
 •• Involute(help=1);\n
 •• Riemen(help=1);\n
+•• PolyRund(help=1);\n
 
 ");
 }
@@ -1978,10 +2014,17 @@ if(center)
     HelpTxt("Rand",["rand",rand,"center",center,"fn",fn,"delta",delta,"chamfer",chamfer],help);
 }
 
-
+/** \page Polygon
+Rund() polygon rounds a polygon via offset
+\param or  outer radius
+\param ir inner radius outer radius is used if undef
+\param chamfer use chamfer
+\param fn fragments
+\param fs fragmentsize
+*/
 //Rund(1,2)Star();
 
-module Rund(or=+0,ir,chamfer=false,fn,fs=$preview?.3:fs) {
+module Rund(or=+0,ir,chamfer=false,fn,fs=$preview?.3:fs,help) {
     
     ir=is_undef(ir)?is_list(or)?or[1]:or:ir;
     or=is_list(or)?or[0]:or;
@@ -1995,11 +2038,58 @@ module Rund(or=+0,ir,chamfer=false,fn,fs=$preview?.3:fs) {
               offset(delta = -ir,chamfer=chamfer)offset(delta = ir,chamfer=chamfer) 
        children();
 MO(!$children);
+HelpTxt("Rund",["or",or,"ir",ir,"chamfer",chamfer,"fn",fn,"fs",fs],help);
 }
 
 
 }// /ΔΔ Modificatoren ΔΔ/ //
 { // \∇∇ Helper ∇∇/ // (not for creating geometry or objects)
+
+
+/** \page Helper
+PolyDeg(points)  shows the angle with colors in a polygon
+\name PolyDeg
+\param points points
+\param rad radius of marker
+\param poly  draw polygon from points
+\param txt  anotation angle
+*/
+module PolyDeg(points,rad=5,poly=true,txt=true,help){
+
+c=[
+"darkOrange",
+"Chartreuse",
+"LightSkyBlue",
+"SteelBlue",
+];
+
+HelpTxt("PolyDeg",["points",points,"rad",rad,"poly",poly,"txt",txt],help);
+
+Echo("No Points",color="redring",condition=!is_list(points[2]));
+if(is_list(points[2])&&poly)polygon(points,convexity=5);
+
+if(is_list(points[2]))
+  for(p=[0:len(points)-1])translate(points[p]) {
+    let(
+          offset=0,
+          pBef=points[(p+len(points)-1)%len(points)],
+          pNow=points[p],
+          pNex=points[(p+1)%len(points)],
+          grad1=atan2(pBef.x-pNow.x,pBef.y-pNow.y),
+          grad2=atan2(pNex.x-pNow.x,pNex.y-pNow.y),
+          gradDiff=grad1-grad2,
+          grad=gradDiff<0?abs(gradDiff):360-gradDiff,
+          gradSup=360-grad
+       )
+    %Tz(.1)union(){
+      color(abs(grad)%90?abs(grad)>90?abs(grad)>180?c[3]:c[2]:c[0]:c[1])polygon(kreis(r=rad,grad=grad,rot=grad1,center=false,rand=rad/5));
+      color(abs(gradSup)%90?abs(gradSup)>90?abs(gradSup)>180?c[3]:c[2]:c[0]:c[1])polygon(kreis(r=rad,grad=gradSup,rot=grad2,center=false,rand=-rad/5));
+
+      if(txt)color(abs(gradSup)%90?abs(gradSup)>90?abs(gradSup)>180?c[3]:c[2]:c[0]:c[1])text(str(gradSup,"° "),size=b(txt,false),halign="right");
+      if(txt)color(abs(grad)%90?abs(grad)>90?abs(grad)>180?c[3]:c[2]:c[0]:c[1])text(str(grad,"°"),size=b(txt,false));
+    }
+  }
+}
 
 /** \page Helper
 PrevPos() object position Object for preview only
@@ -2674,6 +2764,23 @@ module Pivot(p0=[0,0,0],size,active=[1,1,1,1,1,1],messpunkt,txt,rot=0,vpr=$vpr,h
 } // \ΔΔ Helper   ΔΔ\ \\
 { // \∇∇ Polygons ∇∇/ //
 
+
+/** \page Polygon
+PolyRund([[0,1],[10,20],[-50,50]],r=5); creates a rounded polygon
+\param points the points of polygon
+\param r  the rounding radius (list optional)
+\param ir radius of inner corners (if r is not a list)
+\param ofs offset for the polygon
+\param fn,fs  fragments, fragment size
+\param help help
+*/
+module PolyRund(points,r=0,ir,ofs=0,fn,fs=fs,help){
+
+Echo("No Points",color="redring",condition=!is_list(points[2]));
+if(is_list(points[2]))polygon(polyRund(points,r=r,ir=ir,ofs=ofs,fn=fn,fs=is_undef(fn)?fs:undef),convexity=5);
+HelpTxt("PolyRund",["points",points,"r",r,"ir",ir,"ofs",ofs,"fn",fn,"fs",fs],help);
+}
+
 /** \page Polygons
 WStern() a sin wave star
 \name WStern()
@@ -3114,15 +3221,35 @@ HelpTxt("VarioFill",[
 
 }
 
+/** \page Polygon
+Kreis() creates a circle polygon
+\name Kreis
+\param r radius
+\param rand rim
+\param grad angle
+\param grad2 optional rim angle
+\param fn fragments
+\param center center (angle <360)
+\param sek  secant or center point (angle <360)
+\param r2  y radius for oval
+\param rcenter rim center
+\param rot rotate circle
+\param t   translate circle
+\param name name for circle
+\param help help
+\param d diameter optional to r = d↦r
+\param b optional to grad, L of the circular arc
+\param fs fragment size optional to fn fs↦fn
 
+*/
 
-module Kreis(r=10,rand=0,grad=360,grad2,fn=fn,center=true,sek=false,r2=0,rand2,rcenter=0,rot=0,t=[0,0],name,help,d,b){
+module Kreis(r=10,rand=0,grad=360,grad2,fn=fn,center=true,sek=false,r2=0,rand2,rcenter=0,rot=0,t=[0,0],name,help,d,b,fs){
     r=is_undef(d)?r:d/2;
     d=2*r;
     grad=is_undef(b)?grad:r==0?0:b/(2*PI*r)*360;
     b=2*r*PI*grad/360;
     
-   polygon( kreis(r=r,rand=rand,grad=grad,grad2=grad2,fn=fn,center=center,sek=sek,r2=r2,rand2=rand2,rcenter=rcenter,rot=grad==360?center?rot:rot+90:center?rot+180:rot+90,t=t),convexity=5);
+   polygon( kreis(r=r,rand=rand,grad=grad,grad2=grad2,fn=fn,center=center,sek=sek,r2=r2,rand2=rand2,rcenter=rcenter,rot=grad==360?center?rot:rot+90:center?rot+180:rot+90,t=t,fs=fs),convexity=5);
    
     
     HelpTxt("Kreis",["r",r,"rand",rand,"grad",grad,"grad2",grad2,"fn",fn,"center",center,"sek",sek,"r2",r2,"rand2",rand2,"rcenter",rcenter,"rot",rot,"t",t,"name",name,"d",d,", b",b],help);
@@ -6837,7 +6964,7 @@ path=[
 
 points=concat(
   pathPoints(points=[[ rand/2,0]], path=path, 2D=true, scale=scale),
-  pathPoints(points=[[-rand/2,0]], path=path, 2D=true, scale=scale, rev=true),
+  pathPoints(points=[[-rand/2,0]], path=path, 2D=true, scale=scale, rev=true)
   );
 
 
