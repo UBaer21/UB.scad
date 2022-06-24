@@ -127,6 +127,7 @@ Release
 172|22 UPD Rund FIX Spirale
 174|22 UPD kreis ADD polyRund PolyRund PolyDeg
 176|22 CHG stern
+178|22 FIX polyRund UPD PolyRund FIX DPfeil
 */
 
 { /// Constants
@@ -211,7 +212,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.176;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.178;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -1072,6 +1073,8 @@ function map(val=$t,from=[0,1],to=[0,1],constrain=true)=
 function polyRund(points,r=0,ir,ofs=0,fn=12,fs)=
 [for(p=[0:len(points)-1])
 let(
+      fn=is_list(fn)?fn[p%len(fn)]:fn,
+      fs=is_list(fs)?fs[p%len(fs)]:fs,
       ir=is_undef(ir)?r:ir,
       lp=len(points),
       pBef=points[(p+lp-1)%lp],
@@ -1083,10 +1086,10 @@ let(
       grad=gradDiff<0?abs(gradDiff):360-gradDiff,
       gradSup=360-grad,
       tPgrad=grad2+gradSup/2,
-      r=is_num(r)?(grad<180?-max(r,-ofs) : max(ir,-ofs)):max(r[p%len(r)],-ofs)*(grad<180?-1:1),
+      r=(is_num(r)?(grad<180?-max(r,abs(ofs)) : max(ir,abs(ofs))):max(r[p%len(r)],abs(ofs))*(grad<180?-1:1)),
       tP=[sin(tPgrad),cos(tPgrad)]*tangentenP(grad=gradSup-180,r=r,rad=r)*(grad<180? -1:+1)
    )
-each kreis(r=r+ofs,rand=0,rot=grad1+90,grad=(grad-180),t=pNow+tP,center=false,z=pNow.z,fn=fn,fs=fs)
+each kreis(r=r-ofs,rand=0,rot=grad1+90,grad=(grad-180),t=pNow+tP,center=false,z=pNow.z,fn=fn,fs=fs)
 ];
   
   
@@ -2054,7 +2057,7 @@ PolyDeg(points)  shows the angle with colors in a polygon
 \param poly  draw polygon from points
 \param txt  anotation angle
 */
-module PolyDeg(points,rad=5,poly=true,txt=true,help){
+module PolyDeg(points,rad=1,poly=true,txt=true,help){
 
 c=[
 "darkOrange",
@@ -2772,12 +2775,24 @@ PolyRund([[0,1],[10,20],[-50,50]],r=5); creates a rounded polygon
 \param ir radius of inner corners (if r is not a list)
 \param ofs offset for the polygon
 \param fn,fs  fragments, fragment size
+\param messpunkt show points and radii
 \param help help
 */
-module PolyRund(points,r=0,ir,ofs=0,fn,fs=fs,help){
+
+//PolyRund([[0,1],[10,20],[-50,50]],r=[2]);
+
+
+module PolyRund(points,r=0,ir,ofs=0,fn,fs=fs,messpunkt=false,help){
 
 Echo("No Points",color="redring",condition=!is_list(points[2]));
 if(is_list(points[2]))polygon(polyRund(points,r=r,ir=ir,ofs=ofs,fn=fn,fs=is_undef(fn)?fs:undef),convexity=5);
+%Tz(.1)if(messpunkt!=false&&is_list(r))
+  for(p=is_num(messpunkt)?abs(messpunkt)%len(points):[0:len(points)-1])translate(points[p])
+    let(p=p%len(r)){
+    Color("darkOrange")Kreis(r=r[p],rand=min(.25,r[p]/10),name=0);
+    Color("Orange")DPfeil(r[p]*2,b=min(.25,r[p]/10),name=0,txt=true);
+    Color("chartreuse")text(str("№ ",p),size=1,halign="center",valign="center");
+  }
 HelpTxt("PolyRund",["points",points,"r",r,"ir",ir,"ofs",ofs,"fn",fn,"fs",fs],help);
 }
 
@@ -3664,10 +3679,10 @@ if(!d)T(center?0:l[0]/2)MKlon((l[0]-lP[1]*2)/2)Pfeil(l=lP-[txtL/2,0],b=b,shift=s
 
 if(d)T(y=center?0:d/2)MKlon(mx=1)rotate(-gradB(b=min(lP[0],PI*d/2-lP[1]),r=d/2))Pfeil(l=[min(lP[0]-txtL/2,PI*d/2-lP[1]-txtL/2),lP[1]],b=b,shift=shift,grad=grad,d=d,center=true,name=name,help=false);
 
-if(txt)T(center?0:d?[0,d/2]:l[0]/2)Text(h=0,text=txt,size=b[1],center=true,cy=d?false:true,radius=d?d/2-b[1]/2:0,viewPos=false);
+if(txt)T(center?0:d?[0,d/2]:l[0]/2)Text(h=0,text=txt,size=b[1],center=true,cy=d?false:true,radius=d?d/2-b[1]/2:0,viewPos=false,name=false);
 
 //InfoTxt("DPfeil",["Winkel",2*atan((b[1]/2)/(l[1]-shift[0]))],name);    
-*HelpTxt("DPfeil",[   
+HelpTxt("DPfeil",[   
     "l",l,
     "b",b,
     "shift",shift,
