@@ -128,6 +128,8 @@ Release
 174|22 UPD kreis ADD polyRund PolyRund PolyDeg
 176|22 CHG stern
 178|22 FIX polyRund UPD PolyRund FIX DPfeil
+180|22 ADD revP UPD polyRund PolyRund CHG sq
+181|22 FIX polyRund
 */
 
 { /// Constants
@@ -212,7 +214,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.178;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.181;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -988,21 +990,21 @@ function sq (size=[10,10],fn=[10,10],diff=0,t=[0,0,0],z,center=true)=
   let (
     x=is_list(size)?size[0]:size,
     y=is_list(size)?size[1]:size,
-    fnx=is_list(fn)?fn[0]:fn,
-    fny=is_list(fn)?fn[1]:fn,
+    fnx=max(1,is_list(fn)?fn[0]:fn),
+    fny=max(1,is_list(fn)?fn[1]:fn),
     diff=is_list(diff)?diff:[diff,diff,diff,diff],
     t=center?t:size/2+t,
     points=is_undef(z)?[
-    for(i=[0:fnx])[-x/2+x/fnx*i,-y/2+i%2*-diff[0]]+t,
-    for(i=[0:fny])[x/2+i%2*diff[1],-y/2+y/fny*i]+t,
-    for(i=[0:fnx])[x/2-x/fnx*i,y/2+i%2*diff[2]]+t,
-    for(i=[0:fny])[-x/2-i%2*diff[3],y/2-y/fny*i]+t
+    for(i=[0:fnx-1])[-x/2+x/fnx*i,-y/2+i%2*-diff[0]]+t,
+    for(i=[0:fny-1])[x/2+i%2*diff[1],-y/2+y/fny*i]+t,
+    for(i=[0:fnx-1])[x/2-x/fnx*i,y/2+i%2*diff[2]]+t,
+    for(i=[0:fny-1])[-x/2-i%2*diff[3],y/2-y/fny*i]+t
     ]:
     [
-    for(i=[0:fnx])[-x/2+x/fnx*i,    -y/2+i%2*-diff[0],z]+v3(t),
-    for(i=[0:fny])[x/2+i%2*diff[1], -y/2+y/fny*i,     z]+v3(t),
-    for(i=[0:fnx])[x/2-x/fnx*i,      y/2+i%2*diff[2], z]+v3(t),
-    for(i=[0:fny])[-x/2-i%2*diff[3], y/2-y/fny*i,     z]+v3(t)
+    for(i=[0:fnx-1])[-x/2+x/fnx*i,    -y/2+i%2*-diff[0],z]+v3(t),
+    for(i=[0:fny-1])[x/2+i%2*diff[1], -y/2+y/fny*i,     z]+v3(t),
+    for(i=[0:fnx-1])[x/2-x/fnx*i,      y/2+i%2*diff[2], z]+v3(t),
+    for(i=[0:fny-1])[-x/2-i%2*diff[3], y/2-y/fny*i,     z]+v3(t)
     ]
   )
   points;
@@ -1068,9 +1070,28 @@ function map(val=$t,from=[0,1],to=[0,1],constrain=true)=
   constrain?min(max(diff2/diff1*(val-from[0])+to[0],to[0]),to[1]):
              diff2/diff1*(val-from[0])+to[0];
   
+/** \page Functions
+polyRund() replace points with arcs and offset
+\name polyRund
+\param points points input
+\param r radius to round (can be list)
+\param ir inner radius (if r is not list)
+\param ofs offset
+\param fn fs  fragments for arcs (can be lists)
+*/
+
+/*  // \example
+p=[
+[0,0],
+[10,0],
+[10,10],
+[5,2],
+[0,10]
+];
+polygon(polyRund(revP(p),delta=+0,r=+1,ofs=+0.0));
+// */
   
-  
-function polyRund(points,r=0,ir,ofs=0,fn=12,fs)=
+function polyRund(points,r=0,ir,ofs=0,delta=0,fn=12,fs)=
 [for(p=[0:len(points)-1])
 let(
       fn=is_list(fn)?fn[p%len(fn)]:fn,
@@ -1086,13 +1107,19 @@ let(
       grad=gradDiff<0?abs(gradDiff):360-gradDiff,
       gradSup=360-grad,
       tPgrad=grad2+gradSup/2,
-      r=(is_num(r)?(grad<180?-max(r,abs(ofs)) : max(ir,abs(ofs))):max(r[p%len(r)],abs(ofs))*(grad<180?-1:1)),
-      tP=[sin(tPgrad),cos(tPgrad)]*tangentenP(grad=gradSup-180,r=r,rad=r)*(grad<180? -1:+1)
+      r=(is_num(r)?(grad<180? -max(r,abs(ofs)) : max(ir,abs(ofs))):max(r[p%len(r)],abs(ofs))*(grad<180?-1:1)),
+      
+      tP=[sin(tPgrad),cos(tPgrad)]*tangentenP(grad=gradSup-180,r=r+ofs,rad=r+ofs)*(grad<180? -1:+1),
+      tPDelta=[sin(tPgrad),cos(tPgrad)]*tangentenP(grad=gradSup-180,r=delta,rad=delta)
+      
    )
-each kreis(r=r-ofs,rand=0,rot=grad1+90,grad=(grad-180),t=pNow+tP,center=false,z=pNow.z,fn=fn,fs=fs)
+each kreis(r=r-ofs,rand=0,rot=grad1+90,grad=(grad-180),t=pNow+tP+tPDelta*sign(delta),center=false,z=pNow.z,fn=fn,fs=fs)
 ];
   
-  
+/** \page Functions
+revP() reverse points order
+*/
+function revP(points)=[for(p=[len(points)-1:-1:0])points[p]];
   
 
 }// END functions
@@ -1251,7 +1278,8 @@ echo    ("
 ••• bend (points,r=0,t=[0,0,0],rev=false) ••• \n
 ••• scene (scenes,t) ••• \n
 ••• map (val,from,to=[0,1],constrain=true) ••• \n
-••• polyRund(points,r,ir,ofs,fn,fs) round and offset input points••• \n
+••• polyRund(points,r,ir,ofs,delta,fn,fs) round and offset input points••• \n
+••• revP(points) reverse Point order ••• \n
 
 ");
     
@@ -2774,25 +2802,56 @@ PolyRund([[0,1],[10,20],[-50,50]],r=5); creates a rounded polygon
 \param r  the rounding radius (list optional)
 \param ir radius of inner corners (if r is not a list)
 \param ofs offset for the polygon
+\param delta delta offset (no radius change)
 \param fn,fs  fragments, fragment size
 \param messpunkt show points and radii
 \param help help
 */
 
-//PolyRund([[0,1],[10,20],[-50,50]],r=[2]);
+//PolyRund([[0,1],[10,20],[-50,50]],r=[2,1],messpunkt=true,delta=-1);
 
 
-module PolyRund(points,r=0,ir,ofs=0,fn,fs=fs,messpunkt=false,help){
+module PolyRund(points,r=0,ir,ofs=0,delta=0,fn,fs=fs,messpunkt=false,help){
 
 Echo("No Points",color="redring",condition=!is_list(points[2]));
-if(is_list(points[2]))polygon(polyRund(points,r=r,ir=ir,ofs=ofs,fn=fn,fs=is_undef(fn)?fs:undef),convexity=5);
-%Tz(.1)if(messpunkt!=false&&is_list(r))
-  for(p=is_num(messpunkt)?abs(messpunkt)%len(points):[0:len(points)-1])translate(points[p])
-    let(p=p%len(r)){
-    Color("darkOrange")Kreis(r=r[p],rand=min(.25,r[p]/10),name=0);
-    Color("Orange")DPfeil(r[p]*2,b=min(.25,r[p]/10),name=0,txt=true);
-    Color("chartreuse")text(str("№ ",p),size=1,halign="center",valign="center");
+if(is_list(points[2]))polygon(polyRund(points,r=r,ir=ir,ofs=ofs,delta=delta,fn=fn,fs=is_undef(fn)?fs:undef),convexity=5);
+  %Tz(.1)if(messpunkt!=false&&is_list(r)){
+  Tz(-0.05)color("silver",0.3)polygon(points);
+    for(p=is_num(messpunkt)?abs(messpunkt)%len(points):[0:len(points)-1]){
+      let(p=p%len(r))
+      translate(points[p]){
+      //Color("darkOrange")Kreis(r=r[p],rand=min(.25,r[p]/10),name=0);
+      //Color("Orange")DPfeil(r[p]*2,b=min(.25,r[p]/10),name=0,txt=true);
+      Color("chartreuse")text(str("№ ",p),size=1,halign="center",valign="center");
+      }
+      
+      
+        let(
+        p=p%len(r),
+        fn=is_list(fn)?fn[p%len(fn)]:fn,
+        fs=is_list(fs)?fs[p%len(fs)]:fs,
+        ir=is_undef(ir)?r:ir,
+        lp=len(points),
+        pBef=points[(p+lp-1)%lp],
+        pNow=points[p],
+        pNex=points[(p+1)%lp],
+        grad1=atan2(pBef.x-pNow.x,pBef.y-pNow.y),
+        grad2=atan2(pNex.x-pNow.x,pNex.y-pNow.y),
+        gradDiff=grad1-grad2,
+        grad=gradDiff<0?abs(gradDiff):360-gradDiff,
+        gradSup=360-grad,
+        tPgrad=grad2+gradSup/2,
+        r=(is_num(r)?(grad<180?-max(r,abs(ofs)) : max(ir,abs(ofs))):max(r[p%len(r)],abs(ofs))*(grad<180?-1:1)),
+        
+        tP=[sin(tPgrad),cos(tPgrad)]*tangentenP(grad=gradSup-180,r=r,rad=r)*(grad<180? -1:+1),
+        tPDelta=[sin(tPgrad),cos(tPgrad)]*tangentenP(grad=gradSup-180,r=delta,rad=delta)
+        )union(){
+      Color(grad<180?"Orange":"lightSkyBlue")translate(pNow+tP+tPDelta*sign(delta))DPfeil(abs(r-ofs)*2,b=min(.25,r/10),name=0,txt=true);
+      Color(grad<180?"darkOrange":"SkyBlue")polygon(kreis(r=r-ofs,rand=min(.25,r/10),rot=grad1+90,grad=(grad-180)*0+360,t=pNow+tP+tPDelta*sign(delta),center=false,fn=fn,fs=fs));
+      }
+    }
   }
+
 HelpTxt("PolyRund",["points",points,"r",r,"ir",ir,"ofs",ofs,"fn",fn,"fs",fs],help);
 }
 
