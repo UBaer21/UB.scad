@@ -130,6 +130,8 @@ Release
 178|22 FIX polyRund UPD PolyRund FIX DPfeil
 180|22 ADD revP UPD polyRund PolyRund CHG sq
 181|22 FIX polyRund
+182|22 FIX polyRund FIX PolyRund
+184|22 CHG PolyRund
 */
 
 { /// Constants
@@ -214,7 +216,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.181;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.184;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -1076,8 +1078,10 @@ polyRund() replace points with arcs and offset
 \param points points input
 \param r radius to round (can be list)
 \param ir inner radius (if r is not list)
-\param ofs offset
+\param ofs offset of radii
+\param delta change offset without radius
 \param fn fs  fragments for arcs (can be lists)
+\param rev  if input has reversed point order
 */
 
 /*  // \example
@@ -1088,12 +1092,15 @@ p=[
 [5,2],
 [0,10]
 ];
-polygon(polyRund(revP(p),delta=+0,r=+1,ofs=+0.0));
+T(y=15)color("pink")polygon(polyRund(revP(p),delta=+0,r=+0.5,ir=1,ofs=1.0,rev=true));
+polygon(polyRund(p,delta=+0,r=+0.5,ir=1,ofs=1));
 // */
   
-function polyRund(points,r=0,ir,ofs=0,delta=0,fn=12,fs)=
+function polyRund(points,r=0,ir,ofs=0,delta=0,fn=12,fs,rev=0)=
 [for(p=[0:len(points)-1])
 let(
+      delta=rev?-delta:delta,
+      ofs= rev? -ofs:ofs,
       fn=is_list(fn)?fn[p%len(fn)]:fn,
       fs=is_list(fs)?fs[p%len(fs)]:fs,
       ir=is_undef(ir)?r:ir,
@@ -1107,13 +1114,14 @@ let(
       grad=gradDiff<0?abs(gradDiff):360-gradDiff,
       gradSup=360-grad,
       tPgrad=grad2+gradSup/2,
-      r=(is_num(r)?(grad<180? -max(r,abs(ofs)) : max(ir,abs(ofs))):max(r[p%len(r)],abs(ofs))*(grad<180?-1:1)),
-      
-      tP=[sin(tPgrad),cos(tPgrad)]*tangentenP(grad=gradSup-180,r=r+ofs,rad=r+ofs)*(grad<180? -1:+1),
+      r=(is_num(r)?((rev?-grad:grad)<180? r : ir):r[p%len(r)]),
+      rk=grad<180?min(-r-ofs,0):max(r-ofs,0),
+      tPr=(rk==0?ofs:r),
+      tP=[sin(tPgrad),cos(tPgrad)]*tangentenP(grad=gradSup-180,r=tPr,rad=tPr)*(grad<180? -1:+1),
       tPDelta=[sin(tPgrad),cos(tPgrad)]*tangentenP(grad=gradSup-180,r=delta,rad=delta)
       
    )
-each kreis(r=r-ofs,rand=0,rot=grad1+90,grad=(grad-180),t=pNow+tP+tPDelta*sign(delta),center=false,z=pNow.z,fn=fn,fs=fs)
+each kreis(r=rk,rand=0,rot=grad1+90,grad=(grad-180),t=pNow+tP+tPDelta*sign(delta),center=false,z=pNow.z,fn=fn,fs=fs)
 ];
   
 /** \page Functions
@@ -2808,26 +2816,28 @@ PolyRund([[0,1],[10,20],[-50,50]],r=5); creates a rounded polygon
 \param help help
 */
 
-//PolyRund([[0,1],[10,20],[-50,50]],r=[2,1],messpunkt=true,delta=-1);
+//PolyRund([[0,1],[10,20],[-50,50]],r=2,messpunkt=true,delta=+0);
 
 
 module PolyRund(points,r=0,ir,ofs=0,delta=0,fn,fs=fs,messpunkt=false,help){
 
 Echo("No Points",color="redring",condition=!is_list(points[2]));
 if(is_list(points[2]))polygon(polyRund(points,r=r,ir=ir,ofs=ofs,delta=delta,fn=fn,fs=is_undef(fn)?fs:undef),convexity=5);
-  %Tz(.1)if(messpunkt!=false&&is_list(r)){
+  lenR=is_num(r)?2:len(r);
+  %Tz(.1)if(messpunkt!=false){
   Tz(-0.05)color("silver",0.3)polygon(points);
+  translate(points[0])Color("HotPink")text(str("№ ",0),size=1,halign="center",valign="center");
     for(p=is_num(messpunkt)?abs(messpunkt)%len(points):[0:len(points)-1]){
-      let(p=p%len(r))
+      //let(p=p%lenR)
       translate(points[p]){
       //Color("darkOrange")Kreis(r=r[p],rand=min(.25,r[p]/10),name=0);
       //Color("Orange")DPfeil(r[p]*2,b=min(.25,r[p]/10),name=0,txt=true);
-      Color("chartreuse")text(str("№ ",p),size=1,halign="center",valign="center");
+      if(p)Color("chartreuse")text(str("№ ",p),size=1,halign="center",valign="center");
       }
       
       
         let(
-        p=p%len(r),
+        //p=is_num(r)?p:p%lenR,
         fn=is_list(fn)?fn[p%len(fn)]:fn,
         fs=is_list(fs)?fs[p%len(fs)]:fs,
         ir=is_undef(ir)?r:ir,
@@ -2841,13 +2851,14 @@ if(is_list(points[2]))polygon(polyRund(points,r=r,ir=ir,ofs=ofs,delta=delta,fn=f
         grad=gradDiff<0?abs(gradDiff):360-gradDiff,
         gradSup=360-grad,
         tPgrad=grad2+gradSup/2,
-        r=(is_num(r)?(grad<180?-max(r,abs(ofs)) : max(ir,abs(ofs))):max(r[p%len(r)],abs(ofs))*(grad<180?-1:1)),
+        r=(is_num(r)?(grad<180?-r : ir):r[p%len(r)]*(grad<180?-1:1)),
         
         tP=[sin(tPgrad),cos(tPgrad)]*tangentenP(grad=gradSup-180,r=r,rad=r)*(grad<180? -1:+1),
         tPDelta=[sin(tPgrad),cos(tPgrad)]*tangentenP(grad=gradSup-180,r=delta,rad=delta)
         )union(){
-      Color(grad<180?"Orange":"lightSkyBlue")translate(pNow+tP+tPDelta*sign(delta))DPfeil(abs(r-ofs)*2,b=min(.25,r/10),name=0,txt=true);
-      Color(grad<180?"darkOrange":"SkyBlue")polygon(kreis(r=r-ofs,rand=min(.25,r/10),rot=grad1+90,grad=(grad-180)*0+360,t=pNow+tP+tPDelta*sign(delta),center=false,fn=fn,fs=fs));
+        dia=2*(grad<180?max(abs(r)+ofs,0):max(abs(r)-ofs,0));
+      Color(grad<180?"Orange":"lightSkyBlue")translate(pNow+tP+tPDelta*sign(delta))DPfeil(dia,b=min(.25,r/10),name=0,txt=true);
+      if(dia)Color(grad<180?"darkOrange":"SkyBlue")polygon(kreis(d=dia*sign(r),rand=min(.25,r/10),rot=grad1+90,grad=(grad-180)*0+360*1,t=pNow+tP+tPDelta*sign(delta),center=false,fn=is_undef(fn)?undef:fn/abs(grad-180)*360,fs=fs));
       }
     }
   }
