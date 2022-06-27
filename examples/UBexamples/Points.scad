@@ -1,8 +1,9 @@
 include<ub.scad>//->http://v.gd/ubaer or https://github.com/UBaer21/UB.scad
 /*[Hidden]*/
-  useVersion=22.022;
-  designVersion=1.1;
+  useVersion=22.185;
+  designVersion=1.15;
   $info=true;
+  fn=36;
   
 /*[ Points ]*/
 
@@ -28,9 +29,31 @@ PolyH(pointsTrans);
 points2D =quad();
 points2Dtrans=mPoints(points2D,r=45,t=15);
 
-T(50)polygon(points2D);
-T(50)polygon(points2Dtrans);
+%T(50)union(){
+  polygon(points2D);
+  polygon(points2Dtrans);
+}
 
+// 2D point corner rounding
+p1=[
+[0,0],
+[10,0],
+[10,10],
+[5,5],
+[0,10],
+];
+
+
+%T(80)union(){
+Points(p1,hull=true);
+T(15)PolyDeg(p1,rad=1,txt=.5C);
+T(0,15)PolyRund(p1,r=1,ir=2,ofs=0,delta=0,messpunkt=true);
+T(15,15)PolyRund(p1,r=1,ir=2,ofs=1,delta=0,messpunkt=true);
+T(30,15)PolyRund(p1,r=1,ir=2,ofs=0,delta=1,messpunkt=true);
+T(45,15)PolyRund(p1,r=[0.5,0.5,2,3,2],ofs=0,delta=1,messpunkt=true,fn=[0,5,10,10,10],fs=undef);
+
+
+}
 
 // list of points (make sure to flatten with "each"
 
