@@ -54,6 +54,7 @@ T(45,15)PolyRund(p1,r=[0.5,0.5,2,3,2],ofs=0,delta=1,messpunkt=true,fn=[0,5,10,10
 
 }
 
+// polyRund for 3D points offset chamfer and rounding corners
 T(80,30){
 fn=8;
 p2=[for(z=[0:10]) each polyRund([for(p=p1)[p.x,p.y,z]],r=z/5,ofs=z==10?-1:0, fn=fn)];
