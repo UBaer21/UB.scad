@@ -1,7 +1,7 @@
 include<ub.scad>//->http://v.gd/ubaer or https://github.com/UBaer21/UB.scad
 /*[Hidden]*/
   useVersion=22.185;
-  designVersion=1.15;
+  designVersion=1.2;
   $info=true;
   fn=36;
   
@@ -46,15 +46,20 @@ p1=[
 
 %T(80)union(){
 Points(p1,hull=true);
-T(15)PolyDeg(p1,rad=1,txt=.5C);
+T(15)PolyDeg(p1,rad=1,txt=.5);
 T(0,15)PolyRund(p1,r=1,ir=2,ofs=0,delta=0,messpunkt=true);
 T(15,15)PolyRund(p1,r=1,ir=2,ofs=1,delta=0,messpunkt=true);
 T(30,15)PolyRund(p1,r=1,ir=2,ofs=0,delta=1,messpunkt=true);
 T(45,15)PolyRund(p1,r=[0.5,0.5,2,3,2],ofs=0,delta=1,messpunkt=true,fn=[0,5,10,10,10],fs=undef);
 
-
 }
 
+T(80,30){
+fn=8;
+p2=[for(z=[0:10]) each polyRund([for(p=p1)[p.x,p.y,z]],r=z/5,ofs=z==10?-1:0, fn=fn)];
+PolyH(p2,loop=5*(fn+1));
+
+}
 // list of points (make sure to flatten with "each"
 
 pointsList= [for (i =[0:15]) each kreis( r= 10 , z= i, fn= 6 ,rand=0)];
