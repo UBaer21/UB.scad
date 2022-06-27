@@ -169,6 +169,8 @@ There are a lot of settings available but most is using  pre configuration - so 
 * `pathLength(points,close=false)` calculates the sum length of segments (perimeter) 
 * `stringChunk(txt,start,length,string)` extract string parts
 * `wall(soll,min,even,line)` create width as multiple of line
+* `scene(scenes=2,t=$t)` creates an array of t for animation segments
+* `map(val,from=[0,1],to=[0,1],contrain=true)` maps val from ↦ to [low,high]
 
 * Points generating
   
@@ -191,4 +193,6 @@ There are a lot of settings available but most is using  pre configuration - so 
   * `riemen()` points for two connected circles
   * `sq(size,fn)` points square subdivided
   * `bend(points)` bending points polar
+  * `polyRund(points,r,ir,ofs,delta,fn,fs)` offset and round points
+  * `revP(points)` reverse points order
   
