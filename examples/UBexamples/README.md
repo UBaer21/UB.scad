@@ -13,6 +13,8 @@
 
 - [Points](https://github.com/UBaer21/UB.scad/blob/main/examples/UBexamples/Points.scad)
 <img src="https://user-images.githubusercontent.com/93376232/149090162-b77003f1-c82c-4869-be0c-fef0ac50725c.png" width=400>
+<img src="https://user-images.githubusercontent.com/93376232/175878925-449ed9fd-36d5-4ac9-afa0-2cbba6984b31.png" width=400>
+
 
 - [Polygon Points](https://github.com/UBaer21/UB.scad/blob/main/examples/UBexamples/Points.scad)
 <img src="https://user-images.githubusercontent.com/93376232/175875266-c4586e59-5f45-46f4-a2f1-120fd8cab591.png" width=400>
