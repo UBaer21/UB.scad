@@ -132,6 +132,7 @@ Release
 181|22 FIX polyRund
 182|22 FIX polyRund FIX PolyRund
 184|22 CHG PolyRund
+185|22 CHG PolyRund
 */
 
 { /// Constants
@@ -216,7 +217,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.184;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.185;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -2832,7 +2833,7 @@ if(is_list(points[2]))polygon(polyRund(points,r=r,ir=ir,ofs=ofs,delta=delta,fn=f
       translate(points[p]){
       //Color("darkOrange")Kreis(r=r[p],rand=min(.25,r[p]/10),name=0);
       //Color("Orange")DPfeil(r[p]*2,b=min(.25,r[p]/10),name=0,txt=true);
-      if(p)Color("chartreuse")text(str("№ ",p),size=1,halign="center",valign="center");
+      if(p)Color("lightGrey")text(str("№ ",p),size=1,halign="center",valign="center");
       }
       
       
@@ -2859,6 +2860,7 @@ if(is_list(points[2]))polygon(polyRund(points,r=r,ir=ir,ofs=ofs,delta=delta,fn=f
         dia=2*(grad<180?max(abs(r)+ofs,0):max(abs(r)-ofs,0));
       Color(grad<180?"Orange":"lightSkyBlue")translate(pNow+tP+tPDelta*sign(delta))DPfeil(dia,b=min(.25,r/10),name=0,txt=true);
       if(dia)Color(grad<180?"darkOrange":"SkyBlue")polygon(kreis(d=dia*sign(r),rand=min(.25,r/10),rot=grad1+90,grad=(grad-180)*0+360*1,t=pNow+tP+tPDelta*sign(delta),center=false,fn=is_undef(fn)?undef:fn/abs(grad-180)*360,fs=fs));
+      if(dia)Tz(.1)Color("chartreuse")polygon(kreis(d=dia*sign(r),rand=min(.25,r/10),rot=grad1+90,grad=(grad-180),t=pNow+tP+tPDelta*sign(delta),center=false,fn=fn,fs=fs));
       }
     }
   }
