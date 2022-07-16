@@ -133,6 +133,9 @@ Release
 182|22 FIX polyRund FIX PolyRund
 184|22 CHG PolyRund
 185|22 CHG PolyRund
+188|22 UPD map UPD Rand ADD sehne,UPD Roof
+190|22 CHG Quad ADD arc Arc UPD LinEx CHG vMult
+202|22 UPD tangentenP
 */
 
 { /// Constants
@@ -217,7 +220,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.185;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.202;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -250,6 +253,7 @@ function Umkreis(eck,rI,name)=let(r=rI/cos(180/eck))is_undef(name)?r:echo(str(na
 function Hypotenuse(a,b)=sqrt(pow(a,2)+pow(b,2));
 function Kathete(hyp,kat)=sqrt(pow(hyp,2)-pow(kat,2));
 function Sehne(n,r,a)=is_undef(a)?2*r*sin(180/n):2*r*sin(a/2);// n-eck oder a=α winkel zum r=radius
+function sehne(n,r,a)=is_undef(a)?2*r*sin(180/n):2*r*sin(a/2);// n-eck oder a=α winkel zum r=radius
 function t3(wert=1,grad=360,delta=0)=sin(($preview?anima?$t:tset:tset)*grad+delta)*wert;
 function RotLang(rot=0,l=10,l2,z,e,lz)=let(
 rot=is_undef(rot)?0:rot%360,
@@ -323,10 +327,16 @@ function 5gon(b1=20,l1=15,b2=10,l2=30)=[[0,0],[b1,l1],[b2,l2],[-b2,l2],[-b1,l1]]
 function ZigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)=zigZag(e,x,y,mod,delta,base,shift);
 function zigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)=[for(i=[0:e*mod])[i%mod<mod/2+delta?i*x/(e*mod):i*x/(e*mod)+shift,i%mod<mod/2+delta?base:y],[x,0],[0,0]];
 
-
-function tangentenP(grad=60,rad=20,r=0)=TangentenP(grad,rad,r);
+/** \page Funktions
+tangentenP() calculates the distance of a circle center for tangents
+\param grad the center angle of the circle
+\param rad the radius for the tangent
+\param r  the radius of the circle 
+\param deg alternative angle of the tangents
+*/
+function tangentenP(grad=60,rad=20,r=0,deg)=TangentenP(is_undef(deg)?grad:180-deg,rad,r);
 function TangentenP(//Tangenten schnittpunkt ab Kreis mit radius rad
-grad=150, // Winkel der Tangenten
+grad=150, // MittelpunktWinkel der Tangenten
 rad=20, // Kreis radius
 r=0// Kreislinien abstand von 0 (radius für Kreise)
 )=
@@ -819,7 +829,9 @@ T(0,20))polygon(star(angle=180,fn=3,grad=4));
 // */
 
 // vector multiplication  
-function vMult(v1=[1],v2=1)=[for(i=[0:min(len(v1),len(v2))-1])v1[i]*v2[i]];
+function vMult(v1=[1],v2=1)=
+  is_num(v1)||is_num(v2)?v1*v2:
+                         [for(i=[0:min(len(v1),len(v2))-1])v1[i]*v2[i]];
 
 /// sum up vector constituents
 //echo( vSum([1,1,1]) );
@@ -1067,6 +1079,9 @@ function scene(scenes=10,t=$t)=[for(i=[0:scenes-1])min(max(t*scenes-i,0),1)];
 
 function map(val=$t,from=[0,1],to=[0,1],constrain=true)=
   let (
+     from=is_num(from[2])?[from[0],from[2]]:from,
+     to=  is_num(to[2])  ?[to[0]  ,to[2]]  :to,
+     
     diff1=from[1]-from[0],
     diff2=to[1]-to[0]
   )
@@ -1129,7 +1144,29 @@ each kreis(r=rk,rand=0,rot=grad1+90,grad=(grad-180),t=pNow+tP+tPDelta*sign(delta
 revP() reverse points order
 */
 function revP(points)=[for(p=[len(points)-1:-1:0])points[p]];
-  
+
+/** \page Functions
+arc() creates points on an arc
+\param r radius
+\param deg angle
+\param r2 end radius at deg
+\param rot rotate
+\param t   translate
+\param z   add z value ⇒vec3
+\param fn fragments
+\param rev reverse point order
+*/
+function arc(r=10,deg=90,r2,rot=0,t=[0,0,0],z,fn=36,rev=false)=
+  let(
+    step=deg/fn
+  )
+  [for (i=rev?[fn:-1:0]:[0:fn])
+    let(
+      r=is_undef(r2)?r:r+(r2-r)/fn*i
+    )
+    is_undef(z)?[cos(i*step+rot)*r,sin(i*step+rot)*r]+t.xy:
+                [cos(i*step+rot)*r,sin(i*step+rot)*r,z]+t
+  ];
 
 }// END functions
 
@@ -1242,7 +1279,7 @@ echo    ("
 // ••• kreisXY(r=5, grad=0) [vector]•••\n
 ••• 5gon(b1=20, l1=15, b2=10, l2=30) points •••\n
 ••• ZigZag(e=5, x=50, y=5, mod=2, delta=+0, base=2, shift=0) points •••\n
-••• TangentenP(grad, rad, r) length •••\n
+••• TangentenP(grad, rad, r, deg) length •••\n
 ••• Hexstring(c=[r, g, b]) #hexcolor •••\n
 ••• RotPoints(grad, points) •••\n
 ••• negRed(num) negative consolen Werte in rot•••\n   
@@ -1289,6 +1326,7 @@ echo    ("
 ••• map (val,from,to=[0,1],constrain=true) ••• \n
 ••• polyRund(points,r,ir,ofs,delta,fn,fs) round and offset input points••• \n
 ••• revP(points) reverse Point order ••• \n
+••• arc(r,deg,r2,rot,t,z,fn,rev) ••• \n
 
 ");
     
@@ -1382,6 +1420,7 @@ echo    ("•••••• Polygons ••••••\n
 •• Involute(help=1);\n
 •• Riemen(help=1);\n
 •• PolyRund(help=1);\n
+•• Arc(help=1);\n
 
 ");
 }
@@ -2016,9 +2055,22 @@ module Drehpunkt(x=0,rz=0,rx=0,ry=0,y=0,z=0,messpunkt=messpunkt,help)
 
 }
 
+/** \page Modifier
+Rand() creates an outline on a polygon
+\param rand thickness of outline + or -
+\param center if outline centered
+\param fn,fs fragments for outline
+\param delta, chamfer  use delta (no radial extension)
+\param help  help 
+*/
 
+/* 
+Rand(1,center=1.0)Star(8);
+Tz(-1)Color(alpha=0.3)Star(8);
+//*/
 
-module Rand(rand=n(1),center=false,fn=fn,delta=false,chamfer=false,help){
+module Rand(rand=n(1),center=false,fn=fn,fs,delta=false,chamfer=false,help){
+  $fs=fs;
     
 if(!center){ 
     if(rand>0)difference(){
@@ -2041,11 +2093,12 @@ if(!center){
     
 if(center)
        difference(){
-      offset(r=delta?undef:abs(rand),$fn=fn,delta=abs(rand),chamfer=chamfer?true:false)offset(r=delta?undef:-abs(rand/2),$fn=fn,delta=-abs(rand/2),chamfer=chamfer?true:false)children();
+       chg=sign(b(center,false))*(rand/2)*(1-abs(b(center,false)) );
+      offset(r=delta?undef:abs(rand)+chg,$fn=fn,delta=abs(rand),chamfer=chamfer?true:false)offset(r=true?undef:-abs(rand/2)-chg,$fn=fn,delta=-abs(rand/2)-chg,chamfer=chamfer?true:false)children();
       union(){
           $helpM=0;
           $info=0;
-         offset(r=delta?undef:-abs(rand),$fn=fn,delta=-abs(rand),chamfer=chamfer?true:false) offset(r=delta?undef:abs(rand/2),$fn=fn,delta=abs(rand/2),chamfer=chamfer?true:false)children();
+         offset(r=delta?undef:-abs(rand)-chg,$fn=fn,delta=-abs(rand),chamfer=chamfer?true:false) offset(r=true?undef:(abs(rand/2)+chg),$fn=fn,delta=abs(rand/2)+chg,chamfer=chamfer?true:false)children();
       }
     }     
     
@@ -2804,6 +2857,27 @@ module Pivot(p0=[0,0,0],size,active=[1,1,1,1,1,1],messpunkt,txt,rot=0,vpr=$vpr,h
 } // \ΔΔ Helper   ΔΔ\ \\
 { // \∇∇ Polygons ∇∇/ //
 
+/** \page Polygon
+Arc() creates an arc
+\param r radius
+\param deg angle
+\param r2 end radius at deg
+\param fn fragments
+
+*/
+//Arc(r=10,deg=90,r2=8,rand=1);
+
+module Arc(r=10,deg=90,r2,fn=36,rand,center=false,cP=true,help){
+
+points=rand?concat(arc(r=r,deg=deg,r2=r2,rot=center?-deg/2:0,fn=fn),arc(r=r+rand,deg=deg,r2=is_undef(r2)?r2:r2+rand,rot=center?-deg/2:0,fn=fn,rev=true)):
+       concat(cP?[[0,0]]:[],arc(r=r,deg=deg,r2=r2,rot=center?-deg/2:0,fn=fn));
+
+
+polygon(points,convexity=5);
+
+HelpTxt("Arc",["r",r,"deg",deg,"r2",r2,"fn",fn,"rand",rand,"center",center,"cP",cP],help);
+}
+
 
 /** \page Polygon
 PolyRund([[0,1],[10,20],[-50,50]],r=5); creates a rounded polygon
@@ -3173,7 +3247,7 @@ module Star(e=5,r1=10,r2=5,grad=[0,0],grad2,radial=false,fn=0,fn2,d,od,id,help){
     [for(i=[0:len(star(e=e,fn=fn))-1])i],
    if(d) [for(i=[0:len(kreis(rand=0,fn=kfn,endPoint=false))-1])i+len(star(e=e,fn=fn))]
     ];
-polygon(points,paths);
+polygon(points,paths,convexity=5);
 
 HelpTxt("Star",["e",e,"r1",r1,"r2",r2,"grad",grad,"grad2",grad2,"radial",radial,"fn",fn,"fn2",fn2,"d",d,"od",od,"id",id],help);
 
@@ -4396,9 +4470,13 @@ module Superellipse(n=4,r=10,n2,r2,n3,n31,n32,r3,fn=fn,fnz,name,help){
 }
 
 
-module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=false,basisX=0,trueX=false,centerX,tangent=true,name,help){
+
+
+module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=false,basisX=0,trueX=false,centerX,tangent=true,rad,name,help){
     assert(grad!=0&&grad2!=0);
     basisX=is_bool(basisX)?basisX?1:0:is_undef(centerX)?basisX:is_bool(centerX)?centerX?1:0:centerX;
+    
+    r=is_undef(rad)?r:rad;
     fn=is_list(fn)?fn:[fn];
     
     y=is_num(y)?y:
@@ -4442,7 +4520,18 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=fa
     x1=abs(p3)+abs(p4);   
     x2=abs(p1)+abs(p2);
     
-    cTrans=center?[basisX==1?tangent?-p3+(p3-p4)/2:
+    
+  
+    cTrans=is_list(center)?([center.x?b(center.x,false)<0?-x:
+                                                           0:
+                                      x,center.y?b(center.y,false)<0?-y:
+                                                                      0:
+                                                 y]
+                           /2):
+    
+    
+    
+           (center?[basisX==1?tangent?-p3+(p3-p4)/2:
                                      (bx1L-bx1R)/2:
                             basisX==-1?tangent?-p1+(p1-p2)/2:
                                                (bx2L-bx2R)/2:
@@ -4451,8 +4540,8 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=fa
                                     [x/2-shiftX1/2+r1*1/tan(grad),y/2]:
                           basisX==1?[bx1L+x/2,y/2]:
                                     basisX==-1?[bx2L+x/2,y/2]:
-                                    [x/2,y/2];
-     
+                                    [x/2,y/2]);
+   
         
     k1=Kreis(rand=0,r=r1,t=[-x/2+r1*rf1+shiftX1/2,y/2-r1]+cTrans,grad=180-grad,rot=grad-180,fn=fn[0%len(fn)]/360*(180-grad),center=false);
     k2=Kreis(rand=0,r=r2,t=[x/2-r2*rf2+shiftX2/2,y/2-r2]+cTrans,grad=grad2,rot=-45+45,fn=fn[1%len(fn)]/360*grad2,center=false);
@@ -5144,24 +5233,24 @@ opt = straight / voronoi
 //Roof(10,h=1,base=5,floor=true,twist=50,scale=[0.3,1])circle(5,$fn=3);
 
 
-module Roof(height,h,base=0,deg=45,opt=1,floor=false,center=false,twist=0,scale=1,fn=fn,convexity=5,lap=0,name,help){
+module Roof(height,h,base=0,deg=45,opt=1,floor=false,center=false,twist=0,scale=1,fn=0,convexity=5,lap=0,on=true,name,help){
 
 s=is_list(deg)?[tan(deg[0]),tan(deg[1])]:[tan(deg),tan(deg)];
 floor=is_list(h)?true:floor;
 h=is_list(h)?h:[floor?h:0,h];
 iSize=max(viewportSize*5,max(printBed)*2);
 base=height&&is_num(h[1])&&is_num(h[0])?height-h[0]-h[1]:base;
-
+on=version()[0]>2021?on:0;
 $idxON=false;
 
 InfoTxt("Roof",["h",h,"deg",str(deg,"° (",s,")")],name);
 
 Echo("Roof is experimental - use Dev Snapshot version and activate",color="warning",condition=version()[0]<2022);
-  Tz(center?0:h[0]?h[0]:0){
+  Tz(on?(center?0:h[0]?h[0]:0):0){
   $tab=is_undef($tab)?1:b($tab,false)+1;
-  linear_extrude(base+lap,center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
+  linear_extrude(base+(on?lap:h[0]+h[1]),center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
   }
- if(version()[0]>2021)union(){ 
+ if(on)union(){ 
  $idx=1;
  $info=false;
  //top
@@ -5178,7 +5267,7 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
   }
   
 
-HelpTxt("Roof",["height",height,"h",h,"base",base,"deg",deg,"opt",opt,"floor",floor,"center",center,"twist",twist,"scale",scale,"fn",fn,"convexity",convexity,"lap",lap,"name",name],help);
+HelpTxt("Roof",["height",height,"h",h,"base",base,"deg",deg,"opt",opt,"floor",floor,"center",center,"twist",twist,"scale",scale,"fn",fn,"convexity",convexity,"lap",lap,"on",on,"name",name],help);
 }
 
 
@@ -5201,18 +5290,24 @@ HelpTxt("Roof",["height",height,"h",h,"base",base,"deg",deg,"opt",opt,"floor",fl
  \param end   rotate extrude ends
  \param fn   number of fragments
  \param lap overlap with center
+ \param scaleCenter scale center
+ \param gradC angle center ↦ scaleCenter
  \param convexity convexity
  \param name  name to identify
  \param help activate help
 */
 
+ //LinEx(25,2,end=true,gradC=88,$d=5)circle($r);
+ //LinEx(25,2,end=true,scaleCenter=[0.8,0.7],scale=[.8,1],$d=[7,9])square($r);
 
-module LinEx(h=5,h2=0,h22,scale=0.85,scale2,twist,twistcap=1,slices,$d,$r=5,grad,grad2,mantelwinkel=0,center=false,rotCenter=false,end=0,fn=12,name,help,n,convexity=5,lap=0){
+
+module LinEx(h=5,h2=0,h22,scale=0.85,scale2,twist,twistcap=1,slices,$d,$r=5,grad,grad2,mantelwinkel=0,center=false,rotCenter=false,end=0,fn=12,name,help,n,convexity=5,lap=0,scaleCenter=1,gradC){
 
 
 $info=is_undef(name)?is_undef($info)?false:$info:name;
 $helpM=0;
 $idxON=false;
+
 lap=is_list(lap)?lap:[lap,lap];
 ifn=$fn;
 end=is_bool(end)?end?[1,1]:[0,0]:is_list(end)?end:[end,end];   
@@ -5223,6 +5318,10 @@ $d=2*$r;
 h22=abs(is_undef(h22)?is_list(h2)?h2[1]:h2:h22);
 h2=abs(is_list(h2)?h2[0]:h2);    
 hc=h-h2-h22;
+gradC=is_undef(gradC)?gradC:is_list(gradC)?gradC:[gradC,gradC];
+scaleCenter=is_undef(gradC)?scaleCenter:
+                            is_list($r)?[($r.x-(hc/tan(gradC.x)))/$r.x,($r.y-(hc/tan(gradC.y)))/$r.y]:
+                                        [($r-(hc/tan(gradC.x)))/$r,($r-(hc/tan(gradC.y)))/$r];
 
 scale2=is_undef(grad2)?
     is_undef(grad)?
@@ -5248,7 +5347,7 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
     
 
     
-  InfoTxt("LinEx",["core h",str(hc,"mm - twist per mm=",twist/(hc),"°, Fase für $d= ",$d,"mm ist ",grad,"°/",grad2,"° d=",$d*scale,"/",$d*scale2,"mm - r=",$r*scale,"/",$r*scale2,"mm Mantelwinkel für $d/$r=",$d,"/",$r,"mm⇒ ",mantelwinkel,"° twist=",twist,"° slices=",slices)],name); 
+  InfoTxt("LinEx",[ "core h",str(hc,"mm - twist per mm= ",twist/(hc),"°, Fase für $d= ",$d,"mm ist ",grad,"°/",grad2,"° d=",vMult($d,scale),"/",vMult(vMult($d,scale2),scaleCenter),"mm - r= ",vMult($r,scale),"/",vMult(vMult($r,scale2),scaleCenter),"mm \n Mantelwinkel für $d/$r=",$d,"/",$r,"mm⇒ ",mantelwinkel,"° twist=",twist,"°"), scaleCenter!=1?str("\n scaled center $d/$r= ",vMult($d*scaleCenter),"/",vMult($r*scaleCenter)," base angle= ",is_list($r)||is_list(scaleCenter)?[atan(hc/($r.x-scaleCenter.x*$r.x)),atan(hc/($r.y-scaleCenter.y*$r.y))]: atan(hc/($r-vMult(scaleCenter,$r))),"°",", slices" ) : "slices",slices ],name); 
     
 
     
@@ -5258,7 +5357,7 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
         
     if(is_list(grad)?$r*tan(min(grad[0],grad[1]))<(is_list($r)?[h2,h2]:h2)&&min(grad[0],grad[1])<90&&min(grad[0],grad[1])>0:$r*tan(grad)<h2&&grad<90&&grad>0)Echo(str(name," LinEx Höhe h2=",h2," mm zu groß oder winkel/$r zu klein min=",atan(h2/$r),"° max=",$r*tan(grad),"mm"),color="red");    
     
-    HelpTxt("LinEx",["h",h,"h2",h2,"h22",h22,"scale",scale,"scale2",scale2,"twist",twist,"twistcap",twistcap,"slices",slices,"$d",$d,"grad",grad,"grad2",grad2,", mantelwinkel",mantelwinkel,"center",center,"rotCenter",rotCenter,"end",end,"fn",fn,"name",name,"convexity",convexity],help);  
+    HelpTxt("LinEx",["h",h,"h2",h2,"h22",h22,"scale",scale,"scale2",scale2,"twist",twist,"twistcap",twistcap,"slices",slices,"$d",$d,"grad",grad,"grad2",grad2,", mantelwinkel",mantelwinkel,"center",center,"rotCenter",rotCenter,"end",end,"fn",fn,"name",name,"convexity",convexity,"lap",lap,"scaleCenter",scaleCenter],help);  
     
 
 
@@ -5269,7 +5368,7 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
     union(){
     $idx=true;
     //capoben
-    if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22,scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=convexity,slices=slices/hc*h22,$fn=0)children($fn=ifn);
+    if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22,scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=convexity,slices=slices/hc*h22,$fn=0)scale(scaleCenter)children($fn=ifn);
     
     //capunten
     if(h2)Tz(h2)rotate(twist/2)mirror([0,0,1])linear_extrude(h2,scale=scale,twist=twistcap[0]?-twist/(hc)*h2:0,convexity=convexity,slices=slices/hc*h2,$fn=0)children($fn=ifn);
@@ -5279,19 +5378,19 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
     Tz(h2-lap[0]){
       //$idx=is_undef($idx)?0:$idx;
       $tab=is_undef($tab)?1:b($tab,false)+1;
-      rotate(twist/2)linear_extrude(hc+lap[0]+lap[1],scale=1,convexity=convexity,twist=twist,slices=slices,center=false)children();
+      rotate(twist/2)linear_extrude(hc+lap[0]+lap[1],scale=scaleCenter,convexity=convexity,twist=twist,slices=slices,center=false)children();
     }
   
     
     
-    if(end[0]){
+    if(end[0]){ // Ende Unten
     $idx=true;
      rotate(twist/2+(twistcap[0]?twist/(hc)*h2:0))rotate(sign(end[0])>+0?[-90,0,-90]:[-90,0,0]) RotEx(cut=true,grad=180,fn=fn)scale(scale)rotate(sign(end[0])>0?90:0)children();
         }
-     if(end[1]){
+     if(end[1]){ // Ende Oben
     $idx=true;
          Tz(h)rotate(-twist/2-(twistcap[1]?twist/(hc)*h22:0))rotate(sign(end[1])>+0?[-90,0,-90]:[-90,0,0])RotEx(cut=true,grad=-180,fn=fn)
-        scale(scale2)rotate(sign(end[1])>0?90:0)children();
+        scale(scale2*scaleCenter)rotate(sign(end[1])>0?90:0)children();
      }
 
     }
