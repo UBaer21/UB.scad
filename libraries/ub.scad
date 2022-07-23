@@ -136,6 +136,9 @@ Release
 188|22 UPD map UPD Rand ADD sehne,UPD Roof
 190|22 CHG Quad ADD arc Arc UPD LinEx CHG vMult
 202|22 UPD tangentenP
+204|22 UPD PolyH
+206|22 ADD Knurl
+208|22 CHG Text add trueSize add cy=-1/2
 */
 
 { /// Constants
@@ -220,7 +223,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.202;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.208;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -1168,6 +1171,13 @@ function arc(r=10,deg=90,r2,rot=0,t=[0,0,0],z,fn=36,rev=false)=
                 [cos(i*step+rot)*r,sin(i*step+rot)*r,z]+t
   ];
 
+/** /page Functions
+pt() give the typographic point size in mm
+\param pt number of points  12pt ⇒ pt(12) = 1 pica = 4.2333mm
+*/
+function pt(pt)=25.4/72*pt;
+
+
 }// END functions
 
 { //Help –––––––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -1327,6 +1337,7 @@ echo    ("
 ••• polyRund(points,r,ir,ofs,delta,fn,fs) round and offset input points••• \n
 ••• revP(points) reverse Point order ••• \n
 ••• arc(r,deg,r2,rot,t,z,fn,rev) ••• \n
+••• pt(pt) typographic unit in mm••• \n
 
 ");
     
@@ -1478,7 +1489,8 @@ echo    ("•••••••••• BasisObjekte:   •••••••�
 •• Isosphere(help=1);\n
 •• OctaH(help=1); /*Octahedron*/\n
 •• PolyH(); /*Polyhedron auto faces */\n
-•• Coil();
+•• Coil();\n
+•• Knurl();\n
 
 ");
 
@@ -5438,10 +5450,16 @@ module PolyH() creates a polyhedron
 points=[[0,0,-2],for(i=[0:35])[sin(i*10),cos(i*10),0],for(i=[0:35])[sin(i*10),cos(i*10),5],[0,0,7]];
 PolyH(points,loop=36,pointEnd=true,end=true);
  * \param points points for polyhedron
+ \param loop number of points per loop (hull if undef)
+ \param end top bottom faces
+ \param pointEnd if single point start, end or both (1,2,true)
+ \param convexity convexity
+ \param faceOpt  Quad or Tri faces
+ \param flip  flip normals
 
 */
 
-module PolyH(points,loop,end=true,pointEnd=false,convexity=5,faceOpt=+0,name,help){
+module PolyH(points,loop,end=true,pointEnd=false,convexity=5,faceOpt=+0,flip=true,name,help){
 loop=is_undef(loop)||loop<3?1:loop;
 points=assert(!is_undef(points))points;
 lp=len(points);
@@ -5449,15 +5467,23 @@ loops=pointEnd?pointEnd==1||pointEnd==2?(lp-1)/loop:
                                         (lp-2)/loop:
                lp/loop;
   
-fBottom=pointEnd==2||b(pointEnd,bool=true)==false?[[for(i=[loop -1:-1:0])i]]:[];
-fTop=   pointEnd==1||b(pointEnd,bool=true)==false?[[for(i=[0:loop -1])i+lp-(loop)]]:[];
+fBottom=pointEnd==2||b(pointEnd,bool=true)==false?[[for(i=flip?[loop -1:-1:0]:[0:loop-1])i]]:[];
+fTop=   pointEnd==1||b(pointEnd,bool=true)==false?[[for(i=flip?[0:loop -1]:[loop-1:-1:0])i+lp-(loop)]]:[];
 
-fBody=loops>1?[for(lev=[0:loops -2],i=[0:loop -1])[
+fBodyFlip=loops>1?[for(lev=[0:loops -2],i=[0:loop -1])[
   i          +loop*lev,
   (i +1)%loop+loop*lev,
   (i +1)%loop+loop*(lev+1),
   i          +loop*(lev+1)
 ]]:[];
+
+fBody=loops>1?[for(lev=[0:loops -2],i=[0:loop -1])[
+  i          +loop*(lev+1),
+  (i +1)%loop+loop*(lev+1),
+  (i +1)%loop+loop*lev,
+  i          +loop*lev
+]]:[];
+
 
 fBody1=loops>1?[for(lev=[0:loops -2],i=[0:loop -1])each[[
   
@@ -5495,9 +5521,9 @@ fBody2=loops>1?[for(lev=[0:loops -2],i=[0:loop -1])each[[
 faces=loop>1?end?concat(
                   fBottom,
                   pointEnd==2?[for(i=[0:loop -1])[lp-i -2,lp-1,lp-(i+1)%loop -2]]:fTop,
-                  faceOpt?faceOpt==-1||faceOpt==2?fBody2:fBody1:fBody
+                  faceOpt?faceOpt==-1||faceOpt==2?fBody2:fBody1:flip?fBodyFlip:fBody
                 ):
-                faceOpt?faceOpt==-1||faceOpt==2?fBody2:fBody1:fBody:
+                faceOpt?faceOpt==-1||faceOpt==2?fBody2:fBody1:flip?fBodyFlip:fBody:
             [[for(i=[0:lp-1])i]]
 ;
 
@@ -5522,7 +5548,7 @@ InfoTxt("PolyH",["loops",loops,"points",lp],loop>1?name:false);
 InfoTxt("PolyH using hull—",["points",lp],loop==1?name:false);
   
 
-HelpTxt("PolyH",["points",[[0,0,0],[1,2,3]],"loop",loop,"end",end,"pointEnd",pointEnd,"convexity",convexity,"faceOpt",faceOpt,"name",name],help);
+HelpTxt("PolyH",["points",[[0,0,0],[1,2,3]],"loop",loop,"end",end,"pointEnd",pointEnd,"convexity",convexity,"faceOpt",faceOpt,"flip",flip,"name",name],help);
   
 }
 
@@ -6227,15 +6253,36 @@ Text(text="WWiiABCiiXX",radius=10);
 \param name text name
 \param textmetrics  use textmetrics
 \param viewPos  show letter positions
+\param trueSize="body" text size = body height allow the use of pt() point, hp=size of letters hp,versal
 
 
 */
+//echo(textmetrics("hp",size=1));
 
 
 
-module Text(text="»«",size=5,h,cx,cy,cz,center=0,spacing=1,fn=24,radius=0,rot=[0,0,0],font="Bahnschrift:style=bold",style,help,name,textmetrics=true,viewPos=false)
+//Text("fhpbdlqQPXMALTfF",size=10,trueSize="versal",cy=+0);
+//%square([100,10]);
+
+
+module Text(text="»«",size=5,h,cx,cy,cz,center=0,spacing=1,fn=24,radius=0,rot=[0,0,0],font="Bahnschrift:style=bold",style,help,name,textmetrics=true,viewPos=false,trueSize="body")
 {
+//useVersion=23; // to activate
 textmetrics=version()[0]<2022?false:textmetrics;
+Echo(str("Sizing inactive trueSize=",trueSizeSW),color="warning",condition=trueSize!="size"&&( (!textmetrics&&trueSize!="body")||is_undef(useVersion)||useVersion<22.208) );
+trueSizeSW=is_undef(useVersion)||useVersion<22.208?"size":trueSize;
+inputSize=size;
+
+style=is_string(style)?style:styles[style];
+fontstr=is_undef(style)?font:str(font,":style=",style);
+hp=assert(textmetrics)textmetrics(text="hpbdlq",font=fontstr,size=1,spacing=spacing).size.y;
+versal=assert(textmetrics)textmetrics(text="HTAME",font=fontstr,size=1,spacing=spacing).size.y;
+
+size=trueSizeSW=="body"?size*.72:
+                        trueSizeSW=="hp"?size/hp:
+                                         trueSizeSW=="versal"?size/versal:
+                                                              size;
+
     h=is_undef(h)?size:h;
     cx=center?is_undef(cx)?1:cx:is_undef(cx)?0:cx;
     cy=center?is_undef(cy)?1:cy:is_undef(cy)?0:cy;
@@ -6244,8 +6291,8 @@ textmetrics=version()[0]<2022?false:textmetrics;
     text=str(text);
     lenT=len(text);
     font=is_num(font)?fonts[font]:font;
-    style=is_string(style)?style:styles[style];
-    fontstr=is_undef(style)?font:str(font,":style=",style);
+    
+    
     txtSizeX=textmetrics?textmetrics(text=text,font=fontstr,size=size,spacing=spacing).size.x:size*spacing*lenT;
     txtSizeY=textmetrics?textmetrics(text=text,font=fontstr,size=size,spacing=spacing).size.y:size;
     fontSize=[for(i=[0:lenT-1])textmetrics?
@@ -6256,29 +6303,29 @@ textmetrics=version()[0]<2022?false:textmetrics;
       
  //echo(fontSize);
  //echo(txtSizeX);
- 
+ valign=cy?b(cy,false)<0?"bottom":b(cy,false)>1?"top":"center":"baseline";
  
  if(text)if(!radius){   
     if(h)    
     rotate(rot)translate([0,0,cz?-abs(h)/2:h<0?h:0]) linear_extrude(abs(h),convexity=10){
-    text(str(text),size=size,halign=cx?"center":"left",valign=cy?"center":"baseline",font=fontstr,spacing=spacing,$fn=fn);
+    text(str(text),size=size,halign=cx?"center":"left",valign=valign,font=fontstr,spacing=spacing,$fn=fn);
     }
-    else rotate(rot)translate([0,0,cz?-h/2:0])text(text,size=size,halign=cx?"center":"left",valign=cy?"center":"baseline",spacing=spacing,font=fontstr,$fn=fn); 
+    else rotate(rot)translate([0,0,cz?-h/2:0])text(text,size=size,halign=cx?"center":"left",valign=valign,spacing=spacing,font=fontstr,$fn=fn); 
     }
 else rotate(center?gradB(txtSizeX/2,radius+(cy?-txtSizeY/2:0)):0)for(i=[0:len(text)-1])rotate(-gradB(fontSize[i],radius+(cy?-txtSizeY/2:0)))
     if(h)    
     translate([0,radius,0])rotate(rot)Tz(cz?-abs(h)/2:h<0?h:0){
     %color("Chartreuse")if(viewPos&&$preview)translate([0,-1])rotate(-30)circle($fn=3);// pos Marker
-    linear_extrude(abs(h),convexity=10)text(text[i],size=size,halign=true?"center":"left",valign=cy?"center":"baseline",font=fontstr,$fn=fn);
+    linear_extrude(abs(h),convexity=10)text(text[i],size=size,halign=true?"center":"left",valign=valign,font=fontstr,$fn=fn);
     }
-    else  translate([0,radius,cz?-h/2:0])rotate(rot)text(text[i],size=size,halign=true?"center":"left",valign=cy?"center":"baseline",font=fontstr,$fn=fn); 
+    else  translate([0,radius,cz?-h/2:0])rotate(rot)text(text[i],size=size,halign=true?"center":"left",valign=valign,font=fontstr,$fn=fn); 
     
     
- InfoTxt("Text",["font",font,"style",style],name);   
+ InfoTxt("Text",["font",font,"style",style,"trueSize",trueSizeSW,"size",str(inputSize," ⇒ ",size)],name);   
         
  HelpTxt("Text",[
 "text",str("\"",text,"\""),
-"size",size,
+"size",inputSize,
 "h",str(h," /*0 for 2D*/"),
 "cx",cx,
 "cy",cy,
@@ -6292,7 +6339,8 @@ else rotate(center?gradB(txtSizeX/2,radius+(cy?-txtSizeY/2:0)):0)for(i=[0:len(te
 "style",str("\"",style,"\""),
 "name",name,
 "textmetrics",textmetrics,
-"viewPos",viewPos
+"viewPos",viewPos,
+"trueSize",str("\"",trueSize,"\""," /* body,size,hp,versal */")
 ],help);
 
  
@@ -7945,7 +7993,99 @@ HelpTxt("Zylinder",["h",h,"r",r,"d",d,"fn",fn,"fnh",fnh,"grad",grad,"grad2",grad
 
 }
 
+/** \page Objects
+Knurl() creates a knurled cylinder or cone
+\param r radius
+\param h height
+\param size  size of knurl ↦ e  size.z can be list
+\param e  optional numbers of knurls (size.z is needed)
+\param scale  scale top
+\param scaleZ scale knurl in Z (changes height)
+\param twist twist
+\param grad  full cylinder = 360
+\param delta move knurl center
+\param alt alternate depth axially if size.z is list
+\param name
+\param help
+*/
 
+//Knurl(size=[2.1,2,[1,-1]]);
+//Knurl(size=[2.1,2,[1,-1]],alt=1);
+
+
+module Knurl(r=10,h=20,size=[5,5,.7],depth,e,scale=1,scaleZ=1,twist=0,grad=360,delta=[0,0],alt=0,name,help){
+con=0;
+size=is_num(size)?[size,size,is_undef(depth)?size/2:depth]:concat(size.xy,is_undef(depth)?[size.z]:[depth]);
+
+
+e=is_undef(e)?[
+    max(3,round( grad/(asin( (max(0.1,size.x/2))/r  )*2) ) ),
+    max(1,round(h/size.y))
+  ]:
+             e;
+
+
+lenZ=len(size.z);
+Echo(str("Irregular Knurl! e.x=",e.x," but len size.z=",lenZ,"↦  ↦",floor(e.x/lenZ)*lenZ,"⇐e.x⇒",ceil(e.x/lenZ)*lenZ),color="warning",condition=e.x%lenZ&&is_list(size.z));
+
+loopX=grad==360?e.x-1:e.x;
+realSize=[sin(grad/(e.x)/2)*r*2,h/e.y,size.z];
+if(name)echo(Knurls=e,size=realSize,deg=[for (i=size.z)str("\n",atan2(-i,realSize.x/2),"° | ",atan2(-i,(realSize.y/2)),"°")]);
+
+function KnurlP(r=10,h=20,depth=1,e=[10,10],scale=1,scaleZ=1,twist=0,grad=360,delta=[0,0],alt=0)=[
+let(
+  //alt=is_list(alt)?alt:[1],
+  depth=is_list(depth)?depth:[depth],
+  step=grad/e.x,
+  stepZ=h/e.y/2,
+  scaleRot=scaleZ,
+  rot=grad/e.x/2
+  )
+ for(z=[0:e.y*2])
+ let(
+ r=scale==1?r:r-r*(1-scale)/e.y/2*z,
+
+ stepZ=scaleZ==1?stepZ:stepZ-stepZ*(1-scaleZ)/e.y/2*z/2,
+ depth=scaleZ==1?depth:depth-depth*(1-scaleZ)/e.y/2*z/2,
+ delta=scaleZ==1?delta:delta-delta*(1-scaleZ)/e.y/2*z/2,
+ stepRot=scaleRot==1?twist/e.y/2*z:twist/e.y/2*z-twist/e.y/2*(1-scaleRot)/e.y/2*z/2,
+
+ )
+  if(z%2) for(i=[0:grad==360?(e.x -1):e.x])
+    let(
+      rot=(i<e.x?rot:0),
+      depth=i<e.x?depth:[0],
+      deltaRot=gradS(delta.x,r=r+depth[i%len(depth)])
+    )
+    [cos(i*step+stepRot+rot+deltaRot)*(r+depth[(i+alt*floor(z/2))%len(depth)]),sin(i*step+stepRot+rot+deltaRot)*(r+depth[(i+alt*floor(z/2))%len(depth)]),z*stepZ+delta.y]
+  else    for(i=[0:grad==360?(e.x -1):e.x])[cos(i*step+stepRot)*r,sin(i*step+stepRot)*r,z*stepZ]
+
+
+];
+
+
+points=KnurlP(r=r,h=h,depth=size.z,e=e,scale=scale,scaleZ=scaleZ,twist=twist,grad=grad,delta=delta,alt=alt);
+
+fBottom=[[for(i=[0:loopX])i]];
+fTop=[[for(i=[loopX:-1:0])e.y*2*(loopX +1)+i]];
+
+fBody=[for(z=[0:e.y-1],i=[0:loopX])each[
+[(1+i)%(loopX+1), 0+i, (loopX+1)+i]+[1,1,1]*(loopX+1)*2*z,// bottom
+if((i+1)%con)[0+i, (loopX+1)*2+i, (loopX+1)+i]+[1,1,1]*(loopX+1)*2*z,// left
+if(i%con)[(loopX+1)*2+(1+i)%(loopX+1), (1+i)%(loopX+1), (loopX+1)+i]+[1,1,1]*(loopX+1)*2*z,// left
+[(1+i)%(loopX+1)+(loopX+1)*2, (loopX+1)+i, (loopX+1)*2+i]+[1,1,1]*(loopX+1)*2*z//top
+]
+];
+
+faces=concat(
+  fBottom,
+  fTop,
+  fBody
+);
+
+polyhedron(points,faces,convexity=5);
+HelpTxt("Knurl",["r",r,"h",h,"size",size,"depth",depth,"e",e,"scale",scale,"scaleZ",scaleZ,"twist",twist,"grad",grad,"delta",delta,"alt",alt,"name",name],help);
+}
 
 
 module Ccube(size=20,c=2,c2,center=true,sphere=false,grad=0,help){
