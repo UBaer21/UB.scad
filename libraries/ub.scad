@@ -139,6 +139,7 @@ Release
 204|22 UPD PolyH
 206|22 ADD Knurl
 208|22 CHG Text add trueSize add cy=-1/2
+210|22 CHG Text Fix Knurl
 */
 
 { /// Constants
@@ -223,7 +224,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.208;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.210;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;//1.618033988;
@@ -6253,7 +6254,7 @@ Text(text="WWiiABCiiXX",radius=10);
 \param name text name
 \param textmetrics  use textmetrics
 \param viewPos  show letter positions
-\param trueSize="body" text size = body height allow the use of pt() point, hp=size of letters hp,versal
+\param trueSize="body" text size = body height allow the use of pt() point, hp=size of letters "hp",cap=cap height
 
 
 */
@@ -6269,18 +6270,18 @@ module Text(text="»«",size=5,h,cx,cy,cz,center=0,spacing=1,fn=24,radius=0,rot=
 {
 //useVersion=23; // to activate
 textmetrics=version()[0]<2022?false:textmetrics;
-Echo(str("Sizing inactive trueSize=",trueSizeSW),color="warning",condition=trueSize!="size"&&( (!textmetrics&&trueSize!="body")||is_undef(useVersion)||useVersion<22.208) );
-trueSizeSW=is_undef(useVersion)||useVersion<22.208?"size":trueSize;
+Echo(str("Sizing inactive trueSize=",trueSizeSW),color="warning",condition=trueSize!="size"&&( (!textmetrics&&trueSize!="body")||(is_num(useVersion)&&useVersion<22.208) ) );
+trueSizeSW=is_num(useVersion)&&useVersion<22.208?"size":trueSize;
 inputSize=size;
 
 style=is_string(style)?style:styles[style];
 fontstr=is_undef(style)?font:str(font,":style=",style);
 hp=assert(textmetrics)textmetrics(text="hpbdlq",font=fontstr,size=1,spacing=spacing).size.y;
-versal=assert(textmetrics)textmetrics(text="HTAME",font=fontstr,size=1,spacing=spacing).size.y;
+cap=assert(textmetrics)textmetrics(text="HTAME",font=fontstr,size=1,spacing=spacing).size.y;
 
 size=trueSizeSW=="body"?size*.72:
                         trueSizeSW=="hp"?size/hp:
-                                         trueSizeSW=="versal"?size/versal:
+                                         trueSizeSW=="cap"?size/cap:
                                                               size;
 
     h=is_undef(h)?size:h;
@@ -6340,7 +6341,7 @@ else rotate(center?gradB(txtSizeX/2,radius+(cy?-txtSizeY/2:0)):0)for(i=[0:len(te
 "name",name,
 "textmetrics",textmetrics,
 "viewPos",viewPos,
-"trueSize",str("\"",trueSize,"\""," /* body,size,hp,versal */")
+"trueSize",str("\"",trueSize,"\""," /* body,size,hp,cap */")
 ],help);
 
  
@@ -8013,7 +8014,8 @@ Knurl() creates a knurled cylinder or cone
 //Knurl(size=[2.1,2,[1,-1]],alt=1);
 
 
-module Knurl(r=10,h=20,size=[5,5,.7],depth,e,scale=1,scaleZ=1,twist=0,grad=360,delta=[0,0],alt=0,name,help){
+
+module Knurl(r=10,h=20,size=[5,5,.7],depth,e,scale=1,scaleZ=1,twist=0,grad=360,delta=[0,0],alt=0,convexity,name,help){
 con=0;
 size=is_num(size)?[size,size,is_undef(depth)?size/2:depth]:concat(size.xy,is_undef(depth)?[size.z]:[depth]);
 
@@ -8024,15 +8026,20 @@ e=is_undef(e)?[
   ]:
              e;
 
+convexity=is_undef(convexity)?round(map(e.x,[1,500],[5:30])):convexity;
+             
+realSize=[sin(grad/(e.x)/2)*r*2,h/e.y,size.z];
+depthCord=r-Kathete(r,realSize.x/2);// height over cord⇔radius
 
-lenZ=len(size.z);
+lenZ=is_list(size.z)?len(size.z):1;
 Echo(str("Irregular Knurl! e.x=",e.x," but len size.z=",lenZ,"↦  ↦",floor(e.x/lenZ)*lenZ,"⇐e.x⇒",ceil(e.x/lenZ)*lenZ),color="warning",condition=e.x%lenZ&&is_list(size.z));
 
 loopX=grad==360?e.x-1:e.x;
-realSize=[sin(grad/(e.x)/2)*r*2,h/e.y,size.z];
-if(name)echo(Knurls=e,size=realSize,deg=[for (i=size.z)str("\n",atan2(-i,realSize.x/2),"° | ",atan2(-i,(realSize.y/2)),"°")]);
 
-function KnurlP(r=10,h=20,depth=1,e=[10,10],scale=1,scaleZ=1,twist=0,grad=360,delta=[0,0],alt=0)=[
+
+InfoTxt("Knurl",["knurls",e,"size",realSize,"deg",[for (i=size.z)str("\n",atan2(-i,realSize.x/2+delta.x),"° | ",atan2(-i,(realSize.y/2+delta.y)),"°")],"edge",str((180-360/e.x),"°"),"CordDist",depthCord],name);
+
+function KnurlP(r=10,h=20,depth=1,e=[10,10],scale=1,scaleZ=1,twist=0,grad=360,delta=[0,0],alt=0,depthCord=depthCord)=[
 let(
   //alt=is_list(alt)?alt:[1],
   depth=is_list(depth)?depth:[depth],
@@ -8055,9 +8062,9 @@ let(
     let(
       rot=(i<e.x?rot:0),
       depth=i<e.x?depth:[0],
-      deltaRot=gradS(delta.x,r=r+depth[i%len(depth)])
+      deltaRot=gradS(delta.x,r=r+depth[i%len(depth)]-depthCord)
     )
-    [cos(i*step+stepRot+rot+deltaRot)*(r+depth[(i+alt*floor(z/2))%len(depth)]),sin(i*step+stepRot+rot+deltaRot)*(r+depth[(i+alt*floor(z/2))%len(depth)]),z*stepZ+delta.y]
+    [cos(i*step+stepRot+rot+deltaRot)*(r+depth[(i+alt*floor(z/2))%len(depth)]-depthCord),sin(i*step+stepRot+rot+deltaRot)*(r+depth[(i+alt*floor(z/2))%len(depth)]-depthCord),z*stepZ+delta.y]
   else    for(i=[0:grad==360?(e.x -1):e.x])[cos(i*step+stepRot)*r,sin(i*step+stepRot)*r,z*stepZ]
 
 
@@ -8083,8 +8090,8 @@ faces=concat(
   fBody
 );
 
-polyhedron(points,faces,convexity=5);
-HelpTxt("Knurl",["r",r,"h",h,"size",size,"depth",depth,"e",e,"scale",scale,"scaleZ",scaleZ,"twist",twist,"grad",grad,"delta",delta,"alt",alt,"name",name],help);
+polyhedron(points,faces,convexity=convexity);
+HelpTxt("Knurl",["r",r,"h",h,"size",size,"depth",depth,"e",e,"scale",scale,"scaleZ",scaleZ,"twist",twist,"grad",grad,"delta",delta,"alt",alt,"convexity",convexity,"name",name],help);
 }
 
 
