@@ -140,9 +140,13 @@ Release
 206|22 ADD Knurl
 208|22 CHG Text add trueSize add cy=-1/2
 210|22 CHG Text Fix Knurl
+212|22 upd fold
+214|22 ADD parabel
+216|22 UPD Tdrop UPD Line UPD Rand
+218|22 FIX Schlaufe FIX Knurl
 */
 
-{ /// Constants
+{//fold // Constants
 
 
 // libraries direkt (program folder\oscad\libaries) !
@@ -166,7 +170,7 @@ bed=false;
 info=true;
 
 debug=$preview?anima?false:info:false;
-///activates module information (name)
+/// activates module information (name)
 $info=debug;
 /// viewpoint
 //vp=false;
@@ -185,10 +189,11 @@ layer=0.08;// one step = 0.04 (8mm/200steps)
 
 /// Print Bed size
 printBed=[220,220];
-///Printposition;
+/// Printposition;
 pPos=[0,0,0];
 printPos=bed?concat(printBed,0)/2+v3(pPos):[0,0,0];
 
+/// render with Hires
 hires=false;
 fn=$fn?$fn:$preview?36:
                           hires?144:
@@ -199,11 +204,11 @@ fs=$preview?.85:hires?.1:.2;
 fa=$preview?5:hires?.5:1;
 
 
-///demo objects
+/// demo objects
 show=0;
-///animation var
+/// animation var
 tset=0;//[0:.01:1]
-///clearance
+/// clearance
 spiel=0.20;
 
 pivotSize=$vpd/15;
@@ -216,7 +221,7 @@ vpd=bed?300:$vpd;//[50:5:350]
 vpf=22.5;
 
 
-///display project name
+/// display project name
 texton=name!=undef?$preview?true:false:false;
 
 /// Colors (version 2019)
@@ -224,27 +229,27 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.210;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.218;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
-PHI=1.6180339887498948;//1.618033988;
-gw=360-360/PHI;// goldener Winkel;
-tw=acos(-1/3);// tetraeder winkel;
-twF=acos(1/3);// tetraeder winkel face edge face;
-inch=25.4; // inch/Zoll
+PHI=1.6180339887498948;/// golden ratio 1.618033988;
+gw=360-360/PHI;/// goldener Winkel;
+tw=acos(-1/3);/// tetraeder winkel;
+twF=acos(1/3);/// tetraeder winkel face edge face;
+inch=25.4; /// inch/Zoll
 minVal=0.0000001; // minimum für nicht 0
 
-needs2D=["Rand","WKreis","Welle","Rund","Rundrum", "LinEx", "RotEx","SBogen","Bogen","HypKehle","Roof"]; // modules needing 2D children 
+needs2D=["Rand","WKreis","Welle","Rund","Rundrum", "LinEx", "RotEx","SBogen","Bogen","HypKehle","Roof"]; /// modules needing 2D children 
 //echo(tw,twF);
 //PHI=(1+sqrt(5))/2;
 
 
-} // end constants ΔΔ
+}//fold // end constants ΔΔ
 
 assert(useVersion?Version>=useVersion:true,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 assert(version()[0]>2019,"Install current http://openscad.org version");
 
-{ // functions ∇∇
+{//fold // \∇∇ functions ∇∇/
 
 function l(x=1,layer=layer)=x*layer;
 function n(x=1,nozzle=nozzle)=sign(x)*(abs(x)*nozzle + 0.05*nozzle); /*(x==1?0.05*nozzle:
@@ -331,7 +336,7 @@ function 5gon(b1=20,l1=15,b2=10,l2=30)=[[0,0],[b1,l1],[b2,l2],[-b2,l2],[-b1,l1]]
 function ZigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)=zigZag(e,x,y,mod,delta,base,shift);
 function zigZag(e=5,x=50,y=5,mod=2,delta=+0,base=2,shift=0)=[for(i=[0:e*mod])[i%mod<mod/2+delta?i*x/(e*mod):i*x/(e*mod)+shift,i%mod<mod/2+delta?base:y],[x,0],[0,0]];
 
-/** \page Funktions
+/** \page Functions
 tangentenP() calculates the distance of a circle center for tangents
 \param grad the center angle of the circle
 \param rad the radius for the tangent
@@ -1176,12 +1181,54 @@ function arc(r=10,deg=90,r2,rot=0,t=[0,0,0],z,fn=36,rev=false)=
 pt() give the typographic point size in mm
 \param pt number of points  12pt ⇒ pt(12) = 1 pica = 4.2333mm
 */
-function pt(pt)=25.4/72*pt;
+
+function pt(pt=1)=25.4/72*pt;
 
 
-}// END functions
+/** /name parabel
+/page Functions
+parabel() gives points of a parabel
+\param x  width
+\param a  height ratio
+\param fn fragments
+\param exp exponent
+\param bp  focal point
+\param lap overlap outside points
+\param t  translate points
+\param rev reverse points
+*/
 
-{ //Help –––––––––––––––––––––––––––––––––––––––––––––––––––––––
+function parabel(x=1,a=1,fn=fn,exp=2,bp=false,lap,t=[0,0],rev=false)=
+let(
+lap=is_num(lap)?[lap,lap]:lap,
+t=is_num(t)?[t,0]:is_list(t)?len(t)>1?t.xy:[is_num(t.x)?t.x:0,0]:[0,0]
+)
+[
+if(is_list(lap)&&!bp)[0,-lap.y]+t,
+(bp&&exp==2?[0,1/(a*4)]:
+            is_list(lap)?[x+lap.x,-lap.y]:
+                         [0,a*x^exp])
++t,
+if(is_list(lap)&&!bp)[x+lap.x,a*x^exp]+t,
+  for(i=rev?[0:fn]:[fn:-1:0])let(step=x/fn)[i*step,a*(i*step)^exp]+t
+];
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}//fold // ΔΔ END functions ΔΔ
+
+{ // Help –––––––––––––––––––––––––––––––––––––––––––––––––––––––
 
 $fn=fn;
 $fs=fs;
@@ -1339,6 +1386,7 @@ echo    ("
 ••• revP(points) reverse Point order ••• \n
 ••• arc(r,deg,r2,rot,t,z,fn,rev) ••• \n
 ••• pt(pt) typographic unit in mm••• \n
+••• parabel(x,a,fn,exp,bp,lap,t,rev)••• \n
 
 ");
     
@@ -1623,7 +1671,7 @@ if(is_string(name)&&name!="test"&&name!="Test"){rand=rands(0,1,1)[0];n=floor(ran
 } // end example
 
 
-{ // \∇∇ Tools / Modificator ∇∇/ //
+{//fold // \∇∇ Tools / Modifier ∇∇/ //
 
 
 
@@ -1652,8 +1700,8 @@ else
 }
 
 
-/** \page Modificator
- * module Tz()
+/** \page Modifier
+ * Tz() translates children in Z
  * \name Tz
 ## Examples
 Tz() cube();
@@ -2104,7 +2152,7 @@ if(!center){
         }
     }
     
-if(center)
+if(center&&rand)
        difference(){
        chg=sign(b(center,false))*(rand/2)*(1-abs(b(center,false)) );
       offset(r=delta?undef:abs(rand)+chg,$fn=fn,delta=abs(rand),chamfer=chamfer?true:false)offset(r=true?undef:-abs(rand/2)-chg,$fn=fn,delta=-abs(rand/2)-chg,chamfer=chamfer?true:false)children();
@@ -2114,13 +2162,14 @@ if(center)
          offset(r=delta?undef:-abs(rand)-chg,$fn=fn,delta=-abs(rand),chamfer=chamfer?true:false) offset(r=true?undef:(abs(rand/2)+chg),$fn=fn,delta=abs(rand/2)+chg,chamfer=chamfer?true:false)children();
       }
     }     
-    
+
+if(rand==0)children();
     MO(!$children);
     
     HelpTxt("Rand",["rand",rand,"center",center,"fn",fn,"delta",delta,"chamfer",chamfer],help);
 }
 
-/** \page Polygon
+/** \page Polygons
 Rund() polygon rounds a polygon via offset
 \param or  outer radius
 \param ir inner radius outer radius is used if undef
@@ -2148,8 +2197,8 @@ HelpTxt("Rund",["or",or,"ir",ir,"chamfer",chamfer,"fn",fn,"fs",fs],help);
 }
 
 
-}// /ΔΔ Modificatoren ΔΔ/ //
-{ // \∇∇ Helper ∇∇/ // (not for creating geometry or objects)
+}//fold// /ΔΔ Modificatoren ΔΔ/ //
+{//fold // \∇∇ Helper ∇∇/ // (not for creating geometry or objects)
 
 
 /** \page Helper
@@ -2766,7 +2815,7 @@ points=center?[-p1t+p0,p0,p1]:[p0,p1t/2+p0,p1]; // for d=0  1d polyhedron
 
 if(d)
   if(2D)translate(p0)rotate([0,b-90,c])translate([0,center?0:-d/2,0]) square([center?length*2:length,d],center=center?true:false);
-  else translate(p0)rotate([0, b, c])
+  else if(length)translate(p0)rotate([0, b, c])
       cylinder(h=center?length*2:length,d=d,$fn=fn,center=center?true:false);
 else polyhedron(points,[[0,1,2]]);
 //Points(points);
@@ -2867,10 +2916,10 @@ module Pivot(p0=[0,0,0],size,active=[1,1,1,1,1,1],messpunkt,txt,rot=0,vpr=$vpr,h
 
 
 
-} // \ΔΔ Helper   ΔΔ\ \\
-{ // \∇∇ Polygons ∇∇/ //
+}//fold // \ΔΔ Helper   ΔΔ\ \\
+{//fold // \∇∇ Polygons ∇∇/ //
 
-/** \page Polygon
+/** \page Polygons
 Arc() creates an arc
 \param r radius
 \param deg angle
@@ -2892,7 +2941,7 @@ HelpTxt("Arc",["r",r,"deg",deg,"r2",r2,"fn",fn,"rand",rand,"center",center,"cP",
 }
 
 
-/** \page Polygon
+/** \page Polygons
 PolyRund([[0,1],[10,20],[-50,50]],r=5); creates a rounded polygon
 \param points the points of polygon
 \param r  the rounding radius (list optional)
@@ -3266,10 +3315,19 @@ HelpTxt("Star",["e",e,"r1",r1,"r2",r2,"grad",grad,"grad2",grad2,"radial",radial,
 
 }
 
+/** \name Tdrop
+\page Polygons
+Tdrop() creates a Teardrop polygon
+\param r radius
+\param d diameter ↦ r
+\param grad  angle
+\param cut   flat top cut
+\param fn,fs fragments
+\param name name
+\param help help
+*/
 
-
-
-module Tdrop(r=1,d,grad,cut=true,name,help){
+module Tdrop(r=1,d,grad,cut=true,fn=fn,fs,name,help){
 
 kgrad=is_undef(grad)?atan(layer/(nozzle/1.75)):90-grad;
 delta=is_bool(cut)?nozzle-layer:cut; // added cut
@@ -3284,7 +3342,7 @@ x2=cut==false? 0:x - (h2-h)/tan(kgrad);
 points=[
 //[-x,h],
 //[ x,h],
-each kreis(rand=0,r=r,grad=360-kgrad*2,center=true,rot=-90),
+each kreis(rand=0,r=r,grad=360-kgrad*2,center=true,rot=-90,fn=fn,fs=fs),
 if(x2>minVal)[- x2,h2],
 clampToX0([ x2,h2])
 ];
@@ -3292,8 +3350,10 @@ clampToX0([ x2,h2])
 if(messpunkt)%Tz(.1)color("green",.25)circle(r=r,$fn=fn);
 polygon(points);
 InfoTxt("Tdrop",["grad",90-kgrad,"cut",cut],name);
-HelpTxt("Tdrop",["r",r,"d",d,"grad",grad,"cut",cut,"name",name],help);
+HelpTxt("Tdrop",["r",r,"d",d,"grad",grad,"cut",cut,"fn",fn,"fs",fs,"name",name],help);
 }
+
+
 
 module VarioFill(
 l=15,
@@ -3395,7 +3455,7 @@ HelpTxt("VarioFill",[
 
 }
 
-/** \page Polygon
+/** \page Polygons
 Kreis() creates a circle polygon
 \name Kreis
 \param r radius
@@ -3557,8 +3617,8 @@ Tz(.5)GT();
 // */
 
 
-
-module GT2(spiel=0,fn=fn){  //GT2
+/// GT2 tooth
+module GT2(spiel=0,fn=fn){  
         fn=max(6,fn);
         p=2; // zahnabstand 
         PLD=0.254; //  ?Mittellinie? Pitch Line distance 
@@ -3595,8 +3655,8 @@ module GT2(spiel=0,fn=fn){  //GT2
   
 }
 
-
-
+/// GT();
+/// GT2 profile rack, belt or pulley
 module GT(z=20,achse=3.5,spiel=.05,evolute=true,pulley=true,linear=true,fn=fn,name,help,spielO=0){
         p=2; // zahnabstand 
         PLD=0.254; //  ?Mittellinie? Pitch Line distance 
@@ -4733,8 +4793,8 @@ module Area(a=10,aInnen=0,rInnen=0,h=0,name,help){
 }
 
 
-} // /ΔΔ Polygons  ΔΔ\ \\
-{ // \∇∇ Generator ∇∇/ //
+}//fold // /ΔΔ Polygons  ΔΔ\ \\
+{//fold // \∇∇ Generator ∇∇/ //
 
 /** \page Generator
 Schlaufe()circle() creates a 3D loop with the child polygon
@@ -4820,11 +4880,11 @@ if(grad-grad2/2==0)echo("r1  angle 0!");
 
 
 pos=center?center==-1?[-h+r2,0]:
-                      [edge?-endDist*tan(grad2/2)+(is_bool(edge)?0:
+                      [edge?-(endDist2.x)*tan(grad2/2)+(is_bool(edge)?0:
                                                                  edge):
                             0,
                               0]:
-           [0,endDist];
+           [0,endDist2.x];
 
 InfoTxt("Schlaufe",["endDist",str(endDist2,"/",[l[0]/tan(grad20),l[1]/tan(grad21)]+(endDist2)),"centerDist",centerDist+pos.x*[1,1],"height",h,"r2center",h-r2+pos.x,"l",l],name);
 
@@ -5418,8 +5478,8 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
 
 
 
-} // // ΔΔ Generator ΔΔ \ \\
-{ // \∇∇ Basic Objects ∇∇/ //
+}//fold // // ΔΔ Generator ΔΔ \ \\
+{//fold // \∇∇ Basic Objects ∇∇/ //
 
 
 /*
@@ -6233,9 +6293,10 @@ Text("123ABCiiII",spacing=.9,radius=20,textmetrics=1,center=+1,cy=false,viewPos=
 // */
 //Cring(txt="iiiAAA",tSpacing=1.0);
 
-/** \page Objects
+/** \name Text
+\page Objects
 Text() creates text
-\name Text
+
 ##Example
 Text(123,h=0);  
 Text(text="WWiiABCiiXX",radius=10);
@@ -7048,7 +7109,7 @@ HelpTxt("OctaH",["r",r,"n",n,"d",d],help);
 
 
 /** \page Objects
-module Prisma() rounded cube (square prism)
+Prisma() rounded cube (square prism)
  \name Prisma
  * \brief creates a prism with optional round edges
  
@@ -8055,8 +8116,7 @@ let(
  stepZ=scaleZ==1?stepZ:stepZ-stepZ*(1-scaleZ)/e.y/2*z/2,
  depth=scaleZ==1?depth:depth-depth*(1-scaleZ)/e.y/2*z/2,
  delta=scaleZ==1?delta:delta-delta*(1-scaleZ)/e.y/2*z/2,
- stepRot=scaleRot==1?twist/e.y/2*z:twist/e.y/2*z-twist/e.y/2*(1-scaleRot)/e.y/2*z/2,
-
+ stepRot=scaleRot==1?twist/e.y/2*z:twist/e.y/2*z-twist/e.y/2*(1-scaleRot)/e.y/2*z/2
  )
   if(z%2) for(i=[0:grad==360?(e.x -1):e.x])
     let(
@@ -8830,8 +8890,8 @@ if(help)echo(str("<H3> <font color=",helpMColor,">Help RSternFill(e=",e,",r1=",r
 
 
 
-} // Basic Objects ΔΔ
-{ // \∇∇ Products ∇∇/ //
+}//fold // Basic Objects ΔΔ
+{//fold // \∇∇ Products ∇∇/ //
 
 
 module KBS(e=2,grad=2,center=true,male=true,female=false,rot=0,n=4,top=false,knob,knobH,fKnob,fKnobH,dist,bh,name,help){
@@ -10435,7 +10495,7 @@ if (top) difference(){
         
    }
    
-}  // Products ΔΔ
+}//fold  // Products ΔΔ
 { // OLD and Replaced modules
 
 
