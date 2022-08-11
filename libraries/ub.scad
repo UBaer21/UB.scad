@@ -144,6 +144,8 @@ Release
 214|22 ADD parabel
 216|22 UPD Tdrop UPD Line UPD Rand
 218|22 FIX Schlaufe FIX Knurl
+220|22 FIX Kegel ADD designVersion
+
 */
 
 {//fold // Constants
@@ -152,6 +154,7 @@ Release
 // libraries direkt (program folder\oscad\libaries) !
 /*[UB lib]*/
 test=42;
+designVersion=0;
 /*[Global]*/
 
 /// activates help in console window
@@ -229,7 +232,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.218;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.220;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -4880,11 +4883,11 @@ if(grad-grad2/2==0)echo("r1  angle 0!");
 
 
 pos=center?center==-1?[-h+r2,0]:
-                      [edge?-(endDist2.x)*tan(grad2/2)+(is_bool(edge)?0:
+                      [edge?-(endDist2[0])*tan(grad2/2)+(is_bool(edge)?0:
                                                                  edge):
                             0,
                               0]:
-           [0,endDist2.x];
+           [0,endDist2[0]];
 
 InfoTxt("Schlaufe",["endDist",str(endDist2,"/",[l[0]/tan(grad20),l[1]/tan(grad21)]+(endDist2)),"centerDist",centerDist+pos.x*[1,1],"height",h,"r2center",h-r2+pos.x,"l",l],name);
 
@@ -5891,14 +5894,29 @@ if(!new)rotate ([0,0,0])for (i=[0:m:360])
  HelpTxt("Torus2",["m",m,"trx",trx,"a",a,"rq",rq,"d",d,"w",w,"name",name],help);
 }
 
+
+/** \name Kegel
+\page Objects
+Kegel() creates a cone
+\param d1 base diameter
+\param d2 top diameter
+\param v  slope
+\param grad  slope in degree
+\param h height (optional)
+\param r1,r2  optional ⇒ d1,d2
+\param fn fraqments
+\param center center
+\param name,help  name help
+*/
+
 module Kegel(d1=undef,d2=0,v=1,grad=0,h=0,r1,r2,fn=fn,center=false,name,help)
 {
 v=grad?tan(grad):v;
 d2=h&&(is_num(d1)||is_num(r1))?h/-v*2+(is_num(r1)?2*r1:d1):is_num(r2)?2*r2:d2;
 d1=is_undef(d1)&&is_undef(r1)&&h?h/v*2+(is_num(r2)?2*r2:d2):is_num(r1)?r1*2:is_undef(d1)?0:d1;    
-cylinder (abs((d1-d2)/2*v),d1=d1,d2=d2,$fn=fn,center=center);
+if(d1-d2&&!(d2<0))cylinder (abs((d1-d2)/2*v),d1=d1,d2=d2,$fn=fn,center=center);
 //if(d2>d1)cylinder (abs((d2-d1)/2*v),d1=d1,d2=d2,$fn=fn,center=center);
-if(d1==d2)cylinder (h?h:10,d1=d1,d2=d2,$fn=fn,center=center);   
+if(d1==d2&&d2!=0)cylinder (h?h:10,d1=d1,d2=d2,$fn=fn,center=center);   
 if(!d1&&!d2&&is_undef(r1))color("magenta")%cylinder(5,5,0,$fn=fn,center=center);    
 
  if(d2<0||d1<0)Echo(str("‼ negativ ∅",name,"  Kegel d1=",negRed(d1)," d2=",negRed(d2)),color="red");    
@@ -5906,6 +5924,8 @@ if(!d1&&!d2&&is_undef(r1))color("magenta")%cylinder(5,5,0,$fn=fn,center=center);
      
  HelpTxt("Kegel",["d1",d1,"d2",d2,"v",v,"grad",grad,"h",h,"r1",r1,"r2",r2,"fn",fn,"center",center,"name=",name],help);
 }
+
+
 
 module MK(d1=12,d2=6,v=19.5,fn=fn)
 {
