@@ -29,6 +29,8 @@ There are a lot of settings available but most is using  pre configuration - so 
   ![](https://github.com/UBaer21/UB.scad/blob/main/Images/consoleSchalter.png)
   
 # Parameter
+<details><summary>List</summary>
+
 `name="myProject";` shows a name 
 
 `nozzle=.4;`     defines the nozzle and walls or perimeters
@@ -63,10 +65,12 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 `useVersion=21.325` will help to mark which version was used for your design and can improve compatibility
 
+</details>
 
 # Modifier
 
 ![modifier](https://github.com/UBaer21/UB.scad/blob/main/Images/modifier.png)
+<details><summary>List</summary>
 
 * `T(x,y,z)` translates
 * `R(x,y,z)` rotates
@@ -84,6 +88,8 @@ There are a lot of settings available but most is using  pre configuration - so 
 * `Rand()`   creates border on polygons
 * `Row()`    places $d size copies with same space
 
+</details>
+
 # Generator
 
 ![3Dmodifier](https://github.com/UBaer21/UB.scad/blob/main/Images/generator.png)
@@ -94,13 +100,19 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 # [Polygons](https://github.com/UBaer21/UB.scad/blob/main/examples/UBexamples/Polygons.scad)
 
+<details><summary>Open polygons</summary>
+
 ![polygons](https://github.com/UBaer21/UB.scad/blob/main/Images/polygons.png)
+</details>
 
 # [Objects](https://github.com/UBaer21/UB.scad/blob/main/examples/UBexamples/Objects.scad)
+<details><summary>Open objects</summary>
 
 ![objects](https://github.com/UBaer21/UB.scad/blob/main/Images/objects.png)
+</details>
 
 # [Products](https://github.com/UBaer21/UB.scad/blob/main/examples/UBexamples/Products.scad)
+<details><summary>Open products</summary>
 
 ![Products](https://github.com/UBaer21/UB.scad/blob/main/Images/products.png)
 
@@ -130,8 +142,10 @@ There are a lot of settings available but most is using  pre configuration - so 
 * `Balg()`          Gaiter (square )
 * `SpiralCut()`     cutting geometry for walled spiral prints (e.g for a ring)
 
+</details>
 
 # Functions
+<details><summary>List</summary>
 
 ![functions](https://github.com/UBaer21/UB.scad/blob/main/Images/functions.png)
 * `l(x)` № layer in mm depending on layer=
@@ -196,3 +210,4 @@ There are a lot of settings available but most is using  pre configuration - so 
   * `polyRund(points,r,ir,ofs,delta,fn,fs)` offset and round points
   * `revP(points)` reverse points order
   
+</details>
