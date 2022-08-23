@@ -145,6 +145,7 @@ Release
 216|22 UPD Tdrop UPD Line UPD Rand
 218|22 FIX Schlaufe FIX Knurl
 220|22 FIX Kegel ADD designVersion
+222|22 FIX LinEx FIX Cut UPD M FIX Rand FIX Knurl FIX Text FIX Roof UPD vSum UPD Quad
 
 */
 
@@ -232,7 +233,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.220;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.222;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -848,7 +849,7 @@ function vMult(v1=[1],v2=1)=
 /// sum up vector constituents
 //echo( vSum([1,1,1]) );
 function vSum(v,start=0,end) = 
-  let( end = is_undef(end)?len(v)-1:min(len(v)-1,end) )
+  let(v=is_list(v)?v:[v], end = is_undef(end)?len(v)-1:min(len(v)-1,end) )
     start<end? v[start]+ vSum(v,start+1,end):
                v[start];
 
@@ -1732,20 +1733,40 @@ module R(x=0,y=0,z=0,help=false)
     HelpTxt("R",["x",x,"y",y,"z",z],help);
 }
 
+/** \name M
+\page Modifier
+M() multmatrix objects
+\param skewXY skew the x axis along y
+\param scaleXY scales x and y
+*/
 
 // short for multmatrix and skewing objects
-module M(skewzx=0,skewzy=0,skewxz=0,skewxy=0,skewyz=0,skewyx=+0,scale=1,scalexy=1,scalexz=1,scaleyz=1,help=false){
-    scalex=scale*scalexy*scalexz;
-    scaley=scale*scalexy*scaleyz;
-    scalez=scale*scalexz*scaleyz;    
+module M(skewZX=0,skewZY=0,skewXZ=0,skewXY=0,skewYZ=0,skewYX=+0,scale=1,scaleXY=1,scaleXZ=1,scaleYZ=1,help=false,skewxy,skewxz,skewyx,skewyz,skewzx,skewzy,scalexy,scalexz,scaleyz){
+
+    skewXY=is_undef(skewxy)?skewXY:skewxy;
+    skewXZ=is_undef(skewxz)?skewXZ:skewxz;
+    skewYX=is_undef(skewyx)?skewYX:skewyx;
+    skewYZ=is_undef(skewyz)?skewYZ:skewyz;
+    skewZX=is_undef(skewzx)?skewZX:skewzx;
+    skewZY=is_undef(skewzy)?skewZY:skewzy;
+    
+    scaleXY=is_undef(scalexy)?scaleXY:scalexy;
+    scaleXZ=is_undef(scalexz)?scaleXZ:scalexz;
+    scaleYZ=is_undef(scaleyz)?scaleYZ:scaleyz;
+    
+    scaleX=scale*scaleXY*scaleXZ;
+    scaleY=scale*scaleXY*scaleYZ;
+    scaleZ=scale*scaleXZ*scaleYZ;
+    
     multmatrix([
-    [scalex,skewyx,skewzx,0],
-    [skewxy,scaley,skewzy,0],    
-    [skewxz,skewyz,scalez,0],
+    [scaleX,skewYX,skewZX,0],
+    [skewXY,scaleY,skewZY,0],    
+    [skewXZ,skewYZ,scaleZ,0],
     [0,0,0,1.0],    
-    ])children(); 
+    ])children();
+    
     MO(!$children);
-    HelpTxt("M",["skewzx",skewzx,"skewzy",skewzy,"skewxz",skewxz,"skewxy",skewxy,"skewyz",skewyz,"skewyx",skewyx,"scale",scale,"scalexy",scalexy,"scalexz",scalexz,"scaleyz",scaleyz],help);
+    HelpTxt("M",["skewZX",skewZX,"skewZY",skewZY,"skewXZ",skewXZ,"skewXY",skewXY,"skewYZ",skewYZ,"skewYX",skewYX,"scale",scale,"scaleXY",scaleXY,"scaleXZ",scaleXZ,"scaleYZ",scaleYZ],help);
 }
 
 
@@ -2133,7 +2154,7 @@ Rand(1,center=1.0)Star(8);
 Tz(-1)Color(alpha=0.3)Star(8);
 //*/
 
-module Rand(rand=n(1),center=false,fn=fn,fs,delta=false,chamfer=false,help){
+module Rand(rand=n(1),center=false,fn=fn,fs=fs,delta=false,chamfer=false,help){
   $fs=fs;
     
 if(!center){ 
@@ -2380,7 +2401,7 @@ intersection(){
   }
 }
 
-if(ghost&&on){
+if(ghost&&on&&$preview){
  $info=false;
  $idx=1;
  
@@ -4548,12 +4569,12 @@ module Superellipse(n=4,r=10,n2,r2,n3,n31,n32,r3,fn=fn,fnz,name,help){
 
 
 
-module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=false,basisX=0,trueX=false,centerX,tangent=true,rad,name,help){
+module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=false,basisX=0,trueX=false,centerX,tangent=true,rad,fs=fs,name,help){
     assert(grad!=0&&grad2!=0);
     basisX=is_bool(basisX)?basisX?1:0:is_undef(centerX)?basisX:is_bool(centerX)?centerX?1:0:centerX;
     
     r=is_undef(rad)?r:rad;
-    fn=is_list(fn)?fn:[fn];
+    
     
     y=is_num(y)?y:
                 is_list(x)?x[1]:
@@ -4567,6 +4588,9 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=fa
     r3=is_num(r3)?r3:is_undef(r[2])?is_num(r)?r:rundung:r[2];
     r4=is_num(r4)?r4:is_undef(r[3])?is_num(r)?r:rundung:r[3];
     
+    radList=[r1,r2,r3,r4];
+    
+    fn=is_undef(fn)?[for(i=[0:3])fs2fn(fs=fs,r=radList[i])]:is_list(fn)?fn:[fn];
        
     rf1=1/sin(grad);
     rf2=1/sin(grad2);
@@ -4640,7 +4664,7 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=fa
       
   InfoTxt("Quad",["TangentsizeX1",x1,"sizeX2",x2,"real",str(trueX1,"/",trueX2),"r",r],name);
       
-  HelpTxt("Quad",["x",x,"y",y,"r",r,"grad",grad,"grad2",grad2,"fn",fn,"center",center,"name",name,"messpunkt",messpunkt,"trueX",trueX,"centerX",centerX,"tangent",tangent],help);
+  HelpTxt("Quad",["x",x,"y",y,"rad",r,"grad",grad,"grad2",grad2,"fn",fn,"center",center,"name",name,"messpunkt",messpunkt,"trueX",trueX,"centerX",centerX,"tangent",tangent,"fs",fs],help);
 }
 
 
@@ -5324,6 +5348,7 @@ InfoTxt("Roof",["h",h,"deg",str(deg,"° (",s,")")],name);
 Echo("Roof is experimental - use Dev Snapshot version and activate",color="warning",condition=version()[0]<2022);
   Tz(on?(center?0:h[0]?h[0]:0):0){
   $tab=is_undef($tab)?1:b($tab,false)+1;
+  $idx=0;
   linear_extrude(base+(on?lap:h[0]+h[1]),center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn)children();
   }
  if(on)union(){ 
@@ -5402,20 +5427,35 @@ scaleCenter=is_undef(gradC)?scaleCenter:
 scale2=is_undef(grad2)?
     is_undef(grad)?
     is_undef(scale2)?h22?scale:1:scale2
-    :is_list(grad)?is_list($r)?[($r[0]-(h22/tan(grad[0])))/($r[0]),($r[1]-(h22/tan(grad[1])))/($r[1])]:[($r-(h22/tan(grad[0])))/($r),($r-(h22/tan(grad[1])))/($r)]:($r-(h22/tan(grad)))/($r)
-    :is_list(grad2)?
+    :is_list(grad)?is_list($r)?[($r[0]-(h22/tan(grad[0])))/($r[0]),($r[1]-(h22/tan(grad[1])))/($r[1])]:
+                               [($r-(h22/tan(grad[0])))/($r),($r-(h22/tan(grad[1])))/($r)]:
+                   is_list($r)?[($r.x-(h22/tan(grad)))/($r.x),($r.y-(h22/tan(grad)))/($r.y)]:
+                                ($r-(h22/tan(grad)))/($r):
+    is_list(grad2)?
         is_list($r)?[($r[0]-(h22/tan(grad2[0])))/($r[0]),($r[1]-(h22/tan(grad2[1])))/($r[1])]:[($r-(h22/tan(grad2[0])))/($r),($r-(h22/tan(grad2[1])))/($r)]:($r-(h22/tan(grad2)))/($r);
 scale=h2?is_undef(grad)?scale:
     is_list(grad)?
-        is_list($r)?[($r[0]-(h2/tan(grad[0])))/($r[0]),($r[1]-(h2/tan(grad[1])))/($r[1])]:[($r-(h2/tan(grad[0])))/($r),($r-(h2/tan(grad[1])))/($r)]:($r-(h2/tan(grad)))/($r):1;    
+        is_list($r)?[($r[0]-(h2/tan(grad[0])))/($r[0]),($r[1]-(h2/tan(grad[1])))/($r[1])]:
+                    [($r-(h2/tan(grad[0])))/($r),($r-(h2/tan(grad[1])))/($r)]:
+        is_list($r)?[($r.x-(h2/tan(grad)))/($r.x),($r.y-(h2/tan(grad)))/($r.y)]:
+        ($r-(h2/tan(grad)))/($r):
+     1;    
     
 
 
 grad=h2?is_list(scale)?
-        is_list($r)?[atan(h2/($r[0]-$r[0]*scale[0])),atan(h2/($r[1]-$r[1]*scale[1]))]:[atan(h2/($r-$r*scale[0])),atan(h2/($r-$r*scale[1]))]
-    :atan(h2/($r-$r*scale)):0;
+          is_list($r)?[atan(h2/($r[0]-$r[0]*scale[0])),atan(h2/($r[1]-$r[1]*scale[1]))]:
+                      [atan(h2/($r-$r*scale[0])),atan(h2/($r-$r*scale[1]))]:
+          is_list($r)?[atan(h2/($r.x-$r.x*scale)),atan(h2/($r.y-$r.y*scale))]:
+                      atan(h2/($r-$r*scale)):
+    0;
     
-grad2=h22?is_list(scale2)?is_list($r)?[atan(h22/($r[0]-$r[0]*scale2[0])),atan(h22/($r[1]-$r[1]*scale2[1]))]:[atan(h22/($r-$r*scale2[0])),atan(h22/($r-$r*scale2[1]))]:atan(h22/($r-$r*scale2)):0;
+grad2=h22?is_list(scale2)?
+            is_list($r)?[atan(h22/($r[0]-$r[0]*scale2[0])),atan(h22/($r[1]-$r[1]*scale2[1]))]:
+                        [atan(h22/($r-$r*scale2[0])),atan(h22/($r-$r*scale2[1]))]:
+            is_list($r)?[atan(h22/($r.x-$r.x*scale2)),atan(h22/($r.y-$r.y*scale2))]:
+                        atan(h22/($r-$r*scale2)):
+         0;
 
 mantelwinkel=is_undef(twist)?mantelwinkel:atan(twist*PI*$d/360/hc);    
 twist=is_undef(twist)?mantelwinkel?360*tan(mantelwinkel)*hc/(2*PI*$r):0:twist;   
@@ -5431,7 +5471,8 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
     
     if(is_list(grad2)?$r*tan(min(grad2[0],grad2[1]))<(is_list($r)?[h22,h22]:h22)&&min(grad2[0],grad2[1])<90&&min(grad2[0],grad2[1])>0:$r*tan(grad2)<(is_list($r)?[h22,h22]:h22)&&grad2<90&&grad2>0)Echo(str(name," LinEx Höhe h22=",h22," mm zu groß oder winkel/$r zu klein min=",atan(h22/$r),"° max=",is_list(grad2)?$r*tan(min(grad2[0],grad2[1])):$r*tan(grad2),"mm"),color="red");
         
-    if(is_list(grad)?$r*tan(min(grad[0],grad[1]))<(is_list($r)?[h2,h2]:h2)&&min(grad[0],grad[1])<90&&min(grad[0],grad[1])>0:$r*tan(grad)<h2&&grad<90&&grad>0)Echo(str(name," LinEx Höhe h2=",h2," mm zu groß oder winkel/$r zu klein min=",atan(h2/$r),"° max=",$r*tan(grad),"mm"),color="red");    
+    if(is_list(grad)?min($r)*tan(min(grad))<h2&&min(grad)<90&&min(grad)>0:
+                     min($r)*tan(grad)<h2&&grad<90&&grad>0)Echo(str(name," LinEx Höhe h2=",h2," mm zu groß oder winkel/$r zu klein min=",atan(h2/$r),"° max=",$r*tan(grad),"mm"),color="red");    
     
     HelpTxt("LinEx",["h",h,"h2",h2,"h22",h22,"scale",scale,"scale2",scale2,"twist",twist,"twistcap",twistcap,"slices",slices,"$d",$d,"grad",grad,"grad2",grad2,", mantelwinkel",mantelwinkel,"center",center,"rotCenter",rotCenter,"end",end,"fn",fn,"name",name,"convexity",convexity,"lap",lap,"scaleCenter",scaleCenter],help);  
     
@@ -6349,28 +6390,38 @@ Text(text="WWiiABCiiXX",radius=10);
 
 module Text(text="»«",size=5,h,cx,cy,cz,center=0,spacing=1,fn=24,radius=0,rot=[0,0,0],font="Bahnschrift:style=bold",style,help,name,textmetrics=true,viewPos=false,trueSize="body")
 {
-//useVersion=23; // to activate
+
+text=str(text);
+
 textmetrics=version()[0]<2022?false:textmetrics;
+
 Echo(str("Sizing inactive trueSize=",trueSizeSW),color="warning",condition=trueSize!="size"&&( (!textmetrics&&trueSize!="body")||(is_num(useVersion)&&useVersion<22.208) ) );
+
 trueSizeSW=is_num(useVersion)&&useVersion<22.208?"size":trueSize;
 inputSize=size;
 
 style=is_string(style)?style:styles[style];
 fontstr=is_undef(style)?font:str(font,":style=",style);
-hp=assert(textmetrics)textmetrics(text="hpbdlq",font=fontstr,size=1,spacing=spacing).size.y;
-cap=assert(textmetrics)textmetrics(text="HTAME",font=fontstr,size=1,spacing=spacing).size.y;
+
+hp=textmetrics?textmetrics(text="hpbdlq",font=fontstr,size=1,spacing=spacing).size.y:1;
+cap=textmetrics?textmetrics(text="HTAME",font=fontstr,size=1,spacing=spacing).size.y:1;
+textSize=textmetrics?textmetrics(text=text,font=fontstr,size=1,spacing=spacing).size.y:1;
+fontS=textmetrics?fontmetrics(font=fontstr,size=1).nominal:1;
+
 
 size=trueSizeSW=="body"?size*.72:
-                        trueSizeSW=="hp"?size/hp:
-                                         trueSizeSW=="cap"?size/cap:
-                                                              size;
+     trueSizeSW=="hp"?size/hp:
+     trueSizeSW=="cap"?size/cap:
+     trueSizeSW=="text"?size/textSize:
+     trueSizeSW=="font"?size/(fontS.ascent-fontS.descent):
+     size;
 
     h=is_undef(h)?size:h;
     cx=center?is_undef(cx)?1:cx:is_undef(cx)?0:cx;
     cy=center?is_undef(cy)?1:cy:is_undef(cy)?0:cy;
     cz=center?is_undef(cz)?1:cz:is_undef(cz)?0:cz;
    
-    text=str(text);
+    
     lenT=len(text);
     font=is_num(font)?fonts[font]:font;
     
@@ -8098,7 +8149,8 @@ Knurl() creates a knurled cylinder or cone
 
 module Knurl(r=10,h=20,size=[5,5,.7],depth,e,scale=1,scaleZ=1,twist=0,grad=360,delta=[0,0],alt=0,convexity,name,help){
 con=0;
-size=is_num(size)?[size,size,is_undef(depth)?size/2:depth]:concat(size.xy,is_undef(depth)?[size.z]:[depth]);
+size=is_num(size)?[size,size,is_undef(depth)?size/2:depth]:
+                  concat(size.xy,is_undef(depth)?[is_undef(size.z)?min(size)/2:size.z]:[depth]);
 
 
 e=is_undef(e)?[
@@ -8106,6 +8158,9 @@ e=is_undef(e)?[
     max(1,round(h/size.y))
   ]:
              e;
+             
+delta=is_list(delta[0])?delta:[delta];
+sizeZ=is_list(size.z)?size.z:[size.z];
 
 convexity=is_undef(convexity)?round(map(e.x,[1,500],[5:30])):convexity;
              
@@ -8118,12 +8173,13 @@ Echo(str("Irregular Knurl! e.x=",e.x," but len size.z=",lenZ,"↦  ↦",floor(e.
 loopX=grad==360?e.x-1:e.x;
 
 
-InfoTxt("Knurl",["knurls",e,"size",realSize,"deg",[for (i=size.z)str("\n",atan2(-i,realSize.x/2+delta.x),"° | ",atan2(-i,(realSize.y/2+delta.y)),"°")],"edge",str((180-360/e.x),"°"),"CordDist",depthCord],name);
+InfoTxt("Knurl",["knurls",e,"size",realSize,"deg",[for (i=[0:len(sizeZ)-1])str("\n",atan2(-sizeZ[i],realSize.x/2+delta[i%len(delta)].x),"° | ",atan2(-sizeZ[i],(realSize.y/2+delta[i%len(delta)].y)),"°")],"edge",str((180-360/e.x),"°"),"CordDist",depthCord],name);
 
 function KnurlP(r=10,h=20,depth=1,e=[10,10],scale=1,scaleZ=1,twist=0,grad=360,delta=[0,0],alt=0,depthCord=depthCord)=[
 let(
   //alt=is_list(alt)?alt:[1],
   depth=is_list(depth)?depth:[depth],
+  delta=is_list(delta[0])?delta:[delta],
   step=grad/e.x,
   stepZ=h/e.y/2,
   scaleRot=scaleZ,
@@ -8142,7 +8198,9 @@ let(
     let(
       rot=(i<e.x?rot:0),
       depth=i<e.x?depth:[0],
-      deltaRot=gradS(delta.x,r=r+depth[i%len(depth)]-depthCord)
+      delta=delta[ (i+alt*floor(z/2))%len(delta) ],
+      deltaRot=gradS(delta.x,r=r+depth[ (i+alt*floor(z/2))%len(depth) ] -depthCord)
+      
     )
     [cos(i*step+stepRot+rot+deltaRot)*(r+depth[(i+alt*floor(z/2))%len(depth)]-depthCord),sin(i*step+stepRot+rot+deltaRot)*(r+depth[(i+alt*floor(z/2))%len(depth)]-depthCord),z*stepZ+delta.y]
   else    for(i=[0:grad==360?(e.x -1):e.x])[cos(i*step+stepRot)*r,sin(i*step+stepRot)*r,z*stepZ]
