@@ -152,6 +152,8 @@ Release
 236|22 FIX LinEx
 240|22 UPD Polar UPD Roof
 242|22 FIX Anschluss UPD SQ
+250|22 FIX Halb UPD PrevPos
+270|22 ADD KnurlTri
 */
 
 {//fold // Constants
@@ -238,7 +240,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.242;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.270;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -1946,21 +1948,36 @@ module Klon(tx=0,ty=0,tz=0,rx=0,ry=0,rz=0,help=false){
 }
 
 
-// Cuts away half of Object at [0,0,0]
+
+/**
+\page Modifier
+\name Halb
+Halb() Object Cuts away half of Object at [0,0,0]
+\param i  inverse side 
+\param x,y,z  cutting axis
+\param 2D for 2D objects
+\param size  cuttingblock size
+*/
+
+
+
 module Halb(i=0,x=0,y=0,z=0,2D=0,size=max(400,viewportSize*5),help=false)
 {
+xChange=x;
+x=(is_num(useVersion)&&useVersion<22.250)?y:x;
+y=(is_num(useVersion)&&useVersion<22.250)?xChange:y;
 
     if(!2D){
-       if(i)difference()
+       if(i||z<0)difference()
        {
            children();
-         R(x?90:0,y?90:0)  cylinder(size,d=size,$fn=6);
+         R(-90*sign(y),90*sign(x))  cylinder(size,d=size,$fn=6);
           
        }
-      if(!i) intersection()
+      else intersection()
       {
           children();
-          R(x?90:0,y?90:0)  cylinder(size,d=size,$fn=6);
+          R(-90*sign(y),90*sign(x))  cylinder(size,d=size,$fn=6);
       }
   }
   if(2D){
@@ -2306,18 +2323,19 @@ if(is_list(points[2]))
 PrevPos() object position Object for preview only
 \name PrevPos
 \param t translate 
+\param z translate z
 \param rot rotates
 */
 
-module PrevPos(on=true,t=[0,0,0],rot=[180,0,0],help){
-if($preview&&on||on==2)translate(v3(t))rotate(v3(rot))children();
+module PrevPos(on=true,t=[0,0,0],z=0,rot=[180,0,0],help){
+if($preview&&on||on==2)translate(v3(t)+[0,0,z])rotate(v3(rot))children();
 else children();
 
 Echo("Render with PrevPos!",color="warning",condition=on==2);
 
 MO(!$children);
 
-HelpTxt("PrevPos",["on",on,"t",t,"rot",rot],help);
+HelpTxt("PrevPos",["on",on,"t",t,"z",z,"rot",rot],help);
 };
 
 
@@ -8288,6 +8306,89 @@ faces=concat(
 polyhedron(points,faces,convexity=convexity);
 HelpTxt("Knurl",["r",r,"h",h,"size",size,"depth",depth,"e",e,"scale",scale,"scaleZ",scaleZ,"twist",twist,"grad",grad,"delta",delta,"alt",alt,"convexity",convexity,"name",name],help);
 }
+
+/** \name KnurlTri
+\page Objects
+KnurlTri() creates a triangle knurled cylinder or cone
+
+\param e  number of sides of the base polygon and levels
+\param r radius of base polygon
+\param h height of knurl
+\param depth height of surface tetrahedrons
+\param deltaH  move center in Z
+\param scale scales 
+*/
+
+//KnurlTri();
+
+module KnurlTri(e=[16,9],r=10,h=30,depth=[1,+1],deltaH=[0,0],scale=1,name,help){
+
+e=is_list(e)?e:[e,round(h/sqrt((sehne(r=r,n=e)*sqrt(3)/2)^2 - (r-Inkreis(e,r))^2  ) )];
+s=sehne(r=r,n=e[0]);
+depth=is_list(depth)?depth:is_undef(depth)?s*sqrt(6)/3*[1,1]:[depth,depth];
+deltaH=is_list(deltaH)?deltaH:[deltaH,deltaH];
+winkel1=360/e[0];
+levelH=h/e[1];
+
+
+ir=Inkreis(e[0],r);
+InfoTxt("KnurlTri",["Sehne",s,"winkel",2*atan2(s/2,norm([r-ir,levelH])),"Triangle Radius",str(norm([r-ir,levelH])/1.5,"/",s*sqrt(3)/3),"depth",depth,"e",e,"levelH",levelH],name);
+HelpTxt("KnurlTri",["e",e,"r",r,"h",h,"depth",depth,"deltaH",deltaH,"scale",scale,],help);
+
+points=[
+for(level=[0:e[1]])
+let(
+ri=r+r*(scale-1)/e[1]*level,
+hCell=norm([ri - Inkreis(e[0],r+r*(scale-1)/e[1]*(level+1)) , levelH] ),
+//hCell2=norm([Inkreis(e[0],ri) - r+r*(scale-1)/e[1]*(level+1) , levelH] ),
+depth=depth+depth*(scale-1)/e[1]*level,
+tilt1=atan2( Inkreis(e[0],ri)-(r+r*(scale-1)/e[1]*(level+1)),   levelH ),
+tilt2=atan2( ri - Inkreis(e[0],(r+r*(scale-1)/e[1]*(level+1))), levelH ),
+zero1=[-sin(tilt1)*(hCell/3+deltaH[0]),cos(tilt1)*(hCell/3+deltaH[0])],
+zero2=[-sin(tilt2)*(hCell/1.5+deltaH[1]),cos(tilt2)*(hCell/1.5+deltaH[1])],
+extr1=[cos(tilt1)*depth[0],sin(tilt1)*depth[0]],
+extr2=[cos(tilt2)*depth[1],sin(tilt2)*depth[1]],
+)
+
+each[
+  each arc(r=ri,fn=e[0]-1,deg=360-winkel1,z=level*levelH,rot=level%2?+0:winkel1/2),
+ if(level<e[1]) each arc(r=Inkreis(e[0],ri)+extr1[0]+zero1[0],fn=e[0]-1,deg=360-winkel1,z=level*levelH+zero1[1]+extr1[1],rot=(level%2?+0:winkel1/2)+winkel1/2),
+ if(level<e[1]) each arc(r=ri+extr2[0]+zero2[0],fn=e[0]-1,deg=360-winkel1,z=level*levelH+zero2[1]+extr2[1],rot=(level%2?+0:winkel1/2))
+]
+];
+
+facesFloor=[for(i=[0:e[0]-1])i];
+facesTop=[for(i=[-1:-1:-e[0]+0])i+len(points)];
+
+facesTri1=[
+ for(lev=[0:e[1]-1],i=[0:e[0]-1])
+  each[
+   [(i +1)%e[0],i,i+e[0]]+[1,1,1]*lev*e[0]*3,
+   [i,(i+ (lev%2?+0:1))%e[0]+e[0]*3,i+e[0]]+[1,1,1]*lev*e[0]*3,
+   [(i +(lev%2?+0:1))%e[0]+e[0]*3,(i+1)%e[0],i+e[0]] +[1,1,1]*lev*e[0]*3
+  ]
+];
+
+facesTri2=[
+ for(lev=[0:e[1]-1],i=[0:e[0]-1])
+  each[
+  [(i+ (lev%2?+1:+0))%e[0],i+e[0]*3,(i+ (lev%2?+1:+0))%e[0]+e[0]*2]+[1,1,1]*lev*e[0]*3,
+  [(i+ (lev%2?+0:1))%e[0]+e[0]*3,i,i+e[0]*2]+[1,1,1]*lev*e[0]*3,
+  [(i+1)%e[0]+e[0]*3,(i+ (lev%2?+1:0))%e[0]+e[0]*2,i+e[0]*3]+[1,1,1]*lev*e[0]*3,
+  ]
+];
+
+faces=[
+facesFloor,
+facesTop,
+each facesTri1,
+each facesTri2
+];
+
+polyhedron(points=points,faces=faces,convexity=15);
+
+}
+
 
 
 module Ccube(size=20,c=2,c2,center=true,sphere=false,grad=0,help){
