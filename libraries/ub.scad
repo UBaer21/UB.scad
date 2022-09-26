@@ -154,6 +154,8 @@ Release
 242|22 FIX Anschluss UPD SQ
 250|22 FIX Halb UPD PrevPos
 270|22 ADD KnurlTri
+272|22 UPD Cring FIX DPfeil CHG radiusS ADD distS UPD Ring CHG Torus UPD Drehpunkt
+274|22 FIX LinEx() FIX KnurlTri
 */
 
 {//fold // Constants
@@ -221,6 +223,7 @@ show=0;
 tset=0;//[0:.01:1]
 /// clearance
 spiel=0.20;
+pip=0.35;
 
 pivotSize=$vpd/15;
 /// size viewport
@@ -240,7 +243,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.270;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.274;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -411,12 +414,25 @@ function RotPoints(grad,points)=[for(i=[0:len(points)-1])RotLang(rot=atan2(point
 function negRed(num)=num<0?str("🔻",num):num==0?str("⚠",num):num; // display console text
 function gradB(b,r)=360/(PI*r*2)*b; // winkel zur Bogen strecke b des Kreisradiuses r
 
+
+/// angle of a chord
 function gradS(s,r)=abs(s)>abs(2*r)&&(is_undef($idx)||!$idx)?echo("\t⭕ ‼ gradS s > diameter (2×r) max ❗")180*sign(s)*sign(r):abs(s)>abs(2*r)?180*sign(s)*sign(r):asin(s/(2*r))*2;// winkel zur Sehne s des Kreisradiuses r
 
-function radiusS(n,s,a)=(s/2)/(sin((is_undef(n)?a:360/n)/2));// Radius  zur Sehne
+/// radius of the circle that has chord s 
+/**
+\param s length of the chord
+\param n for a n-polygon
+\param a if you have the angle 
+*/
+function radiusS(s,n,a)=(s/2)/(sin((is_undef(n)? is_undef(a)?gradS(s,r)*2:a:360/n)/2));// Radius  zur Sehne
+
+/// distance chord s to center
+function distS(s,r)=Kathete(r,s/2);//cos(gradS(s,r)/2)*r;
+
 function runden(x,dec=2)=round(x*pow(10,dec))/pow(10,dec);//auf komastelle runden
-//convert angle
-function grad(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)=gradC(grad,min,sec,h,prozent,gon,rad); // compatibility as renamed gradC
+
+//convert angle ↦ gradC 
+function grad(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)=gradC(grad,min,sec,h,prozent,gon,rad);// compatibility as renamed gradC 
 function gradC(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)=grad+h/24*360+min/60+sec/3600+atan(prozent/100)+gon/400*360+rad/(2*PI)*360;
 
 function inch(inch=1)=inch*25.4;
@@ -1364,7 +1380,8 @@ echo    ("
 ••• gradS(s, r) grad zur Sehne s •••\n     
 ••• vollwelle() ⇒ Vollwelle(help=1) •••\n
 ••• runden(x, dec=2) x runden auf Dezimalstelle ••• \n
-••• radiusS(n, s, a) radius zur Sehne ••• \n
+••• radiusS(s, n, a) radius zur Sehne ••• \n
+••• distS(s,r) distanze Sehne ••• \n
 ••• gradC(grad=0, min=0, sec=0, h=0, prozent=0, gon=0, rad=0) Winkelmaßumrechnung ••• \n  
 ••• inch(inch) Inch⇒mm •••\n 
 ••• kreisbogen(r, grad=360) ••• \n
@@ -1559,6 +1576,7 @@ echo    ("•••••••••• BasisObjekte:   •••••••�
 •• PolyH(); /*Polyhedron auto faces */\n
 •• Coil();\n
 •• Knurl();\n
+•• KnurlTri();\n
 
 ");
 
@@ -1590,7 +1608,7 @@ echo    ("•• [201] Servokopf(help=1)Objekt  ••••");
 echo    ("•• [202] Halbrund(h=15,d=3+2*spiel,x=1.0,n=1)Objekt mikroGetriebemotor Wellenaufnahme  ••••");
 echo    ("•• [203] Riemenscheibe(e=40,radius=25,nockendurchmesser1=2,nockendurchmesser2=2,hoehe=8,name)Objekt ••••");
 
-echo    ("•• Cring(id=20,grad=230,h=15,rand=3,rad=1,end=1,txt=undef,tWeite=15,tSize=5,center=true,fn=fn,fn2=36)••••");
+echo    ("•• Cring(help=1)••••");
 echo    ("\n
 •• PCBcase(help=1);••••\n
 •• Klammer(help=1);••••\n
@@ -2166,13 +2184,14 @@ module Drehpunkt(x=0,rz=0,rx=0,ry=0,y=0,z=0,messpunkt=messpunkt,help)
     y=is_list(x)?x[1]:y;
     z=is_undef(x[2])?z:x[2];
     x=is_list(x)?x[0]:x;
+    lMP=is_bool(messpunkt)?$vpd/4:messpunkt;
     
     translate([x,y,z])rotate([rx,ry,rz])translate([-x,-y,-z])children();
     if(messpunkt)
     {
-        if(rz)%color("blue")translate([x,y,z])cylinder(20,d=.5,center=true,$fn=12);
-        if(ry)%color("green")translate([x,y,z])rotate([0,0,rz])rotate([90,0,0])cylinder(20,d=.5,center=true,$fn=12);
-        if(rx)%color("red")translate([x,y,z])rotate([rx,ry,rz])rotate([0,90,0])cylinder(20,d=.5,center=true,$fn=12);   
+        if(rz)%color("blue")translate([x,y,z])cylinder(lMP,d=.5,center=true,$fn=12);
+        if(ry)%color("green")translate([x,y,z])rotate([0,0,rz])rotate([90,0,0])cylinder(lMP,d=.5,center=true,$fn=12);
+        if(rx)%color("red")translate([x,y,z])rotate([rx,ry,rz])rotate([0,90,0])cylinder(lMP,d=.5,center=true,$fn=12);   
         %color("yellow")translate([x,y,z])sphere(d=1,$fn=12);
     }
     MO(!$children);
@@ -3967,7 +3986,7 @@ module DPfeil(l=40,b=1.5,shift=0,grad=35,d=0,txt,center=true,name,help){
  //center=is_bool(center)?center?[1,1]:[0,0]:is_list(center)?center:[center,center];
  d=d?max(abs(d),abs(b[1]))*sign(d) : 0;
  txt=txt==true?str(l[0],"mm") : txt;
- txtL=txt?len(str(txt)) * b[1] *1.2 : 0;
+ txtL=txt?len(str(txt)) * b[1] *0.85 : 0;
 
 if(!d)T(center?0:l[0]/2)MKlon((l[0]-lP[1]*2)/2)Pfeil(l=lP-[txtL/2,0],b=b,shift=shift,grad=grad,d=d,center=true,name=name,help=false);
 
@@ -5343,8 +5362,8 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gr
 
       if(end&&a!=360&&!trxEnd){
           if($children){
-              rotate(a+endspiel*sign(grad))translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=fn/2,help=false)rotate(endRot[1])children();
-              rotate(+0)translate([trx,0,center?0:d/2])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=fn/2,help=false)rotate(endRot[0])children();  
+              rotate(a+endspiel*sign(grad))translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=max(fn/2,6),help=false)rotate(endRot[1])children();
+              rotate(+0)translate([trx,0,center?0:d/2])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=max(6,fn/2),help=false)rotate(endRot[0])children();  
           }
           else{
           rotate(a-sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?1:0)sphere(d=d,$fn=fn2);
@@ -5356,11 +5375,11 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gr
           if($children){
           T(trx-trxEnd)rotate(gradEnd*sign(-trxEnd)){
               RotEx(grad=(gradEnd+lap)*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
-              if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/4,help=false)rotate(endRot[0])children();
+              if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=max(6,fn/2),help=false)rotate(endRot[0])children();
               }
          rotate(180+grad-lap*0)T(-trx+trxEnd)rotate(180-lap){
               RotEx(grad=(gradEnd+lap)*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
-              if(end)rotate((gradEnd+lap)*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/4,help=false)rotate(endRot[1])children();
+              if(end)rotate((gradEnd+lap)*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=max(6,fn/2),help=false)rotate(endRot[1])children();
               } 
           }
           else{
@@ -5459,6 +5478,7 @@ HelpTxt("Roof",["height",height,"h",h,"base",base,"deg",deg,"opt",opt,"floor",fl
 
 
 
+
 module LinEx(h=5,h2=0,h22,scale=0.85,scale2,twist,twistcap=1,slices,$d,$r=5,grad,grad2,mantelwinkel=0,center=false,rotCenter=false,end=0,fn=12,name,help,n,convexity=5,lap=0,scaleCenter=1,gradC){
 
 
@@ -5470,12 +5490,15 @@ lap=is_list(lap)?lap:[lap,lap];
 ifn=$fn;
 end=is_bool(end)?end?[1,1]:[0,0]:is_list(end)?end:[end,end];   
 name=is_undef(n)?name:n;
-twistcap=is_list(twistcap)?twistcap:[twistcap,twistcap];    
+
 $r=is_undef($d)?$r:$d/2;
 $d=2*$r;
+h=max(0,h);
 h22=abs(is_undef(h22)?is_list(h2)?h2[1]:h2:h22);
 h2=abs(is_list(h2)?h2[0]:h2);    
-hc=assert(h>0,str(name," LinEx"))h-h2-h22;
+hc=max(0,h-h2-h22);
+twistcap=hc>0?is_list(twistcap)?twistcap:[twistcap,twistcap]:
+[0,0];
 gradC=is_undef(gradC)?gradC:is_list(gradC)?gradC:[gradC,gradC];
 scaleCenter=is_undef(gradC)?scaleCenter:
                             is_list($r)?[($r.x-(hc/tan(gradC.x)))/$r.x,($r.y-(hc/tan(gradC.y)))/$r.y]:
@@ -5543,10 +5566,10 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
     union(){
     $idx=true;
     //capoben
-    if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22,scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=convexity,slices=max(1,slices/hc*h22),$fn=0,segments=segments)scale(scaleCenter)children($fn=ifn);
+    if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22+(end[1]?lap[1]:0),scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=convexity,slices=max(1,slices/hc*h22),$fn=0,segments=segments)scale(scaleCenter)children($fn=ifn);
     
     //capunten
-    if(h2)Tz(h2)rotate(twist/2)mirror([0,0,1])linear_extrude(h2,scale=scale,twist=twistcap[0]?-twist/(hc)*h2:0,convexity=convexity,slices=max(1,slices/hc*h2),$fn=0,segments=segments)children($fn=ifn);
+    if(h2)Tz(h2)rotate(twist/2)mirror([0,0,1])linear_extrude(h2+(end[0]?lap[0]:0),scale=scale,twist=twistcap[0]?-twist/(hc)*h2:0,convexity=convexity,slices=max(1,slices/hc*h2),$fn=0,segments=segments)children($fn=ifn);
     }
 
     //center
@@ -5805,7 +5828,7 @@ module Ring(h=5,rand,d=10,r,cd=1,id=6,ir,grad=360,rcenter,center=false,fn=fn,nam
     if(2D||!h)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,fn=fn,rot=0,center=center,name=0,help=0);
         else rotate([h>0?0:180])linear_extrude(abs(h),center=center,convexity=5)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,center=center,fn=fn,rot=0,name=0,help=0);
     
-if(name)echo(str(is_bool(name)?"":"<b>",name," Ring Aussen∅= ",rcenter?d+abs(rand):rand>0?d:d-rand*2,"mm — Mitte∅= ",rcenter?d:d-rand,"mm — Innen∅= ",rcenter?d-abs(rand):rand>0?d-(rand*2):d,"mm groß und ",2D||!h?"2D":str(h," hoch")));    
+InfoTxt("Ring",[str("Aussen∅= ",rcenter?d+abs(rand):rand>0?d:d-rand*2,"mm — Mitte∅= ",rcenter?d:d-rand,"mm — Innen∅"),str(rcenter?d-abs(rand):rand>0?d-(rand*2):d,"mm groß und ",2D||!h?"2D":str(h," hoch") )],name);    
  
 HelpTxt("Ring",["h",h,
     "rand",rand,
@@ -6434,7 +6457,7 @@ Text(text="WWiiABCiiXX",radius=10);
 \param name text name
 \param textmetrics  use textmetrics
 \param viewPos  show letter positions
-\param trueSize="body" text size = body height allow the use of pt() point, hp=size of letters "hp",cap=cap height
+\param trueSize="body" text size = body height allow the use of pt() point, hp=size of letters "hp",cap=cap height, text=current text, font=current font
 
 
 */
@@ -6442,9 +6465,10 @@ Text(text="WWiiABCiiXX",radius=10);
 
 
 
-//Text("fhpbdlqQPXMALTfF",size=10,trueSize="versal",cy=+0);
+//Text("fhpbdlqQPXMALTfF",size=10,trueSize="cap",cy=+0);
 //%square([100,10]);
 
+//Text("HTAMpqf",radius=20,rot=0);
 
 module Text(text="»«",size=5,h,cx,cy,cz,center=0,spacing=1,fn=24,radius=0,rot=[0,0,0],font="Bahnschrift:style=bold",style,help,name,textmetrics=true,viewPos=false,trueSize="body")
 {
@@ -6486,7 +6510,7 @@ size=trueSizeSW=="body"?size*.72:
     
     txtSizeX=textmetrics?textmetrics(text=text,font=fontstr,size=size,spacing=spacing).size.x:size*spacing*lenT;
     txtSizeY=textmetrics?textmetrics(text=text,font=fontstr,size=size,spacing=spacing).size.y:size;
-    fontSize=[for(i=[0:lenT-1])textmetrics?
+    fontSize=[for(i=[0:max(lenT-1,0)])textmetrics?
       textmetrics(text=stringChunk(txt=text,length=i),font=fontstr,size=size,spacing=spacing).advance.x + textmetrics(text=text[i],font=fontstr,size=size,spacing=1).advance.x/2*(cx?1:1)
       
       :
@@ -6494,23 +6518,29 @@ size=trueSizeSW=="body"?size*.72:
       
  //echo(fontSize);
  //echo(txtSizeX);
- valign=cy?b(cy,false)<0?"bottom":b(cy,false)>1?"top":"center":"baseline";
+ valign=cy?b(cy,false)<0?"bottom":
+                         b(cy,false)>1?"top":
+                                       "center":
+           "baseline";
  
- if(text)if(!radius){   
+ if(text)
+  if(!radius){   
     if(h)    
     rotate(rot)translate([0,0,cz?-abs(h)/2:h<0?h:0]) linear_extrude(abs(h),convexity=10){
     text(str(text),size=size,halign=cx?"center":"left",valign=valign,font=fontstr,spacing=spacing,$fn=fn);
     }
     else rotate(rot)translate([0,0,cz?-h/2:0])text(text,size=size,halign=cx?"center":"left",valign=valign,spacing=spacing,font=fontstr,$fn=fn); 
-    }
-else rotate(center?gradB(txtSizeX/2,radius+(cy?-txtSizeY/2:0)):0)for(i=[0:len(text)-1])rotate(-gradB(fontSize[i],radius+(cy?-txtSizeY/2:0)))
+  }
+  else if (lenT){
+   iRadius=radius+(cy?-txtSizeY/2:0);
+    rotate(center?gradB(txtSizeX/2,iRadius):0)for(i=[0:lenT-1])rotate(-gradB(fontSize[i],iRadius))
     if(h)    
     translate([0,radius,0])rotate(rot)Tz(cz?-abs(h)/2:h<0?h:0){
     %color("Chartreuse")if(viewPos&&$preview)translate([0,-1])rotate(-30)circle($fn=3);// pos Marker
     linear_extrude(abs(h),convexity=10)text(text[i],size=size,halign=true?"center":"left",valign=valign,font=fontstr,$fn=fn);
     }
     else  translate([0,radius,cz?-h/2:0])rotate(rot)text(text[i],size=size,halign=true?"center":"left",valign=valign,font=fontstr,$fn=fn); 
-    
+  }
     
  InfoTxt("Text",["font",font,"style",style,"trueSize",trueSizeSW,"size",str(inputSize," ⇒ ",size)],name);   
         
@@ -6531,7 +6561,7 @@ else rotate(center?gradB(txtSizeX/2,radius+(cy?-txtSizeY/2:0)):0)for(i=[0:len(te
 "name",name,
 "textmetrics",textmetrics,
 "viewPos",viewPos,
-"trueSize",str("\"",trueSize,"\""," /* body,size,hp,cap */")
+"trueSize",str("\"",trueSize,"\""," /* body,size,hp,cap,text,font */")
 ],help);
 
  
@@ -8347,7 +8377,7 @@ tilt2=atan2( ri - Inkreis(e[0],(r+r*(scale-1)/e[1]*(level+1))), levelH ),
 zero1=[-sin(tilt1)*(hCell/3+deltaH[0]),cos(tilt1)*(hCell/3+deltaH[0])],
 zero2=[-sin(tilt2)*(hCell/1.5+deltaH[1]),cos(tilt2)*(hCell/1.5+deltaH[1])],
 extr1=[cos(tilt1)*depth[0],sin(tilt1)*depth[0]],
-extr2=[cos(tilt2)*depth[1],sin(tilt2)*depth[1]],
+extr2=[cos(tilt2)*depth[1],sin(tilt2)*depth[1]]
 )
 
 each[
@@ -9733,15 +9763,30 @@ clip",clip
 
 
 
-
+/** \name CRing
+\page Products
+CRing() creates a C-shaped Ring with given inner diameter
+\param id inner diameter
+\param grad  angle of the C
+\param h height 
+\param rand thickness
+\param rad corner radius
+\param end end corner option 0:no 1:round 2:flat
+\param txt surface text embossed
+\param tSize text size
+\param tPos text position [rot angle,h]
+\param center center height and angle
+*/
 
 
 /*
-Cring(txt="|-test-|",id=20,center=0);
+Cring(txt="|-test-|",id=20,h=6,tSize=5,center=0 ,end=2,rad=0.6);
 T(0,14)R(90,0,180)Text("test",h=1,size=5);
 // */
+module Cring(id=20,grad=230,h=15,rand=3,rad=1,end=1,txt=undef,spacing=1,tSize=5,tPos=[0,0],tDepth=.35,center=true,fn=fn,fn2=36,help)
+CRing(id,grad,h,rand,rad,end,txt,spacing,tSize,tPos,tDepth,center,fn,fn2,help);
 
-module Cring(
+module CRing(
 id=20,
 grad=230,
 h=15,
@@ -9752,6 +9797,8 @@ txt=undef,
 //tWeite,
 spacing=1,
 tSize=5,
+tPos=[0,0],
+tDepth=.35,
 center=true,
 fn=fn,
 fn2=36,
@@ -9765,10 +9812,10 @@ Tz(center>0?-h/2:0)rotate(center?-grad/2:0){
     
   difference(){
     rotate_extrude(angle=grad,$fn=fn,convexity=5)T(id/2)Quad(rand,h,r=rad,center=false,fn=fn2,help=0,name=0);
-    if(txt!=undef)Tz(h/2-tSize/2)difference(){
-     rotate(grad/2-90)mirror([1,0])Text(text=txt,h=1,size=tSize,radius=id/2+rand,rot=[90],spacing=spacing,center=true,cy=0);
+    if(txt!=undef)Tz(h/2-tSize/2+tPos.y)difference(){
+     rotate(grad/2-90+tPos.x)mirror([1,0])Text(text=txt,h=1,size=tSize,radius=id/2+rand,rot=[90],spacing=spacing,center=true,cy=+0,trueSize="size");
      //%union()for(i=[0:len(txt)-1])rotate(grad/2+i*atan(tWeite/(id/2+rand))-(len(txt)-1)/2*atan(tWeite/(id/2+rand)))T(id/2+rand)R(90,0,90)Text(text=txt[i],h=1,cx=true,cz=true,size=tSize);
-      Col(4)  cylinder(100,d=id+rand*2-n(1),center=true,$fn=fn);
+      Col(4)  cylinder(100,d=id+rand*2-tDepth*2,center=true,$fn=fn);
     }
   }
   if(end==1){    
@@ -9791,6 +9838,8 @@ HelpTxt("Cring",[
  //"tWeite",tWeite ,
  "spacing",spacing,
  "tSize", tSize,
+ "tPos",tPos,
+ "tDepth",tDepth,
  "center", center ,
  "fn", fn,
  "fn2",fn2],
