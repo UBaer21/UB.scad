@@ -156,6 +156,7 @@ Release
 270|22 ADD KnurlTri
 272|22 UPD Cring FIX DPfeil CHG radiusS ADD distS UPD Ring CHG Torus UPD Drehpunkt
 274|22 FIX LinEx() FIX KnurlTri
+276|22 FIX LinEx() UPD Halb()
 */
 
 {//fold // Constants
@@ -243,7 +244,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.274;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.276;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -1977,10 +1978,12 @@ Halb() Object Cuts away half of Object at [0,0,0]
 \param size  cuttingblock size
 */
 
+//Halb()sphere(5);
 
 
-module Halb(i=0,x=0,y=0,z=0,2D=0,size=max(400,viewportSize*5),help=false)
+module Halb(i=0,x=0,y=0,z=0,2D=0,size=max(400,viewportSize*5),t=[0,0,0],help=false)
 {
+t=v3(t);
 xChange=x;
 x=(is_num(useVersion)&&useVersion<22.250)?y:x;
 y=(is_num(useVersion)&&useVersion<22.250)?xChange:y;
@@ -1989,29 +1992,29 @@ y=(is_num(useVersion)&&useVersion<22.250)?xChange:y;
        if(i||z<0)difference()
        {
            children();
-         R(-90*sign(y),90*sign(x))  cylinder(size,d=size,$fn=6);
+           translate(t)R(-90*sign(y),90*sign(x))  cylinder(size,d=size,$fn=6);
           
        }
       else intersection()
       {
           children();
-          R(-90*sign(y),90*sign(x))  cylinder(size,d=size,$fn=6);
+          translate(t)R(-90*sign(y),90*sign(x))  cylinder(size,d=size,$fn=6);
       }
   }
   if(2D){
       if(i)difference()
       {
           children();
-           T(y?-size/2:0,x?-size/2:0) square(size);
+           T(y?-size/2:0,x?-size/2:0)translate(t) square(size);
       }
       if(!i) intersection()
       {
           children();
-          T(y?-size/2:0,x?-size/2:0) square(size);
+          T(y?-size/2:0,x?-size/2:0)translate(t) square(size);
       }
   } 
  MO(!$children); 
- HelpTxt("Halb",["i",i,"x",x,"y",y,"z",z,"2D",2D,"size",size],help);
+ HelpTxt("Halb",["i",i,"x",x,"y",y,"z",z,"2D",2D,"size",size,"t",t],help);
 }
 
 
@@ -5562,14 +5565,20 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
   rotate(center?0:rotCenter?-twist/2:-twist/2+(twistcap[0]&&hc?-twist/hc*h2:0))
     T(z=center?-h/2:0){
     
-
+if(version()[0]>2021){
     union(){
     $idx=true;
     //capoben
-    if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22+(end[1]?lap[1]:0),scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=convexity,slices=max(1,slices/hc*h22),$fn=0,segments=segments)scale(scaleCenter)children($fn=ifn);
+    if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22+(end[1]?lap[1]:0),scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=convexity,slices=max(1,slices/hc*h22),$fn=0,segments=segments)scale(scaleCenter){
+      $fn=ifn;
+      children();
+      }
     
     //capunten
-    if(h2)Tz(h2)rotate(twist/2)mirror([0,0,1])linear_extrude(h2+(end[0]?lap[0]:0),scale=scale,twist=twistcap[0]?-twist/(hc)*h2:0,convexity=convexity,slices=max(1,slices/hc*h2),$fn=0,segments=segments)children($fn=ifn);
+    if(h2)Tz(h2)rotate(twist/2)mirror([0,0,1])linear_extrude(h2+(end[0]?lap[0]:0),scale=scale,twist=twistcap[0]?-twist/(hc)*h2:0,convexity=convexity,slices=max(1,slices/hc*h2),$fn=0,segments=segments){
+      $fn=ifn;
+      children();
+      }
     }
 
     //center
@@ -5578,7 +5587,30 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
       $tab=is_undef($tab)?1:b($tab,false)+1;
       rotate(twist/2)linear_extrude(hc+lap[0]+lap[1],scale=scaleCenter,convexity=convexity,twist=twist,slices=slices,center=false,segments=segments)children();
     }
+  } else {
+      union(){
+    $idx=true;
+    //capoben
+    if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22+(end[1]?lap[1]:0),scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=convexity,slices=max(1,slices/hc*h22),$fn=0)scale(scaleCenter){
+      $fn=ifn;
+      children();
+      }
+    
+    //capunten
+    if(h2)Tz(h2)rotate(twist/2)mirror([0,0,1])linear_extrude(h2+(end[0]?lap[0]:0),scale=scale,twist=twistcap[0]?-twist/(hc)*h2:0,convexity=convexity,slices=max(1,slices/hc*h2),$fn=0){
+      $fn=ifn;
+      children();
+      }
+    }
+
+    //center
+    Tz(h2-lap[0]){
+      //$idx=is_undef($idx)?0:$idx;
+      $tab=is_undef($tab)?1:b($tab,false)+1;
+      rotate(twist/2)linear_extrude(hc+lap[0]+lap[1],scale=scaleCenter,convexity=convexity,twist=twist,slices=slices,center=false)children();
+    }
   
+  }
     
     
     if(end[0]){ // Ende Unten
