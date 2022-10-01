@@ -157,6 +157,8 @@ Release
 272|22 UPD Cring FIX DPfeil CHG radiusS ADD distS UPD Ring CHG Torus UPD Drehpunkt
 274|22 FIX LinEx() FIX KnurlTri
 276|22 FIX LinEx() UPD Halb()
+278|22 CHG Points UPD arc ADD LangL UPD line FIX fs2fn CHG Roof Fix Seg7
+280|22
 */
 
 {//fold // Constants
@@ -244,7 +246,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.276;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.278;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -270,7 +272,7 @@ function l(x=1,layer=layer)=x*layer;
 function n(x=1,nozzle=nozzle)=sign(x)*(abs(x)*nozzle + 0.05*nozzle); /*(x==1?0.05*nozzle:
                                                           - layer*(1-PI/4) * (x-1)*0)); 0.05*nozzle padding for slicer */
                                                           
-function line(n=1,line=line)=sign(n)*(abs(n)*line + 0.05*nozzle);
+function line(n=1,line=line,nozzle=nozzle)=sign(n)*(abs(n)*line + 0.05*nozzle);
 
 function Inkreis(eck,rU)=cos(180/eck)*rU;
 function Umkreis(eck,rI,name)=let(r=rI/cos(180/eck))is_undef(name)?r:echo(str(name," Umkreis=",r))r;
@@ -438,7 +440,7 @@ function gradC(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)=grad+h/24*360+min/6
 
 function inch(inch=1)=inch*25.4;
 function kreisbogen(r,grad=360)=PI*r*2/360*grad;
-function fs2fn(r,grad=360,fs=fs,minf=3)=max(minf,PI*r*2/360*grad/max(fs,0.001));
+function fs2fn(r,grad=360,fs=fs,minf=3)=ceil(max(minf,PI*r*2/360*abs(grad)/max(fs,0.001)));
 function clampToX0(points,interval=minVal)=is_list(points[0])?[for(e=points)[abs(e[0])>interval?e[0]:0,e[1]]]:
     [abs(points[0])>interval?points[0]:0,points[1]];
   
@@ -1201,6 +1203,8 @@ arc() creates points on an arc
 \param fn fragments
 \param rev reverse point order
 */
+
+
 function arc(r=10,deg=90,r2,rot=0,t=[0,0,0],z,fn=36,rev=false)=
   let(
     step=deg/fn
@@ -1209,10 +1213,11 @@ function arc(r=10,deg=90,r2,rot=0,t=[0,0,0],z,fn=36,rev=false)=
     let(
       r=is_undef(r2)?r:r+(r2-r)/fn*i
     )
-    is_undef(z)?[cos(i*step+rot)*r,sin(i*step+rot)*r]+t.xy:
-                [cos(i*step+rot)*r,sin(i*step+rot)*r,z]+t
+    is_undef(z)?[cos(i*step+rot)*r,sin(i*step+rot)*r]+[t[0],t[1]]:
+                [cos(i*step+rot)*r,sin(i*step+rot)*r,z]+v3(t)
   ];
 
+  
 /** /page Functions
 pt() give the typographic point size in mm
 \param pt number of points  12pt ⇒ pt(12) = 1 pica = 4.2333mm
@@ -1578,6 +1583,7 @@ echo    ("•••••••••• BasisObjekte:   •••••••�
 •• Coil();\n
 •• Knurl();\n
 •• KnurlTri();\n
+•• LangL();
 
 ");
 
@@ -2370,7 +2376,7 @@ HelpTxt("PrevPos",["on",on,"t",t,"z",z,"rot",rot],help);
 module Points(points=[[0,0]],color,size,hull,loop,start=0,mark,markS,markCol,face=true,center,help){
   center=is_undef(center)?is_num(points[0].z)?true:false:center;
   lp=assert(is_list(points),"no point(s) input")len(points);
-  loop=is_undef(loop)?lp>25?25:
+  loop=is_undef(loop)?lp>25?lp:
                             lp:
                       loop;
   cMark=is_undef(markCol)?["Magenta","Chartreuse","Aqua","LightSkyBlue"]:markCol;
@@ -4493,12 +4499,14 @@ help);
 //Seg7(88,spacing=-1,ratio=.5);
 
 
+
 module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,ratio=1,deg=45,spacing=1,name,help){
     spielADJ=spiel/sqrt(2);
     l=is_undef(h)?l:h/2-b/2-spielADJ*2;
+    deg=deg%180;
     y=l/2;
     x=b/2;
-    y2=y-x *(tan(90-deg));
+    y2=deg?y-x *(tan(90-deg)):y;
     assert(l!=0,"change b");
     /*
     num=[for(n)each
@@ -4537,7 +4545,7 @@ module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,ratio=1,deg=45,spacing=1
     //Verticals
       Grid(es=[l*ratio+spielADJ*2,l+spielADJ*2],name=0)if(num[$idx[0]+$idx[1]*2])polygon(points(x=x,y=y,y2=y2));
     // Horizontals
-      Grid(es=[l*ratio+spielADJ*2,l+spielADJ*2],e=[1,3,1],name=0)rotate(90)if(num[4+$idx[1]])polygon(points(x,y*ratio,y*ratio-x*(tan(90-deg))));
+      Grid(es=[l*ratio+spielADJ*2,l+spielADJ*2],e=[1,3,1],name=0)rotate(90)if(num[4+$idx[1]])polygon(points(x,y*ratio,y*ratio-(deg?x*tan(90-deg):0)));
   }
   else { // multi character 
 
@@ -5414,7 +5422,7 @@ s=is_list(deg)?[tan(deg[0]),tan(deg[1])]:[tan(deg),tan(deg)];
 floor=is_list(h)?true:floor;
 h=is_list(h)?h:[floor?h:0,h];
 iSize=max(viewportSize,max(printBed)*2);
-
+ifn=$fn;
 base=height&&is_num(h[1])&&is_num(h[0])?height-h[0]-h[1]:base;
 on=version()[0]>2021?on:0;
 $idxON=false;
@@ -5425,21 +5433,30 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
   Tz(on?(center?0:h[0]?h[0]:0):0){
   $tab=is_undef($tab)?1:b($tab,false)+1;
   $idx=0;
-  linear_extrude(base+(on?lap:h[0]+h[1]),center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn,slices=slices,segments=segments)children();
+  linear_extrude(base+(on?lap:h[0]+h[1]),center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn,slices=slices,segments=segments){
+  $fn=ifn;
+  children();
+  }
   }
  if(on){ 
  $idx=1;
  $info=false;
  //top
   if(scale&&(h[1]||is_undef(h[1])))Tz(center?base/2:base+(h[0]?h[0]:0))difference(){
-  scale([1,1,s[1]])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)scale(scale)rotate(-twist)children(); // experimental feature comment out if not activated in preferences
+  scale([1,1,s[1]])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)scale(scale)rotate(-twist){
+  $fn=ifn;
+  children(); // experimental feature comment out if not activated in preferences
+  }
   if(h[1])translate([0,0,h[1]+iSize/2])cube([iSize,iSize,iSize],true);// if using difference
   //if(h[1])cube([iSize,iSize,h[1]*2],true); // for intersection
   }
   
  //bottom
   if(floor&&(h[0]||is_undef(h[0])))Tz(center?-base/2:h[0]?h[0]:0)difference(){
-  scale([1,1,-s[0]])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity)children(); // experimental feature comment out if not activated in preferences
+  scale([1,1,-s[0]])roof(method=opt?"voronoi":"straight",$fn=fn,convexity=convexity){
+  $fn=ifn;
+  children(); // experimental feature comment out if not activated in preferences
+  }
   //if(h[0])cube([iSize,iSize,h[0]*2],true);//for intersection
   if(h[0])translate([-iSize/2,-iSize/2,-h[0]])mirror([0,0,1])cube(iSize);//for difference 
   }
@@ -8448,6 +8465,156 @@ each facesTri2
 ];
 
 polyhedron(points=points,faces=faces,convexity=15);
+
+}
+/**
+\name LangL
+\page Objects
+LangL() creates the Volume of a slot or elongated hole
+\param h height 
+\param h2 chamfer height [bottom,top]
+\param d  diameter
+\param l elongation
+\param deg chamfer degree [bottom,top]
+\param extrude  ends cylindrical extruded
+\param center  [x,y,z] center options
+\param fn fragments
+\param cuts Add cuts to create reinforcements
+\param name,help  name help
+*/
+
+/*
+ LangL(h=5,h2=0.75,rad=[1,2.5]*0,deg=[-45,45],2D=1);
+ T(8) LangL(h=5,h2=.75,rad=[1,2.5],deg=[45,-45],2D=true);
+   //*/
+ 
+ //LinEx(end=[-1,1])Rund(0,1)LangL();
+
+//LangL(rad=4,d=7,h=14,h2=3,deg=-30,2D=0,cuts=0,fs=0.4);
+
+
+
+module LangL(h=5,h2=1,d=3.5,l=2.5,d2,deg=[45,45],rad=1,extrude=spiel,center=[1,1,0],fn=0,fs=fs,cuts=2,2D=false,name,help){
+
+d2=is_num(d2)?[d2,d2]:d2;
+l=max(l,0);
+r=max(0,d/2);
+ih2=is_list(h2)?[h2[0],h2[1]]:[h2,h2];
+
+conDeg=is_list(deg)?[deg[0],deg[1]]:[deg,deg];
+deg=[is_undef(d2[0])?conDeg[0]: d<d2[0]?abs(conDeg[0]):-abs(conDeg[0]),
+     is_undef(d2[1])?conDeg[1]: d<d2[1]?abs(conDeg[1]):-abs(conDeg[1]) 
+     ];
+
+h2=is_list(d2)?[abs((d2[0]-d)/2/tan(deg[0])),abs((d2[1]-d)/2/tan(deg[1]))]:
+[
+max(deg[0]<0?min(ih2[0],r/tan(-deg[0])):ih2[0],0),
+max(deg[1]<0?min(ih2[1],r/tan(-deg[1])):ih2[1],0)
+];
+
+rad=is_list(rad)?rad:[rad,rad];
+
+maxRad=[
+abs(deg[0])==90?rad[0]:abs(  h2[0]*tan(deg[0])/(1-cos(deg[0]))  ),
+abs(deg[1])==90?rad[1]:abs(  h2[1]*tan(deg[1])/(1-cos(deg[1]))  )
+];
+
+irad=[
+min(max(0,rad[0]),maxRad[0]),
+min(max(0,rad[1]),maxRad[1])
+];
+
+center=is_list(center)?center:[1,1,1]*b(center,false);
+
+hc=max(h-vSum(h2),0);
+
+r2=[
+ abs(deg[0])==90?r+irad[0]*sign(deg[0]):
+                 r+h2[0]*tan(deg[0]),
+ abs(deg[1])==90?r+irad[1]*sign(deg[1]):
+                 r+h2[1]*tan(deg[1])
+];
+iext=is_list(extrude)?extrude:is_num(extrude)?[extrude,extrude]:extrude?[500,500]:[0,0];
+extrude=[r2[0]>0?iext[0]:0,r2[1]>0?iext[1]:0];
+
+ifn=fn?ceil(fn/2)-1:fs2fn(fs=fs,r=max(r2[0],r2[1],r),grad=180)-1;
+
+radFn=[fs2fn(fs=fs,r=irad[0],grad=deg[0]),fs2fn(fs=fs,r=irad[1],grad=deg[1])];
+radDeltaH=[tan(deg[0]/2)*irad[0],tan(deg[1]/2)*irad[1]];
+
+Echo(str(name," LangL h2=",h2," to big for h=",h," min h=",vSum(h2)),condition=h-vSum(h2)<0);
+Echo(str(name," LangL h2=",ih2," to big for deg=",deg," with r=",r," ⇒ limited to h2=",h2),color="warning",condition=min(deg)<0&&(r<ih2[0]*tan(-deg[0])||r<ih2[1]*tan(-deg[1])));
+
+Echo(str(name," LangL rad ",rad," to big for h2(",h2,") ⇒ limited to max rad=",irad),color="warning",condition=maxRad[0]<rad[0]||maxRad[1]<rad[1]);
+Echo(str(name," LangL h too small for rad"),condition=abs(radDeltaH[0])>hc-abs(radDeltaH[1])||vSum(radDeltaH)>hc);
+
+
+InfoTxt("LangL",["d",[r2[0],r,r2[1]]*2,"length",[r2[0]*2+l,r*2+l,r2[1]*2+l]],name);
+HelpTxt("LangL",["h",h,"h2",h2,"d",d,"l",l,"d2",d2,"deg",deg,"extrude",extrude,"center",center,"fn",fn,"fs",fs,"cuts",cuts,"2D",2D,"name",name],help);
+
+function langL(r=5,l=0,z=undef,fn=ifn,fs=0)=l?concat(
+  arc(r=r,deg=180,fn=fs?fs2fn(r=r,grad=180):fn,t=[0,0],rot=90,z=z),
+  arc(r=r,deg=180,fn=fs?fs2fn(r=r,grad=180):fn,t=[l,0],rot=-90,z=z)
+  ):arc(r=r,deg=360-360/(fn*2+1),fn=fn*2+1,z=z);
+
+stepRad=[deg[0]/radFn[0],deg[1]/radFn[0]];
+ points=concat(
+ extrude[0]?langL(r2[0],l,-extrude[0]):[], // ext
+ langL(r2[0],l,0),                         // base
+                                           // center round bottom
+ irad[0]?
+  [for(i=[radFn[0]:-1:0]) each langL(r+(irad[0]-irad[0]*cos(i*stepRad[0]))*sign(deg[0]),l,z=h2[0]+(radDeltaH[0]-irad[0]*sin(i*stepRad[0]))*sign(deg[0]) )]:
+ langL(r,l,h2[0]),                            // else center bottom
+                                           // center round top 
+ irad[1]?
+  [for(i=[0:radFn[0]]) each langL(r+(irad[1]-irad[1]*cos(i*stepRad[1]))*sign(deg[1]),l,z=h2[0]+hc-(radDeltaH[1]-irad[1]*sin(i*stepRad[1]))*sign(deg[1]) )]:
+ langL(r,l,h2[0]+hc),                         // else center top
+ langL(r2[1],l,h),                         // top
+ extrude[1]?langL(r2[1],l,h+extrude[1]):[] // ext
+ );
+ 
+
+
+ points2D=[
+   if(extrude[0])[-r2[0],0-extrude[0]],
+   if(extrude[0])[ r2[0],0-extrude[0]],
+   [ r2[0],0],
+   if(!irad[0]||!deg[0])[ r,h2[0]],
+   if(irad[0]&&deg[0])each arc(r=-irad[0],deg=-deg[0],t=[r,h2[0]]+sign(deg[0])*[irad[0],radDeltaH[0]],rot=deg[0]>0?deg[0]:180+deg[0],rev=false,fn=radFn[0]),
+   if(!irad[1]||!deg[1])[ r,h2[0]+hc],
+   
+   if(irad[1]&&deg[1])each arc(r=-irad[1],deg=-deg[1],t=[r,h2[0]+hc]+sign(deg[1])*[irad[1],-radDeltaH[1] ],rot=deg[1]>0?0:180,rev=false,fn=radFn[1]),
+
+   [ r2[1],vSum(h2)+hc],
+   if(extrude[1])[ r2[1],vSum(h2)+hc+extrude[1]],
+   if(extrude[1])[-r2[1],vSum(h2)+hc+extrude[1]],
+   [-r2[1],vSum(h2)+hc],
+   if(!irad[1]||!deg[1])[-r,h2[0]+hc],
+   if(irad[1]&&deg[1])each arc(r=-irad[1],deg=-deg[1],t=[-r,h2[0]+hc]-sign(deg[1])*[irad[1],radDeltaH[1] ],rot=deg[1]>0?180+deg[1]:deg[1],rev=false,fn=radFn[1]),
+   if(!irad[0]||!deg[1])[-r,h2[0]],
+   if(irad[0]&&deg[0])each arc(r=-irad[0],deg=-deg[0],t=[-r,h2[0]]-sign(deg[0])*[irad[0],-radDeltaH[0]],rot=deg[0]>0?180:0,rev=false,fn=radFn[0]),
+   [-r2[0],0]
+ ];
+ 
+// Points(points,help=1);
+if(is_parent(needs2D)||2D)T(center.x?0:r/2,center.y?-h/2:0)polygon(points2D);
+else
+T(center.x?center.x==2?0:
+                       center.x==3?-l:
+                                   -l/2:
+          d/2,
+          center.y?0:d/2,
+          center.z?-h/2:0){
+          $info=false;
+            PolyH(points=points,loop=ifn*2+2,flip=0);
+            if(cuts&&max(r2)-r>=1&&max(deg)>=5)difference(){
+            gapH=[deg[0]==0?0:1/sin(deg[0]),deg[1]==0?0:1/sin(deg[1])]*.5;
+              T(l/2){Linear(e=round(l+d/2),es=1,center=true)Tz(h/2)cube([.03,abs(max(r2*2)),abs(h)-1],true);
+              if(cuts==2)Tz(h/2)cube([abs(max(r2*2))+l,.03,abs(h)-1],true);
+              }
+              Tz(+gapH[0] -(deg[0]?line(2)/tan(deg[0]):0))LangL(h=h -vSum(gapH) +(deg[0]?line(2)/tan(deg[0]):0)+(deg[1]?line(2)/tan(deg[1]):0),h2=h2,d=d +line(2)*2,l=l,d2=undef,deg=deg,rad=rad-[1,1]*line(2),center=[2,1,0],fn=24,cuts=false,extrude=true);
+            }
+          }
 
 }
 
