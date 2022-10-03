@@ -158,7 +158,7 @@ Release
 274|22 FIX LinEx() FIX KnurlTri
 276|22 FIX LinEx() UPD Halb()
 278|22 CHG Points UPD arc ADD LangL UPD line FIX fs2fn CHG Roof Fix Seg7
-280|22
+280|22 UPD Seg7 UPD name CHG LangL↦Loch
 */
 
 {//fold // Constants
@@ -239,14 +239,14 @@ vpf=22.5;
 
 
 /// display project name
-texton=name!=undef?$preview?true:false:false;
+texton=name!=undef&&name!=""?$preview?true:false:false;
 
 /// Colors (version 2019)
 helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.278;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.280;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -1583,7 +1583,7 @@ echo    ("•••••••••• BasisObjekte:   •••••••�
 •• Coil();\n
 •• Knurl();\n
 •• KnurlTri();\n
-•• LangL();
+•• Loch();
 
 ");
 
@@ -4500,7 +4500,7 @@ help);
 
 
 
-module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,ratio=1,deg=45,spacing=1,name,help){
+module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,ratio=1,deg=45,spacing=1,fs=fs,name,help){
     spielADJ=spiel/sqrt(2);
     l=is_undef(h)?l:h/2-b/2-spielADJ*2;
     deg=deg%180;
@@ -4541,7 +4541,9 @@ module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,ratio=1,deg=45,spacing=1
     
   if ( (is_list(n)&&is_num(n[0]) ) || (is_num(n)&&n<10) )
   T(center?0:l/2*ratio+b/2+spielADJ,b(center,false)==1?0:(b(center,false)>2?-1:1)*(l+b/2+spielADJ*2))
-    Rund(is_undef(rund)?0:is_list(rund)?[min(rund[0],b/2-minVal),min(rund[1],(l*min(ratio,1)+spielADJ*2-b)/2-.00001)]:[min(is_bool(rund)?b(rund,false)*b/2-minVal:rund,b/2-minVal),0]){
+    Rund(is_undef(rund)?0:
+          is_list(rund)?[min(rund[0],b/2-0.00001),min(rund[1],(l*min(ratio,1)+spielADJ*2-b)/2-.00001)]:
+           [min(is_bool(rund)?b(rund,false)*b/2-0.00001:rund,b/2-0.00001),0],fs=fs){
     //Verticals
       Grid(es=[l*ratio+spielADJ*2,l+spielADJ*2],name=0)if(num[$idx[0]+$idx[1]*2])polygon(points(x=x,y=y,y2=y2));
     // Horizontals
@@ -4569,7 +4571,7 @@ module Seg7(n=8,h=10,b=1,spiel=n(1),l,center=false,rund,ratio=1,deg=45,spacing=1
   
   InfoTxt("Seg7",["Höhe",str(l*2+b+spielADJ*4,"mm"),"Breite",str(l*ratio+b+spielADJ*2,"mm")],name);
       
-  HelpTxt("Seg7",["n",n,"h",h,"b",b,"spiel",spiel,"l",l,"center",center,"rund",rund,"ratio",ratio,"deg",deg,"spacing",spacing,"name",name],help);
+  HelpTxt("Seg7",["n",n,"h",h,"b",b,"spiel",spiel,"l",l,"center",center,"rund",rund,"ratio",ratio,"deg",deg,"spacing",spacing,"fs",fs,"name",name],help);
 }
 
 module Flower(e=8,n=15,r=10,r2=0,min=5,fn=720,name,help){
@@ -8468,9 +8470,9 @@ polyhedron(points=points,faces=faces,convexity=15);
 
 }
 /**
-\name LangL
+\name Loch
 \page Objects
-LangL() creates the Volume of a slot or elongated hole
+Loch() creates the Volume of a slot or elongated hole
 \param h height 
 \param h2 chamfer height [bottom,top]
 \param d  diameter
@@ -8484,17 +8486,17 @@ LangL() creates the Volume of a slot or elongated hole
 */
 
 /*
- LangL(h=5,h2=0.75,rad=[1,2.5]*0,deg=[-45,45],2D=1);
- T(8) LangL(h=5,h2=.75,rad=[1,2.5],deg=[45,-45],2D=true);
+ Loch(h=5,h2=0.75,rad=[1,2.5]*0,deg=[-45,45],2D=1);
+ T(8) Loch(h=5,h2=.75,rad=[1,2.5],deg=[45,-45],2D=true);
    //*/
  
- //LinEx(end=[-1,1])Rund(0,1)LangL();
+ //LinEx(end=[-1,1])Rund(0,1)Loch();
 
-//LangL(rad=4,d=7,h=14,h2=3,deg=-30,2D=0,cuts=0,fs=0.4);
+//Loch(rad=4,d=7,h=14,h2=3,deg=-30,2D=0,cuts=0,fs=0.4);
 
 
 
-module LangL(h=5,h2=1,d=3.5,l=2.5,d2,deg=[45,45],rad=1,extrude=spiel,center=[1,1,0],fn=0,fs=fs,cuts=2,2D=false,name,help){
+module Loch(h=5,h2=1,d=3.5,l=2.5,d2,deg=[45,45],rad=1,extrude=spiel,center=[1,1,0],fn=0,fs=fs,cuts=2,2D=false,name,help){
 
 d2=is_num(d2)?[d2,d2]:d2;
 l=max(l,0);
@@ -8542,15 +8544,15 @@ ifn=fn?ceil(fn/2)-1:fs2fn(fs=fs,r=max(r2[0],r2[1],r),grad=180)-1;
 radFn=[fs2fn(fs=fs,r=irad[0],grad=deg[0]),fs2fn(fs=fs,r=irad[1],grad=deg[1])];
 radDeltaH=[tan(deg[0]/2)*irad[0],tan(deg[1]/2)*irad[1]];
 
-Echo(str(name," LangL h2=",h2," to big for h=",h," min h=",vSum(h2)),condition=h-vSum(h2)<0);
-Echo(str(name," LangL h2=",ih2," to big for deg=",deg," with r=",r," ⇒ limited to h2=",h2),color="warning",condition=min(deg)<0&&(r<ih2[0]*tan(-deg[0])||r<ih2[1]*tan(-deg[1])));
+Echo(str(name," Loch h2=",h2," to big for h=",h," min h=",vSum(h2)),condition=h-vSum(h2)<0);
+Echo(str(name," Loch h2=",ih2," to big for deg=",deg," with r=",r," ⇒ limited to h2=",h2),color="warning",condition=min(deg)<0&&(r<ih2[0]*tan(-deg[0])||r<ih2[1]*tan(-deg[1])));
 
-Echo(str(name," LangL rad ",rad," to big for h2(",h2,") ⇒ limited to max rad=",irad),color="warning",condition=maxRad[0]<rad[0]||maxRad[1]<rad[1]);
-Echo(str(name," LangL h too small for rad"),condition=abs(radDeltaH[0])>hc-abs(radDeltaH[1])||vSum(radDeltaH)>hc);
+Echo(str(name," Loch rad ",rad," to big for h2(",h2,") ⇒ limited to max rad=",irad),color="warning",condition=maxRad[0]<rad[0]||maxRad[1]<rad[1]);
+Echo(str(name," Loch h too small for rad"),condition=abs(radDeltaH[0])>hc-abs(radDeltaH[1])||vSum(radDeltaH)>hc);
 
 
-InfoTxt("LangL",["d",[r2[0],r,r2[1]]*2,"length",[r2[0]*2+l,r*2+l,r2[1]*2+l]],name);
-HelpTxt("LangL",["h",h,"h2",h2,"d",d,"l",l,"d2",d2,"deg",deg,"extrude",extrude,"center",center,"fn",fn,"fs",fs,"cuts",cuts,"2D",2D,"name",name],help);
+InfoTxt("Loch",["d",[r2[0],r,r2[1]]*2,"length",[r2[0]*2+l,r*2+l,r2[1]*2+l]],name);
+HelpTxt("Loch",["h",h,"h2",h2,"d",d,"l",l,"d2",d2,"deg",deg,"extrude",extrude,"center",center,"fn",fn,"fs",fs,"cuts",cuts,"2D",2D,"name",name],help);
 
 function langL(r=5,l=0,z=undef,fn=ifn,fs=0)=l?concat(
   arc(r=r,deg=180,fn=fs?fs2fn(r=r,grad=180):fn,t=[0,0],rot=90,z=z),
@@ -8612,7 +8614,7 @@ T(center.x?center.x==2?0:
               T(l/2){Linear(e=round(l+d/2),es=1,center=true)Tz(h/2)cube([.03,abs(max(r2*2)),abs(h)-1],true);
               if(cuts==2)Tz(h/2)cube([abs(max(r2*2))+l,.03,abs(h)-1],true);
               }
-              Tz(+gapH[0] -(deg[0]?line(2)/tan(deg[0]):0))LangL(h=h -vSum(gapH) +(deg[0]?line(2)/tan(deg[0]):0)+(deg[1]?line(2)/tan(deg[1]):0),h2=h2,d=d +line(2)*2,l=l,d2=undef,deg=deg,rad=rad-[1,1]*line(2),center=[2,1,0],fn=24,cuts=false,extrude=true);
+              Tz(+gapH[0] -(deg[0]?line(2)/tan(deg[0]):0))Loch(h=h -vSum(gapH) +(deg[0]?line(2)/tan(deg[0]):0)+(deg[1]?line(2)/tan(deg[1]):0),h2=h2,d=d +line(2)*2,l=l,d2=undef,deg=deg,rad=rad-[1,1]*line(2),center=[2,1,0],fn=24,cuts=false,extrude=true);
             }
           }
 
