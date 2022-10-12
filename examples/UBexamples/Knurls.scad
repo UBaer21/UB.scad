@@ -1,6 +1,6 @@
 include<ub.scad>//->http://v.gd/ubaer or https://github.com/UBaer21/UB.scad
 /*[Hidden]*/
-  useVersion=22.222;
+  useVersion=22.282;
   designVersion=1.0;
   vp=false;
   bed=false;
@@ -65,6 +65,12 @@ T(70)Knurl(r=10,size=[2.4,3,[1,-2]],delta=[[-.5,.5],[.5,-.5]],alt=1);
 
 }
 
+Tz(-80){
+KnurlTri(h=20,e=15,r=10);
+T(30)KnurlTri(h=20,e=15,depth=[-1,1],r=10);
+T(70)KnurlTri(h=20,e=15,depth=-1,scale=1.5,deltaH=-1,r=10);
+
+}
 
 
 Tz(-15)R(45){  // flat knurl  (painful to use)
