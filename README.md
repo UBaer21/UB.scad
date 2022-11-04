@@ -51,7 +51,7 @@ There are a lot of settings available but most is using  pre configuration - so 
 
 `printBed=[220,220];`  set your print bed size
 
-`hires=false;`   switches higher resolution on
+`hires=false;`   switches higher resolution on (render only)
 
 `show=0;`        show objects like a nozzle width cylinder
 
