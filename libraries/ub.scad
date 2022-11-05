@@ -164,6 +164,9 @@ Release
 292|22 UPD Echo UPD BB CHG Loch FIX Gardena UPD Pille FIX fs2fn FIX Halb UPD GewindeV1
 294|22 UPD Prisma FIX Linear
 303|22 UPD Roof FIX Loch
+306|22 FIX Pille chg Quad CHG kreis CHG fs
+308|22 UPD Welle CHG PrevPos FIX Prisma CHG RotEx
+310|22 ADD string2num
 */
 
 {//fold // Constants
@@ -221,7 +224,7 @@ fn=$fn?$fn:$preview?36:
                                 72;
 
 
-fs=$preview?.85:hires?.1:.2;
+fs=$preview?.75:hires?.1:.2;
 fa=$preview?5:hires?.5:1;
 
 
@@ -251,7 +254,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.303;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.310;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -324,7 +327,7 @@ rand2=is_undef(rand2)?rand:rand2,
 r2=r2?
     rcenter?r2+rand2/2:r2
     :r,
-fn=is_undef(fs)?max(1,floor(abs(fn))):max(abs(grad)<180?1:abs(grad)==360?3:2,ceil(abs(PI*r*2/360*grad/max(fs,0.001)))),
+fn=is_undef(fs)?max(1,ceil(abs(fn))):max(abs(grad)<180?1:abs(grad)==360?3:2,ceil(abs(PI*r*2/360*grad/max(fs,0.001)))),
 step=grad/fn,
 step2=grad2/fn,
 t=is_list(t)?t:[t,0],
@@ -343,7 +346,7 @@ if(rand)for(i=[0:endPoint?fn:fn -1])
      cos(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r2 -rand2)+t[1],
     z]
 ]:
-[
+[ // if 2D
 if(!sek&&!rand&&abs(grad)!=360&&grad||r==0)[0+t[0],0+t[1]], // single points replacement
 if(r&&grad)for(i=[0:endPoint?fn:fn-1])
         let(iw=abs(grad)==360?i%fn:i)
@@ -946,6 +949,25 @@ echo(pathLength(p,close=0),PI*10);
 Points(p);
 // */
 
+/** \name string2num
+\page Functions
+string2num() converts charcter from a string into numbers
+\param string input string
+\param start start of extraction
+\param length number of characters to extract
+*/
+function string2num(string,start=0,length)=let(start=min(len(string),max(0,start)),length=min(is_undef(length)?len(string):length,len(string)-start))length?(ord(string[start])-48)*pow(10,length-1)+string2num(string,start+1,length-1):0;
+
+
+
+/** \name stringChunk
+\page Functions
+stringChunk() separates charcter from a string
+\param txt input string
+\param start start of extraction
+\param length number of characters to extract
+*/
+
 function stringChunk(txt,start=0,length,string="")=
   let(
     start=abs(start),
@@ -1437,6 +1459,7 @@ echo    ("
 ••• naca(l,0012) NACA airfoil ••• \n
 ••• pathLength(points,start=0,end,close=0) ••• \n
 ••• stringChunk(txt,start=0,length) •••\n
+••• string2num(string,start=0,length) •••\n
 ••• nut (e=2,es=10,a=6,b=6,base=1,h=1,s,center=true,shift=0,grad,z) •••\n
 ••• involute(r=10,grad=45,fn=fn,rot=0,rev=0,delta=0,z) ••• \n
 ••• riemen(r1=5,r2=10,tx=20,fn=fn,z,center=false) ••• \n
@@ -2052,7 +2075,7 @@ y=(is_num(useVersion)&&useVersion<22.250&&!2D)?xChange:y;
 module RotEx(grad=360,fn=fn,center=false,cut=false,convexity=5,help=false){
   fnrotex=$fn;
     rotate(center?sign(grad)*-min(abs(grad)/2,180):grad>=360?180:0)
-  rotate_extrude(angle=grad,convexity=convexity, $fa =fn?abs(grad/fn):$fa,$fs=.05,$fn=0)intersection(){
+  rotate_extrude(angle=grad,convexity=convexity, $fa =fn?abs(grad/fn):$fa,$fs=$fs,$fn=0)intersection(){
     $fn=fnrotex;
     $fa=fa;
     $fs=fs;
@@ -2379,6 +2402,7 @@ PrevPos() object position Object for preview only
 */
 
 module PrevPos(on=true,t=[0,0,0],z=0,rot=[180,0,0],help){
+rot=is_num(rot)?[0,0,rot]:rot;
 if($preview&&on||on==2)translate(v3(t)+[0,0,z])rotate(v3(rot))children();
 else children();
 
@@ -3254,8 +3278,7 @@ points=concat(
         kreis(rand=0,r=r2,rot=-rot+180,grad=w2,t=t2,fn=fn/3),    
         kreis(rand=0,r=r3,rot=rot+180,grad=w3,t=t3,fn=fn/3)    
 );
-    
-    
+
     rotate(top?0:180)translate([center?
                 //-2*Kathete(l2,hc)/(2*sin(grad)):top? // center Umkreis
                 -(tang?hc+TangentenP(w1,r1):hc+2*TangentenP(w1,r1))/2:top? // center h
@@ -3269,7 +3292,7 @@ points=concat(
                 translate(RotLang(90-grad/2,l2))rotate(90+w2/2)Pivot(active=[1,0,1,1],size=messpunkt);
                 translate(RotLang(90+grad/2,l3))rotate(90-w3/2)Pivot(active=[1,0,1,1],size=messpunkt);
             }
-            
+
             Col(6)union(){ // mittelpunkte
                 Pivot(t1,active=[1,0,0,1],size=messpunkt);
                 Pivot(t2,active=[1,0,0,1],size=messpunkt);   
@@ -3278,36 +3301,76 @@ points=concat(
 
         }
     }
-   
+
  InfoTxt("Tri",["reale Höhe=",tang?hc-TangentenP(w1,r1):hc,"h",tang?hc:hc+TangentenP(w1,r1),"Basis",2*Kathete(l2,tang?hc:hc+TangentenP(w1,r1)),"Umkreis r",2*Kathete(l2,hc)/(2*sin(grad)),"c",l==l22?sin(grad/2)*l*2:"WIP"],name);
  HelpTxt("Tri",["grad",grad,"l",l,"l2",l2,"h",h,"r",r,",messpunkt",messpunkt,",center=",center,"top",top,"tang",tang,"c",c,"fn",fn,"name",name],help);    
  
 }
 
 
+/** 
+\name Welle
+\page Polygons
+Welle() creates multiple arcs or extrusions with children
+\param e  number of arc pairs
+\param r  radius arc 1
+\param r2 radius arc 2
+\param rand wall thickness
+\param grad angle of arcs
+\param ext extruded base when rand=0
+\param h  height of wave
+\param fn fragments
+\param lap angle overlap
+\param center 0-3 center at 0,1= center between arcs ,2= center arc 1,3= center arc 2
+*/
 
+/*
+c1=3;
+Welle(e=3,r=12,r2=7,rand=0.0,grad=200,ext=20,h=0,fn=36,center=c1);
+Welle(e=3,r=12,r2=7,rand=0.1,grad=200,ext=20,h=0,fn=36,center=c1);
+//*/
 
-module Welle(e=3,grad=200,r=5,r2,center=3,rand=2,fn=fn,overlap=0,name,help){
+module Welle(e=3,grad=200,r=5,r2,center=3,rand=2,h=0,ext=0,fn,fs=fs,lap=0,name,help,overlap){
     
+    lap=is_undef(overlap)?lap:overlap; // compatibility
     r2=is_undef(r2)?r:r2;
     $x=rand;    
     w=(grad-180)/2;
     y=2*cos(w)*r;
-    y2=2*cos(w)*abs(r2);        
+    y2=2*cos(w)*abs(r2);
+    h=is_list(h)?h:[h/2,h/2];
+    hi=[sin(w)*r , sin(w)*r2]+h;
+    delta=assert(grad)+h[0]*tan(90-grad/2)*2+h[1]*tan(90-grad/2)*2;
     
+    fn=is_undef(fn)?[fs2fn(r=r,grad=grad,fs=fs),fs2fn(r=r2,grad=grad,fs=fs)]:is_list(fn)?fn:[fn,fn];
+    
+    points=[
+     each for(i=[0:e-1])each[
+       arc(r2+rand,deg=grad,t=[-hi[1],-y2/2+(y+y2+delta)*i],rot=180-grad/2,fn=fn[1],rev=1),
+       arc(r-rand,deg=grad,t=[hi[0],y/2+delta/2+(y+y2+delta)*i],rot=-grad/2,fn=fn[0],rev=0)] ,
+      
+    if (rand)for(i=[0:e-1])each concat(arc(r+rand),arc(r2+rand)),// WIP !!!
+    if (rand==0) each [[ext,y+delta/2+(y+y2+delta )*(e -1)],[ext,-y2]],
+    
+    ];
+    
+    //echo(points);
+    
+    if(!$children&&rand==0)T(0,center?center>1?center>2?y2/2:-y/2:0:y2)
+    T(y=center?-(y+y2)*(e-1)/2:0)polygon(points);
     T(0,center?center>1?center>2?y2/2:-y/2:0:y2)Linear(es=y+y2,e=e,x=0,y=1,center=center)union(){
 
-     if(!$children){
-         T(sin(w)*r,y/2)  Kreis(grad=grad+overlap,r=r,fn=fn,rand=rand,rcenter=true,sek=true);
-         T(-sin(w)*r2,-y2/2)  Kreis(grad=grad+overlap,fn=fn,r=-r2,rand=rand,rcenter=true,sek=true);   
+     if(!$children&&rand){
+         T(hi[0],y/2)  Kreis(grad=grad+lap,r=r,fn=fn[0],rand=rand,rcenter=true,sek=true);
+         T(-hi[1],-y2/2)  Kreis(grad=grad+lap,fn=fn[1],r=-r2,rand=rand,rcenter=true,sek=true);   
      }
      else {
          
-         T(sin(w)*r,y/2)  RotEx(grad=grad+overlap,fn=fn,center=true)T(r)children();
+         T(sin(w)*r,y/2)  RotEx(grad=grad+lap,fn=fn[0],center=true)T(r)children();
          union(){
              $info=0;
              $helpM=0;
-         T(-sin(w)*r2,-y2/2)RotEx(grad=grad+overlap,fn=fn,center=true)T(-r2)children(); 
+         T(-sin(w)*r2,-y2/2)RotEx(grad=grad+lap,fn=fn[1],center=true)T(-r2)children(); 
          }  
          
      }
@@ -3319,9 +3382,11 @@ HelpTxt("Welle",[
     "r",r, 
     "r2",r2, 
     "center",center, 
-    "rand",rand, 
+    "rand",rand,
+    "h",h,
+    "ext",ext,
     "fn",fn,
-    "overlap",overlap, 
+    "lap",lap, 
     "name",name] 
     ,help);    
 }
@@ -4718,8 +4783,7 @@ module Superellipse(n=4,r=10,n2,r2,n3,n31,n32,r3,fn=fn,fnz,name,help){
 
 
 
-
-module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=false,basisX=0,trueX=false,centerX,tangent=true,rad,fs=fs,name,help){
+module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn,center=true,messpunkt=false,basisX=0,trueX=false,centerX,tangent=true,rad,fs,name,help){
     assert(grad!=0&&grad2!=0);
     basisX=is_bool(basisX)?basisX?1:0:is_undef(centerX)?basisX:is_bool(centerX)?centerX?1:0:centerX;
     
@@ -4739,8 +4803,9 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=fa
     r4=is_num(r4)?r4:is_undef(r[3])?is_num(r)?r:rundung:r[3];
     
     radList=[r1,r2,r3,r4];
-    
-    fn=is_undef(fn)?[for(i=[0:3])fs2fn(fs=fs,r=radList[i])]:is_list(fn)?fn:[fn];
+    fs=is_list(fs)?fs:[fs];
+    fn=is_undef(fn)?[for(i=[0:3])fs2fn(fs=$fs,r=radList[i],minf=12)]:is_list(fn)?fn:[fn];
+    //fn=is_list(fn)?fn:[fn];
        
     rf1=1/sin(grad);
     rf2=1/sin(grad2);
@@ -4793,10 +4858,10 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn=fn,center=true,messpunkt=fa
                                     [x/2,y/2]);
    
         
-    k1=Kreis(rand=0,r=r1,t=[-x/2+r1*rf1+shiftX1/2,y/2-r1]+cTrans,grad=180-grad,rot=grad-180,fn=fn[0%len(fn)]/360*(180-grad),center=false);
-    k2=Kreis(rand=0,r=r2,t=[x/2-r2*rf2+shiftX2/2,y/2-r2]+cTrans,grad=grad2,rot=-45+45,fn=fn[1%len(fn)]/360*grad2,center=false);
-    k3=Kreis(rand=0,r=r3,t=[-x/2+r3*rf1-shiftX3/2,-y/2+r3]+cTrans,grad=grad,rot=-225+45,fn=fn[2%len(fn)]/360*grad,center=false);
-    k4=Kreis(rand=0,r=r4,t=[x/2-r4*rf2-shiftX4/2,-y/2+r4]+cTrans,grad=180-grad2,rot=grad2 ,fn=fn[3%len(fn)]/360*(180-grad2),center=false);
+    k1=kreis(rand=0,r=r1,t=[-x/2+r1*rf1+shiftX1/2,y/2-r1]+cTrans,grad=180-grad,rot=grad-180,fn=is_undef(fn[0%len(fn)])?undef:fn[0%len(fn)]/360*(180-grad),fs=fs[0%len(fs)],center=false);
+    k2=kreis(rand=0,r=r2,t=[x/2-r2*rf2+shiftX2/2,y/2-r2]+cTrans,grad=grad2,rot=-45+45,fn=is_undef(fn[1%len(fn)])?undef:fn[1%len(fn)]/360*grad2,fs=fs[1%len(fs)],center=false);
+    k3=kreis(rand=0,r=r3,t=[-x/2+r3*rf1-shiftX3/2,-y/2+r3]+cTrans,grad=grad,rot=-225+45,fn=is_undef(fn[2%len(fn)])?undef:fn[2%len(fn)]/360*grad,fs=fs[2%len(fs)],center=false);
+    k4=kreis(rand=0,r=r4,t=[x/2-r4*rf2-shiftX4/2,-y/2+r4]+cTrans,grad=180-grad2,rot=grad2 ,fn=is_undef(fn[3%len(fn)])?undef:fn[3%len(fn)]/360*(180-grad2),fs=fs[3%len(fs)],center=false);
  
  union(){
      polygon(concat(k1,k2,k4,k3),convexity=5);
@@ -6773,8 +6838,8 @@ fn2FS=[fs2fn(r=rad[0],fs=fs2[0],grad=rgrad),fs2fn(r=rad2,fs=fs2[1],grad=rgrad2)]
 fn2=is_num(fn2)?[fn2,fn2]:
                 is_list(fn2)?[is_undef(fn2[0])?fn2FS[0]:
                                                fn2[0]
-                              ,is_undef(fn2[1])?fn2FS[1]:
-                                                fn2[0]]:
+                             ,is_undef(fn2[1])?fn2FS[1]:
+                                               fn2[1]]:
                 fn2FS;
 
 Echo(str("Pille zu kurz! ",l-rad[0]+ausgleich-rad2+ausgleich2),color="red",condition=l+ausgleich+ausgleich2-rad[0]-rad2<0);
@@ -7479,6 +7544,9 @@ module Prisma(x1=12,y1,z=6,c1=5,s=1,x2,y2,x2d=0,y2d=0,rad,c2=0,vC=[0,0,1],cRot=0
     helpZ=z;
     helpS=s;
     helpC1=c1;
+    
+    simple=(x1==x2||is_undef(x2))&&(y1==y2||is_undef(y2))&&!x2d&&!y2d&&!c2&&vC==[0,0,1]&&!optimize?true:false;
+    
     center=is_list(center)?v3(center):[1,1,center];
     rad=is_undef(rad)?[s,s]/2:is_list(rad)?rad:[rad,rad];
     r=is_undef(r)?c1/2*[1,1,1,1]:is_list(r)?r:[r,r,r,r];
@@ -7487,7 +7555,7 @@ module Prisma(x1=12,y1,z=6,c1=5,s=1,x2,y2,x2d=0,y2d=0,rad,c2=0,vC=[0,0,1],cRot=0
     y=is_list(x1)?x1[1]:is_undef(y1)?x1:y1;
     s=min(x,y,z,max(vSum(rad),0));
     hErr=optimize?0:s/2-cos(90/ceil((is_num(fnS)?fnS:fs2fn(r=s/2,fs=fs,grad=360))/2))*s/2; // missing sphere piece
-    z=is_undef(x1[2])?z+hErr*2:x1[2]+hErr*2;
+    z=(is_undef(x1[2])?z:x1[2])+ (simple?0:hErr*2);
     c1=min(max(r[0]*2,0),x,y);
     
     cylinderh=c1?minVal:0;
@@ -7505,7 +7573,7 @@ module Prisma(x1=12,y1,z=6,c1=5,s=1,x2,y2,x2d=0,y2d=0,rad,c2=0,vC=[0,0,1],cRot=0
     x2=is_undef(x2)?x1
                    :is_list(x2)?c1-s>0?vC[1]?max(x2[0]-cylinderh-s,minVal):max(x2[0]-c1,minVal):max(x2[0]-s,minVal):c1-s>0?vC[1]?max(x2-cylinderh-s,minVal):max(x2-c1,minVal):max(x2-s,minVal);
         
-    simple=x1==x2&&y1==y2&&!x2d&&!y2d&&!c2&&vC==[0,0,1]&&!optimize?true:false;
+    
 
 CubePoints = [
   [-x1/2,-y1/2,  0 ],  //0
@@ -7527,12 +7595,12 @@ CubeFaces = [
   
  if(simple) T(center.x?0:x/2,center.y?0:y/2)hull() {
  $info=false;
-  if(r[0]==r[1]&&r[2]==r[3]&&r[1]==r[2])for(px=[-1,1]*(x-c1)/2,py=[-1,1]*(y-c1)/2)translate([px,py,0])Pille(l=helpZ,d=c1,rad=rad,deg=deg,fs=fs,fn2=is_num(fnS)?fnS/4:undef,fn=fnC,center=center.z);
+  if(r[0]==r[1]&&r[2]==r[3]&&r[1]==r[2])for(px=[-1,1]*(x-c1)/2,py=[-1,1]*(y-c1)/2)translate([px,py,0])Pille(l=z,d=c1,rad=rad,deg=deg,fs=fs,fn2=is_num(fnS)?fnS/4:undef,fn=fnC,center=center.z);
   else{
-  translate([-x/2+r[0],-y/2+r[0],0])Pille(l=helpZ,r=r[0],rad=rad,deg=deg,fs=fs,fn2=is_num(fnS)?fnS/4:undef,fn=fnC,center=center.z);
-  translate([ x/2-r[1],-y/2+r[1],0])Pille(l=helpZ,r=r[1],rad=rad,deg=deg,fs=fs,fn2=is_num(fnS)?fnS/4:undef,fn=fnC,center=center.z);
-  translate([ x/2-r[2], y/2-r[2],0])Pille(l=helpZ,r=r[2],rad=rad,deg=deg,fs=fs,fn2=is_num(fnS)?fnS/4:undef,fn=fnC,center=center.z);
-  translate([-x/2+r[3], y/2-r[3],0])Pille(l=helpZ,r=r[3],rad=rad,deg=deg,fs=fs,fn2=is_num(fnS)?fnS/4:undef,fn=fnC,center=center.z);
+  translate([-x/2+r[0],-y/2+r[0],0])Pille(l=z,r=r[0],rad=rad,deg=deg,fs=fs,fn2=is_num(fnS)?fnS/4:undef,fn=fnC,center=center.z);
+  translate([ x/2-r[1],-y/2+r[1],0])Pille(l=z,r=r[1],rad=rad,deg=deg,fs=fs,fn2=is_num(fnS)?fnS/4:undef,fn=fnC,center=center.z);
+  translate([ x/2-r[2], y/2-r[2],0])Pille(l=z,r=r[2],rad=rad,deg=deg,fs=fs,fn2=is_num(fnS)?fnS/4:undef,fn=fnC,center=center.z);
+  translate([-x/2+r[3], y/2-r[3],0])Pille(l=z,r=r[3],rad=rad,deg=deg,fs=fs,fn2=is_num(fnS)?fnS/4:undef,fn=fnC,center=center.z);
   
   }
   }
