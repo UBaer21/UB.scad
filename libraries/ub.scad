@@ -167,6 +167,7 @@ Release
 306|22 FIX Pille chg Quad CHG kreis CHG fs
 308|22 UPD Welle CHG PrevPos FIX Prisma CHG RotEx
 310|22 ADD string2num
+312|22 UPD Prisma FIX Roof
 */
 
 {//fold // Constants
@@ -254,7 +255,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.310;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.312;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -5558,7 +5559,6 @@ Roof(25,[1,1],deg=-45)offset(1,$fs=.2,$fn=0)polygon([
 //*/
 
 
-
 module Roof(height,h,base=0,deg=45,opt=1,floor=false,center=false,twist=0,scale=1,fn=0,convexity=5,lap=0.0001,on=true,name,help,slices,segments){
 
 lap=is_list(lap)?lap:[lap,lap];
@@ -5580,7 +5580,7 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
   Tz(on?(center?0:h[0]?h[0]:0):0){
   $tab=is_undef($tab)?1:b($tab,false)+1;
   $idx=0;
-  Tz(-lap[0])linear_extrude(base+(on?vSum(lap):h[0]+h[1]),center=center,twist=twist,scale=scale,convexity=convexity,$fn=fn,slices=slices,segments=segments){
+  Tz(center?0:-lap[0])linear_extrude(base+(on?vSum(lap):h[0]+h[1]),center=b(center,true),twist=twist,scale=scale,convexity=convexity,$fn=fn,slices=slices,segments=segments){
   $fn=ifn;
   children();
   }
@@ -5589,7 +5589,7 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
  $idx=1;
  $info=false;
  //top
- if(scale&&(h[1]||is_undef(h[1])))Tz(center?base/2:base+(h[0]?h[0]:0)+(s[1]<0?h[1]:0))difference(){
+  if(scale&&(h[1]||is_undef(h[1])))Tz( (center?base/2:base+(h[0]?h[0]:0))+(s[1]<0?h[1]:0) )difference(){
   scale([1,1,s[1]])roof(method=opt[1]?"voronoi":"straight",$fn=fn,convexity=convexity)offset(delta=s[1]<0?-tan(90-deg[1])*h[1]:0){
   $fn=ifn;
   scale(scale)rotate(-twist)children(); // experimental feature comment out if not activated in preferences
@@ -5599,7 +5599,7 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
   }
   
  //bottom
-  if(floor&&(h[0]||is_undef(h[0])))Tz(center?-base/2:(h[0]?h[0]:0)+(s[0]<0?-h[0]:0))difference(){
+  if(floor&&(h[0]||is_undef(h[0])))Tz((center?-base/2:(h[0]?h[0]:0))+(s[0]<0?-h[0]:0))difference(){
     scale([1,1,-s[0]])roof(method=opt[0]?"voronoi":"straight",$fn=fn,convexity=convexity)offset(delta=s[0]<0?-h[0]*tan(90-deg[0]):0){
     $fn=ifn;
     children(); // experimental feature comment out if not activated in preferences
@@ -7533,7 +7533,7 @@ Prisma() rounded cube (square prism)
 
 
 
-module Prisma(x1=12,y1,z=6,c1=5,s=1,x2,y2,x2d=0,y2d=0,rad,c2=0,vC=[0,0,1],cRot=0,fnC=fn,fnS=36,fs=fs,center=false,r,deg=[50,90],optimize=false,name,help){
+module Prisma(x1=12,y1,z,c1=5,s=1,x2,y2,x2d=0,y2d=0,rad,c2=0,vC=[0,0,1],cRot=0,fnC=fn,fnS=36,fs=fs,center=false,r,deg=[50,90],optimize=false,name,help){
 
 
      
@@ -7553,9 +7553,9 @@ module Prisma(x1=12,y1,z=6,c1=5,s=1,x2,y2,x2d=0,y2d=0,rad,c2=0,vC=[0,0,1],cRot=0
     
     x=is_list(x1)?x1[0]:x1;
     y=is_list(x1)?x1[1]:is_undef(y1)?x1:y1;
-    s=min(x,y,z,max(vSum(rad),0));
+    s=min(x,y,is_undef(z)?0:z,max(vSum(rad),0));
     hErr=optimize?0:s/2-cos(90/ceil((is_num(fnS)?fnS:fs2fn(r=s/2,fs=fs,grad=360))/2))*s/2; // missing sphere piece
-    z=(is_undef(x1[2])?z:x1[2])+ (simple?0:hErr*2);
+    z=(is_undef(x1[2])?is_undef(z)?x:z:x1[2])+ (simple?0:hErr*2);
     c1=min(max(r[0]*2,0),x,y);
     
     cylinderh=c1?minVal:0;
