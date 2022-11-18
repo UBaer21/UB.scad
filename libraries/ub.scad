@@ -168,6 +168,7 @@ Release
 308|22 UPD Welle CHG PrevPos FIX Prisma CHG RotEx
 310|22 ADD string2num
 312|22 UPD Prisma FIX Roof
+316|22 UPD LinEx2 UPD Text FIX DPfeil FIX LinEx FIX Roof FIX radiusS
 */
 
 {//fold // Constants
@@ -255,7 +256,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.312;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.316;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -436,7 +437,8 @@ function gradS(s,r)=abs(s)>abs(2*r)&&(is_undef($idx)||!$idx)?echo("\t⭕ ‼ gra
 \param n for a n-polygon
 \param a if you have the angle 
 */
-function radiusS(s,n,a)=(s/2)/(sin((is_undef(n)? is_undef(a)?gradS(s,r)*2:a:360/n)/2));// Radius  zur Sehne
+
+function radiusS(s,n,a,r)=(s/2)/(sin((is_undef(n)? is_undef(a)?gradS(s,r):a:360/n)/2));// Radius  zur Sehne
 
 /// distance chord s to center
 function distS(s,r)=Kathete(r,s/2);//cos(gradS(s,r)/2)*r;
@@ -4104,13 +4106,13 @@ module DPfeil(l=40,b=1.5,shift=0,grad=35,d=0,txt,center=true,name,help){
  //center=is_bool(center)?center?[1,1]:[0,0]:is_list(center)?center:[center,center];
  d=d?max(abs(d),abs(b[1]))*sign(d) : 0;
  txt=txt==true?str(l[0],"mm") : txt;
- txtL=txt?len(str(txt)) * b[1] *0.85 : 0;
+ txtL=txt?len(str(txt)) * b[1] *0.65 : 0;
 
 if(!d)T(center?0:l[0]/2)MKlon((l[0]-lP[1]*2)/2)Pfeil(l=lP-[txtL/2,0],b=b,shift=shift,grad=grad,d=d,center=true,name=name,help=false);
 
 if(d)T(y=center?0:d/2)MKlon(mx=1)rotate(-gradB(b=min(lP[0],PI*d/2-lP[1]),r=d/2))Pfeil(l=[min(lP[0]-txtL/2,PI*d/2-lP[1]-txtL/2),lP[1]],b=b,shift=shift,grad=grad,d=d,center=true,name=name,help=false);
 
-if(txt)T(center?0:d?[0,d/2]:l[0]/2)Text(h=0,text=txt,size=b[1],center=true,cy=d?false:true,radius=d?d/2-b[1]/2:0,viewPos=false,name=false);
+if(txt)T(center?0:d?[0,d/2]:l[0]/2)Text(h=0,text=txt,size=b[1],center=true,cy=d?false:true,radius=d?d/2-b[1]/2:0,viewPos=false,name=false,trueSize="body");
 
 //InfoTxt("DPfeil",["Winkel",2*atan((b[1]/2)/(l[1]-shift[0]))],name);    
 HelpTxt("DPfeil",[   
@@ -5240,24 +5242,28 @@ HelpTxt("Bevel",[
 }
 
 
-module LinEx2(bh=5,h=1,slices=10,s=1,ds=+0.010,dh=+0,fs=1,fh=0.780,twist=0,hsum=0,startSlices=0,fn=fn,name,help){
+
+
+module LinEx2(bh=5,h=1,slices=10,s=1,ds=+0.010,dh=+0,fs=1,fh=0.780,twist=0,ft=1,dt=0,hsum=0,lap=0.001,fn=fn,name,help,startSlices,basetwist,rot=0){
+    basetwist=is_undef(basetwist)?(bh+lap)*twist:basetwist;
+    startSlices=is_undef(startSlices)?slices:startSlices;
     $helpM=0;
     $info=0;
     s=is_list(s)?s:[s,s];
   hsum=hsum?hsum:h;
-    startSlices=startSlices?startSlices:slices;
-    if(slices-1)rotate(-twist*h)Tz(h)scale([s[0],s[1],1])LinEx2(bh=bh,slices=slices-1,s=s*fs-[ds,ds],h=h*fh-dh,ds=ds,dh=dh,hsum=hsum+h*fh-dh,fs=fs,fh=fh,name=name,startSlices=startSlices,twist=twist,fn=fn,help=help)children();
+    
+    if(slices-1)rotate(-twist*h)Tz(h)scale([s[0],s[1],1])LinEx2(bh=bh,slices=slices-1,s=s*fs-[ds,ds],h=h*fh-dh,ds=ds,dh=dh,hsum=hsum+h*fh-dh,fs=fs,fh=fh,name=name,startSlices=startSlices,twist=twist*ft-dt,ft=ft,dt=dt,fn=fn,help=help,rot=rot+twist*h,basetwist=basetwist,lap=lap)children();
   
-    Color(1/startSlices*slices)rotate(-twist*bh)Tz(bh)linear_extrude(h+minVal,twist=twist*(h+minVal),scale=s,convexity=5,$fn=fn)children();
+    Color(1/startSlices*slices)rotate(-basetwist)Tz(bh)linear_extrude(h+lap,twist=twist*(h+lap),scale=s,convexity=5,$fn=fn)children();
   if(slices==startSlices){
-      linear_extrude(bh+minVal,twist=twist*bh,convexity=5,$fn=fn)children();
+      linear_extrude(bh+lap,twist=basetwist,convexity=5,$fn=fn)children();
   MO(!$children);
 
   }
  
  if(!(slices-1)){
-     InfoTxt("LinEx2",["Höhe",hsum+minVal+bh,"Twist",(hsum+bh)*twist],name);
-     HelpTxt("LinEx2",["bh",bh,"h",h,"slices",slices,"s",s,"ds",ds,"dh",dh,"fs",fs,"fh",fh,"twist",twist,"hsum",hsum,"startSlices",startSlices,"fn",fn,"name",name],help);
+     InfoTxt("LinEx2",["Höhe",hsum+lap+bh,"Twist",basetwist+rot+twist*h],name);
+     HelpTxt("LinEx2",["bh",bh,"h",h,"slices",slices,"s",s,"ds",ds,"dh",dh,"fs",fs,"fh",fh,"twist",twist,"ft",ft,"dt",dt,"lap",lap,"fn",fn,"name",name],help);
  }
 
 }
@@ -5579,14 +5585,14 @@ InfoTxt("Roof",["h",h,"deg",str(deg,"° (",s,")")],name);
 Echo("Roof is experimental - use Dev Snapshot version and activate",color="warning",condition=version()[0]<2022);
   Tz(on?(center?0:h[0]?h[0]:0):0){
   $tab=is_undef($tab)?1:b($tab,false)+1;
-  $idx=0;
+  $idx=is_undef($idx)?0:$idx;
   Tz(center?0:-lap[0])linear_extrude(base+(on?vSum(lap):h[0]+h[1]),center=b(center,true),twist=twist,scale=scale,convexity=convexity,$fn=fn,slices=slices,segments=segments){
   $fn=ifn;
   children();
   }
   }
  if(on){ 
- $idx=1;
+ $idx=is_undef($idx)?1:$idx;
  $info=false;
  //top
   if(scale&&(h[1]||is_undef(h[1])))Tz( (center?base/2:base+(h[0]?h[0]:0))+(s[1]<0?h[1]:0) )difference(){
@@ -5732,7 +5738,8 @@ slices=is_undef(slices)?$preview?twist?fn:1:round(min(abs(twist)/hc*10,hc/l(2)))
     
 if(version()[0]>2021){
     union(){
-    $idx=true;
+    $info=false;
+    $idx=is_undef($idx)?true:$idx;
     //capoben
     if(h22)T(z=h-h22)rotate(-twist/2)linear_extrude(h22+(end[1]?lap[1]:0),scale=scale2,twist=twistcap[1]?twist/(hc)*h22:0,convexity=convexity,slices=max(1,slices/hc*h22),$fn=0,segments=segments)scale(scaleCenter){
       $fn=ifn;
@@ -6695,7 +6702,7 @@ size=trueSizeSW=="body"?size*.72:
      trueSizeSW=="font"?size/(fontS.ascent-fontS.descent):
      size;
 
-    h=is_undef(h)?size:h;
+    h=is_parent(needs2D)?0:is_undef(h)?size:h;
     cx=center?is_undef(cx)?1:cx:is_undef(cx)?0:cx;
     cy=center?is_undef(cy)?1:cy:is_undef(cy)?0:cy;
     cz=center?is_undef(cz)?1:cz:is_undef(cz)?0:cz;
