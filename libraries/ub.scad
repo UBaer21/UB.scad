@@ -169,6 +169,7 @@ Release
 310|22 ADD string2num
 312|22 UPD Prisma FIX Roof
 316|22 UPD LinEx2 UPD Text FIX DPfeil FIX LinEx FIX Roof FIX radiusS
+322|22 FIX Kreis FIX map FIX Line UPD Ring UPD kreis FIX Prisma
 */
 
 {//fold // Constants
@@ -256,7 +257,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.316;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.322;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -318,9 +319,32 @@ let(
 )
 is_list(p)?p[0]*(omt2*omt) + p[1]*(3*omt2*t) + p[2]*(3*omt*t2) + p[3]*(t2*t):
            p0*(omt2*omt) + p1*(3*omt2*t) + p2*(3*omt*t2) + p3*(t2*t);
+           
+/** \page Functions \name kreis
+kreis() generates points on a circle or arc
+\param r radius
+\param rand dist second radius
+\param grad angle
+\param grad2 angle second arc
+\param fn fragments
+\param fn2 fragments second arc
+\param center center angle
+\param sek  chord or center point
+\param r2  y component
+\param rand2  y component
+\param rot rotate points
+\param t translate points
+\param z z value for polyhedron
+\param d ovewrite radius with diameter
+\param endPoint end angle with point
+\param fs fragment size
+\param fs2 fragment size second arc
+\param fn fragments second arc
+*/
 
 function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=kreis(r,rand,grad,grad2,fn,center,sek,r2,rand2,rcenter,rot,t);
-function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d,endPoint=true,fs)=
+
+function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d,endPoint=true,fs,fs2,fn2)=
 let (
 grad2=is_undef(grad2)?grad:grad2,
 r=is_num(d)?rcenter?(d+rand)/2:d/2:
@@ -330,8 +354,10 @@ r2=r2?
     rcenter?r2+rand2/2:r2
     :r,
 fn=is_undef(fs)?max(1,ceil(abs(fn))):max(abs(grad)<180?1:abs(grad)==360?3:2,ceil(abs(PI*r*2/360*grad/max(fs,0.001)))),
+fs2=is_undef(fs2)?fs:fs2,
+fn2=is_undef(fs2)?is_undef(fn2)?fn:max(1,ceil(abs(fn2))):max(abs(grad2)<180?1:abs(grad2)==360?3:2,ceil(abs(PI*(r-rand)*2/360*grad2/max(fs2,0.001)))),
 step=grad/fn,
-step2=grad2/fn,
+step2=grad2/fn2,
 t=is_list(t)?t:[t,0],
 endPoint=rand?true:endPoint
 )
@@ -342,8 +368,8 @@ if(grad)for(i=[0:endPoint?fn:fn-1])
     [sin(rot+(center?-grad/2-90:0)+iw*step)*r  +t[0],
      cos(rot+(center?-grad/2-90:0)+iw*step)*r2 +t[1],
      z],
-if(rand)for(i=[0:endPoint?fn:fn -1])
-    let(iw=abs(grad2)==360?i%fn:i)
+if(rand)for(i=[0:endPoint?fn2:fn2 -1])
+    let(iw=abs(grad2)==360?i%fn2:i)
     [sin(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r  -rand )+t[0],
      cos(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r2 -rand2)+t[1],
     z]
@@ -354,8 +380,8 @@ if(r&&grad)for(i=[0:endPoint?fn:fn-1])
         let(iw=abs(grad)==360?i%fn:i)
     [sin(rot+(center?-grad/2-90:0)+iw*step)*r+t[0],
     cos(rot+(center?-grad/2-90:0)+iw*step)*r2+t[1]],
-if(rand)for(i=[0:endPoint?fn:fn-1])
-    let(iw=abs(grad2)==360?i%fn:i)
+if(rand)for(i=[0:endPoint?fn2:fn2-1])
+    let(iw=abs(grad2)==360?i%fn2:i)
     [sin(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r-rand)+t[0],
     cos(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r2-rand2)+t[1]]
 ];
@@ -1178,7 +1204,7 @@ function map(val=$t,from=[0,1],to=[0,1],constrain=true)=
     diff1=from[1]-from[0],
     diff2=to[1]-to[0]
   )
-  constrain?min(max(diff2/diff1*(val-from[0])+to[0],to[0]),to[1]):
+  constrain?min(max(diff2/diff1*( val - from[0] )+to[0],min(to) ),max(to) ):
              diff2/diff1*(val-from[0])+to[0];
   
 /** \page Functions
@@ -2954,11 +2980,12 @@ module SCT(a=90){
 }
 
 
-module Line(p0=[0,0,0],p1=[10,10,0],d=.5,center=false,2D=false,text=false,fn=8,help=false){
+module Line(p0=[0,0,0],p1=[10,10,0],d=.5,center=false,2D=false,text=false,fn=8,h,help=false){
   p0=p0[2]==undef?concat(p0,[0]):p0;
   p1=p1[2]==undef?concat(p1,[0]):p1;
 p1t=p1-p0;    
-    
+  
+  h=is_undef(h)?0:h;
 x= p1t[0]; y = p1t[1]; z = p1t[2]; // point coordinates of end of cylinder
  
 length = norm([x,y,z]);  // radial distance
@@ -2968,10 +2995,13 @@ c = atan2(y,x);     // azimuthal angle
 points=center?[-p1t+p0,p0,p1]:[p0,p1t/2+p0,p1]; // for d=0  1d polyhedron
 
 if(d)
-  if(2D)translate(p0)rotate([0,b-90,c])translate([0,center?0:-d/2,0]) square([center?length*2:length,d],center=center?true:false);
-  else if(length)translate(p0)rotate([0, b, c])
+  if(2D&&length&&!h)translate(p0)rotate([0,b-90,c])translate([0,center?0:-d/2,0]) square([center?length*2:length,d],center=center?true:false);
+  else if(h&&length)translate(p0)rotate([0,b-90,c])translate([0,center?0:-d/2,0]) linear_extrude(h,center=center)square([center?length*2:length,d],center=center?true:false);
+  
+  else if(!2D&&!h&&length)translate(p0)rotate([0, b, c])
       cylinder(h=center?length*2:length,d=d,$fn=fn,center=center?true:false);
-else polyhedron(points,[[0,1,2]]);
+      
+if(!d) polyhedron(points,[[0,1,2]]);
 //Points(points);
 
   if (text&&$preview)
@@ -2985,7 +3015,8 @@ HelpTxt("Line",[
   "center",center,
   "2D",2D,
   "text",text,
-  "fn",fn
+  "fn",fn,
+  "h",h
   ],help);  
   
 }
@@ -3672,13 +3703,15 @@ Kreis() creates a circle polygon
 
 */
 
+
+
 module Kreis(r=10,rand=0,grad=360,grad2,fn,center=true,sek=false,r2=0,rand2,rcenter=0,rot=0,t=[0,0],name,help,d,b,fs=fs){
     r=is_undef(d)?r:d/2;
     d=2*r;
     grad=is_undef(b)?grad:r==0?0:b/(2*PI*r)*360;
     b=2*r*PI*grad/360;
     
-   polygon( kreis(r=r,rand=rand,grad=grad,grad2=grad2,fn=fn,center=center,sek=sek,r2=r2,rand2=rand2,rcenter=rcenter,rot=grad==360?center?rot:rot+90:center?rot+180:rot+90,t=t,fs=is_undef(fn)?fs:undef),convexity=5);
+   polygon( kreis(r=r,rand=rand,grad=grad,grad2=grad2,fn=fn,center=center,sek=sek,r2=r2,rand2=rand2,rcenter=rcenter,rot=grad==360?center?rot:rot+90:center?rot+180:rot+90,t=t,fs=is_undef(fn)?fs:undef,endPoint=grad==360?false:true),convexity=5);
    
     
     HelpTxt("Kreis",["r",r,"rand",rand,"grad",grad,"grad2",grad2,"fn",fn,"center",center,"sek",sek,"r2",r2,"rand2",rand2,"rcenter",rcenter,"rot",rot,"t",t,"name",name,"d",d,", b",b,"fs",fs],help);
@@ -6022,15 +6055,15 @@ difference(){
 }
 
 
-module Ring(h=5,rand,d=10,r,cd=1,id=6,ir,grad=360,rcenter,center=false,fn=fn,name,2D=0,help){
+module Ring(h=5,rand,d=10,r,cd=1,id=6,ir,grad=360,rcenter,center=false,fn=fn,fs=fs,name,2D=0,help){
     
     id=is_undef(id)?d-rand*2:id;
     r=is_undef(r)?d/2:r;
     ir=is_undef(ir)?id/2:ir;
     rcenter=is_undef(rcenter)?!abs(cd):rcenter;
     rand=is_undef(rand)?r-ir:rand*sign(cd==0?1:cd);
-    if(2D||!h)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,fn=fn,rot=0,center=center,name=0,help=0);
-        else rotate([h>0?0:180])linear_extrude(abs(h),center=center,convexity=5)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,center=center,fn=fn,rot=0,name=0,help=0);
+    if(2D||!h)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,fn=fn?fn:undef,fs=fs,rot=0,center=center,name=0,help=0);
+        else rotate([h>0?0:180])linear_extrude(abs(h),center=center,convexity=5)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,center=center,fn=fn?fn:undef,fs=fs,rot=0,name=0,help=0);
     
 InfoTxt("Ring",[str("Aussen∅= ",rcenter?d+abs(rand):rand>0?d:d-rand*2,"mm — Mitte∅= ",rcenter?d:d-rand,"mm — Innen∅"),str(rcenter?d-abs(rand):rand>0?d-(rand*2):d,"mm groß und ",2D||!h?"2D":str(h," hoch") )],name);    
  
@@ -6044,6 +6077,7 @@ HelpTxt("Ring",["h",h,
     "rcenter",rcenter,
     "center",center,
     "fn",fn,
+    "fs",fs,
     "name",name,
     "2D",2D,],help);
 
@@ -7539,7 +7573,6 @@ Prisma() rounded cube (square prism)
 //Prisma(r=[1,2,3,4]);
 
 
-
 module Prisma(x1=12,y1,z,c1=5,s=1,x2,y2,x2d=0,y2d=0,rad,c2=0,vC=[0,0,1],cRot=0,fnC=fn,fnS=36,fs=fs,center=false,r,deg=[50,90],optimize=false,name,help){
 
 
@@ -7560,9 +7593,10 @@ module Prisma(x1=12,y1,z,c1=5,s=1,x2,y2,x2d=0,y2d=0,rad,c2=0,vC=[0,0,1],cRot=0,f
     
     x=is_list(x1)?x1[0]:x1;
     y=is_list(x1)?x1[1]:is_undef(y1)?x1:y1;
-    s=min(x,y,is_undef(z)?0:z,max(vSum(rad),0));
+    
     hErr=optimize?0:s/2-cos(90/ceil((is_num(fnS)?fnS:fs2fn(r=s/2,fs=fs,grad=360))/2))*s/2; // missing sphere piece
     z=(is_undef(x1[2])?is_undef(z)?x:z:x1[2])+ (simple?0:hErr*2);
+    s=min(x,y,is_undef(z)?0:z,max(vSum(rad),0));
     c1=min(max(r[0]*2,0),x,y);
     
     cylinderh=c1?minVal:0;
