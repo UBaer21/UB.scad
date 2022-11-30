@@ -170,6 +170,7 @@ Release
 312|22 UPD Prisma FIX Roof
 316|22 UPD LinEx2 UPD Text FIX DPfeil FIX LinEx FIX Roof FIX radiusS
 322|22 FIX Kreis FIX map FIX Line UPD Ring UPD kreis FIX Prisma
+333|22 UPD GT2Pulley UPD GT UPD Ring UPD Grid CHG Loch
 */
 
 {//fold // Constants
@@ -257,7 +258,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.322;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=22.333;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -2124,11 +2125,11 @@ module Grid(e=[2,2,1],es=10,s,center=true,name,help){
                                                    $info:
                                    name;
 
-    function n0(e)=is_undef(e)?1:max(e,1);
+    function n0(e)=is_undef(e)?1:max(e,0);
     function n0s(e)=max(e-1,1);// e-1 must not be 0
     center=is_list(center)?v3(center):[center,center,center];
-    e=is_list(e)?is_num(e[2])?[max(e[0],1),max(e[1],1),n0(e[2])]:
-                    concat(e,[1]):
+    e=is_list(e)?is_num(e[2])?[max(e[0],0),max(e[1],0),n0(e[2])]:
+                    concat(e,[1]): // z = 1
         es[2]?[n0(e),n0(e),n0(e)]:
         [n0(e),n0(e),1];
     
@@ -2158,7 +2159,7 @@ module Grid(e=[2,2,1],es=10,s,center=true,name,help){
     ,"name",name]
     ,help);
 
-   translate([
+   if(e.x&&e.y&&e.z)translate([
    center.x?((1-e[0])*es[0])/2:0,
    center.y?((1-e[1])*es[1])/2:0,
    center.z?((1-e[2])*es[2])/2:0]) for(x=[0:e[0]-1],y=[0:e[1]-1],z=[0:e[2]-1]){
@@ -3902,7 +3903,7 @@ module GT2(spiel=0,fn=fn){
   
 }
 
-/// GT();
+ // GT();
 /// GT2 profile rack, belt or pulley
 module GT(z=20,achse=3.5,spiel=.05,evolute=true,pulley=true,linear=true,fn=fn,name,help,spielO=0){
         p=2; // zahnabstand 
@@ -3913,11 +3914,8 @@ module GT(z=20,achse=3.5,spiel=.05,evolute=true,pulley=true,linear=true,fn=fn,na
         i=.63;  // band dicke
         breiteZahn=(r2-b)*2;
         umfang=z*p; 
+        zahnWinkel=360/z;
 
-
-
-
- 
    
 if(pulley){
     if(evolute){
@@ -3928,7 +3926,7 @@ if(pulley){
             difference(){
                 circle(r,$fn=z*2);
                 for(i=[0:z-1])rotate(i*360/z)
-                for(i=[-20:20])rotate(-i)T(-umfang/360*i,r-PLD)GT2(spiel);
+                for(i=[-ceil(zahnWinkel/2):ceil(zahnWinkel/2)])rotate(-i)T(-umfang/360*i,r-PLD)GT2(spiel);
                 if(achse)circle(d=achse-spielO*2,$fn=fn);
             }
             InfoTxt("GT2 Pulley evolute profile",["Dia",r*2-spiel*2-PLD*2,"z",z],name);
@@ -3951,7 +3949,7 @@ if(pulley){
     }
 
  }
- else {
+ else offset(-spielO){
      $info=false;
      if (linear)Linear(e=z,es=2)GT2(-spiel);
      else {
@@ -3973,6 +3971,7 @@ HelpTxt("GT",["z",z,
 "pulley",pulley,
 "linear",linear,
 "fn",fn,
+"spielO",spielO,
 "name",name     
 ],help);
 
@@ -6055,6 +6054,7 @@ difference(){
 }
 
 
+
 module Ring(h=5,rand,d=10,r,cd=1,id=6,ir,grad=360,rcenter,center=false,fn=fn,fs=fs,name,2D=0,help){
     
     id=is_undef(id)?d-rand*2:id;
@@ -6062,6 +6062,7 @@ module Ring(h=5,rand,d=10,r,cd=1,id=6,ir,grad=360,rcenter,center=false,fn=fn,fs=
     ir=is_undef(ir)?id/2:ir;
     rcenter=is_undef(rcenter)?!abs(cd):rcenter;
     rand=is_undef(rand)?r-ir:rand*sign(cd==0?1:cd);
+    2D=is_parent(parent= needs2D)?true:2D;
     if(2D||!h)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,fn=fn?fn:undef,fs=fs,rot=0,center=center,name=0,help=0);
         else rotate([h>0?0:180])linear_extrude(abs(h),center=center,convexity=5)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,center=center,fn=fn?fn:undef,fs=fs,rot=0,name=0,help=0);
     
@@ -8762,7 +8763,7 @@ Loch() creates the Volume of a slot or elongated hole
 
 
 
-module Loch(h=5,h2=1,d=3.5,l=2.5,d2,deg=[45,45],rad,extrude=spiel,center=[1,1,0],fn=0,fs=fs,cuts=2,2D=false,name,help){
+module Loch(h=5,h2=1,d=3.5,l=0,d2,deg=[45,45],rad,extrude=spiel,center=[1,1,0],fn=0,fs=fs,cuts=2,2D=false,name,help){
 
 d2=is_num(d2)?[d2,d2]:d2;
 l=max(l,0);
@@ -8774,11 +8775,9 @@ deg=[is_undef(d2[0])?conDeg[0]: d<d2[0]?abs(conDeg[0]):-abs(conDeg[0]),
      is_undef(d2[1])?conDeg[1]: d<d2[1]?abs(conDeg[1]):-abs(conDeg[1]) 
      ];
 
-h2=is_list(d2)?[abs((d2[0]-d)/2/tan(deg[0])),abs((d2[1]-d)/2/tan(deg[1]))]:
-[
-max(deg[0]<0?min(ih2[0],r/tan(-deg[0])):ih2[0],0),
-max(deg[1]<0?min(ih2[1],r/tan(-deg[1])):ih2[1],0)
-];
+h2=[
+is_undef(d2[0])?max(deg[0]<0?min(ih2[0],r/tan(-deg[0])):ih2[0],0):abs((d2[0]-d)/2/tan(deg[0])),
+is_undef(d2[1])?max(deg[1]<0?min(ih2[1],r/tan(-deg[1])):ih2[1],0):abs((d2[1]-d)/2/tan(deg[1]))];
 
 rad=is_list(rad)?rad:[rad,rad];
 
@@ -9682,12 +9681,24 @@ HelpTxt("KBS",["e",e,"grad",grad,"center",center,"male",male,"female",female,"ro
 }
 
 
+/** \page Products \name GT2Pulley
+GT2Pulley() creates a Pulley for GT2 Belts
+\param h belt height
+\param z number tooth
+\param achse  center hole diameter
+\param center  center pulley -1=outside 0 || false=inside 1 || true=center
+\param fn  fragments 
+\param name help name help
+*/
+
+// GT2Pulley(h=6.5,z=16,achse=5,center=-1);
 
 module GT2Pulley(
 h=6,// Belt h
 z=16,// teeth
 achse=6.6,//hole
 center=true,
+fn=fn,
 name,
 help){
 d=2*z/PI+(0.63-0.254)*2+0.2;
@@ -9699,22 +9710,22 @@ T(center?center<0?[0,0,h/2+1.1]:
         [z/PI,z/PI,h/2]){
 if($info)%Ring(h,d=2*z/PI,rand=-.63,center=true);            
 $info=false;            
-LinEx(h+1,center=true)GT(z=z,achse=achse);
-difference(){
-    
-MKlon(tz=-h/2-1.1){
-Pille(.5,d=d,rad2=0,center=false);//cylinder(.5,d=12);
-Tz(.5)Kegel(d1=d,d2=d-2.5,grad=25);
-}
-cylinder(50,d=achse,center=true);
-MKlon(tz=-h/2-1.3)Kegel(achse+0.75);
-}
+LinEx(h+1,center=true)GT(z=z,achse=achse,fn=fn);
+  difference(){
+    MKlon(tz=-h/2-1.1){
+      Pille(.5,d=d,rad2=0,center=false,fn=fn);//cylinder(.5,d=12);
+      Tz(0.499)Kegel(d1=d,d2=d-2.5,grad=25,fn=fn);
+    }
+    Loch(h=h+2.2,h2=.5,deg=45,rad=.25,center=true,d=achse,l=0,cuts=false,fn=fn);
+    *cylinder(h*3,d=achse,center=true);
+    *MKlon(tz=-h/2-1.3)Kegel(achse+0.75);
+  }
 //%Ring(h,d=d,rand=1.38,center=true);
 
 }
 
 InfoTxt("GT2Pulley",["aussenH",h+2.2,"d",d,"radius Riemenmitte",z/PI],name);
-HelpTxt("GT2Pulley",["h",h,"z",z,"achse",achse,"center",center,"name",name],help);
+HelpTxt("GT2Pulley",["h",h,"z",z,"achse",achse,"center",center,"fn",fn,"name",name],help);
 }
 
 
