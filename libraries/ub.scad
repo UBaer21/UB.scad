@@ -36,149 +36,7 @@ include<ub.scad>;
 
 Changelog (archive at the very bottom)
 
-000|22 prepare release CHG VarioFill
-001|22 CHG MKlon
-002|22 CHG Line 
-004|22 FIX Gewinde CHG Vollwelle CHG Caliper CHG GewindeV3
-005|22 CHG Gewinde
-006|22 CHG Anschluss FIX Zylinder
-007|22 FIX Ellipse CHG Points ADD PolyH
-008|22 FIX Ttorus CHG PolyH CHG RotLang
-009|22 CHG Points add center CHG kreis add z CHG quad add z
-011|22 FIX Box Prisma FIX Gewinde
-012|22 CHG Rosette Add id od FIX spelling help CHG Anorden (fix for 2021.1)
-0121|22 FIX Anordnen FIX SRing FIX Knochen
-013|22 CHG Rosette autocalc
-015|22 FIX Gewinde
-016|22 CHG RingSeg FIX Kassette help CHG Superellipse
-019|22 CHG Schnitt size
-020|22 CHG KBS CHG Prisma CHG Box CHG Pille
-021|22 CHG Pille FIX m chg v3 chg stern CHG Buchtung CHG Schnitt size
-022|22 CHG Kassette ADD pathPoints CHG kreis ADD Coil ADD wStern CHG vektorWinkel CHG Halb CHG Superellipse CHG Glied ADD SGlied CHG Prisma ADD Tdrop CHG Bezier
-Release
-033|22 CHG DRing CHG DBogen CHG Strebe CHG Ttorus CHG Glied CHG Kreis ADD wall CHG n()
-036|22 ADD star CHG SpiralCut CHG Gewinde CHG Bevel
-037|22 CHG star ADD Star
-038|22 CHG star CHG SpiralCut CHG Anordnen FIX DGlied Glied SGLied
-040|22 FIX SGLied CHG wall
-042|22 FIX CycloidZahn CHG Cycloid CHG Polar FIX star
-044|22 CHG Kegel FIX star
-045|22 CHG CycloidZahn CHG CyclGetriebe add f CHG Cycloid 
-046|22 CHG CyclGetriebe CHG CycloidZahn CHG LinEx CHG REcke
-047|22 FIX CyclGtriebe
-048|22 Add CyclGear FIX Bezier CHG v3 CHG vektorWinkel CHG Points ADD vMult
-050|22 CHG vMult CHG Gewinde
-052|22 CHG Buchtung CHG SpiralCut Add 2D
-054|22 CHG inch CHG Pille ADD Roof
-056|22 CHG PolyH CHG kreis CyclGetriebe CHG gradS CHG LinEx CHG Echo
-058|22 CHG PolyH
-060|22 CHG nametext CHG Egg CHG Stern CHG Star CHG star CHG Roof CHG Linse add fn
-062|22 CHG Pfeil
-064|22 CHG Pfeil CHG Star add fn2 CHG Roof CHG GT
-066|22 ADD naca ADD NACA CHG Roof CHG WStern CHG wall CHG Points
-068|22 FIX Polar CHG Umkreis
-070|22 FIX star ADD pathLength
-072|22 CHG NACA CHG Roof chg LinEx CHG Linse
-074|22 CHG Points
-076|22 CHG Points FIX Cring CHG Text ADD stringChunk
-078|22 CHG Servokopf CHG wall CHG Roof CHG title menue ADD line line() CHG wall chg l() n()
-080|22 CHG Star CHG kreis chg Roof
-082|22 CHG Seg7 Prisma ADD Cut 
-084|22 FIX Seg7 fix Cut
-086|22 FIX Cut CHG Achsenklammer ADD nut FIX stringChunk
-088|22 CHG bezier add p CHG Seg7 CHG wall CHG nut
-090|22 ADD Involute involute
-092|22 CHG gcode 
-094|22 ADD riemen, Riemen
-096|22 CHG Seg7
-098|22 CHG Coil CHG T
-100|22 UPD ZigZag FIX Riemen  
-101|22 reordered  
-102|22 CHG Glied CHG Riemen UPD Welle CHG Nut  
-104|22 CHG Riemen UPD Zylinder CHG Bogen SBogen  
-106|22 ADD kreisSek CHG Points  
-108|22 CHG Pivot FIX/UPD kreisSek  
-110|22 UPD Cut CHG GewindeV4  
-112|22 UPD HexGrid UPD Grid FIX vollwelle  
-114|22 CHG RotEx CHG DGlied0  
-116|22 FIX SGlied,DGlied upd Seg7  
-118|22 ADD vSum CHG Rund CHG CycloidZahn  
-120|22 CHG Roof FIX gradS UPD Coil CHG quad chg pPos  
-130|22 ADD bend ADD sq upd needs2D UPD mPoints UPD m UPD Bezier UPD Coil chg pathPoints  
-132|22 CHG Spirale UPD pathPoints  
-134|22 UPD Rundrum UPD Spirale CHG Row  
-135|22 Doxygen comments  
-137|22 FIX Spirale  
-140|22 FIX Caliper  
-142|22 CHG Quad fn  Add DPfeil FIX Text  
-144|22 ADD scene ADD map  
-146|22 CHG Disphenoid UPD vSum  
-148|22 FIX Prisma UPD LinEx UPD map
-150|22 CHG Torus UPD Ellipse
-152|22 ADD Schlaufe
-156|22 CHG Menu FIX Torus help FIX Torus2 help
-158|22 CHG Pin CHG RStern CHG Schlaufe
-160|22 CHG Schlaufe UPD Ellipse UPD MO
-162|22 UPD Involute
-164|22 UPD Schlaufe
-166|22 FIX Schlaufe
-168|22 ADD PrevPos
-170|22 FIX Torus FIX Rundrum
-172|22 UPD Rund FIX Spirale
-174|22 UPD kreis ADD polyRund PolyRund PolyDeg
-176|22 CHG stern
-178|22 FIX polyRund UPD PolyRund FIX DPfeil
-180|22 ADD revP UPD polyRund PolyRund CHG sq
-181|22 FIX polyRund
-182|22 FIX polyRund FIX PolyRund
-184|22 CHG PolyRund
-185|22 CHG PolyRund
-188|22 UPD map UPD Rand ADD sehne,UPD Roof
-190|22 CHG Quad ADD arc Arc UPD LinEx CHG vMult
-202|22 UPD tangentenP
-204|22 UPD PolyH
-206|22 ADD Knurl
-208|22 CHG Text add trueSize add cy=-1/2
-210|22 CHG Text Fix Knurl
-212|22 upd fold
-214|22 ADD parabel
-216|22 UPD Tdrop UPD Line UPD Rand
-218|22 FIX Schlaufe FIX Knurl
-220|22 FIX Kegel ADD designVersion
-222|22 FIX LinEx FIX Cut UPD M FIX Rand FIX Knurl FIX Text FIX Roof UPD vSum UPD Quad
-230|22 CHG Kreis FIX Cut CHG Pin CHG Roof FIX LinEx FIX Prisma
-232|22 UPD Sehne FIX Roof
-234|22 FIX Prisma FIX Caliper
-236|22 FIX LinEx
-240|22 UPD Polar UPD Roof
-242|22 FIX Anschluss UPD SQ
-250|22 FIX Halb UPD PrevPos
-270|22 ADD KnurlTri
-272|22 UPD Cring FIX DPfeil CHG radiusS ADD distS UPD Ring CHG Torus UPD Drehpunkt
-274|22 FIX LinEx() FIX KnurlTri
-276|22 FIX LinEx() UPD Halb()
-278|22 CHG Points UPD arc ADD LangL UPD line FIX fs2fn CHG Roof Fix Seg7
-280|22 UPD Seg7 UPD name CHG LangL↦Loch
-282|22 UPD Vollwelle UPD Nut
-283|22 UPD nut
-292|22 UPD Echo UPD BB CHG Loch FIX Gardena UPD Pille FIX fs2fn FIX Halb UPD GewindeV1
-294|22 UPD Prisma FIX Linear
-303|22 UPD Roof FIX Loch
-306|22 FIX Pille chg Quad CHG kreis CHG fs
-308|22 UPD Welle CHG PrevPos FIX Prisma CHG RotEx
-310|22 ADD string2num
-312|22 UPD Prisma FIX Roof
-316|22 UPD LinEx2 UPD Text FIX DPfeil FIX LinEx FIX Roof FIX radiusS
-322|22 FIX Kreis FIX map FIX Line UPD Ring UPD kreis FIX Prisma
-333|22 UPD GT2Pulley UPD GT UPD Ring UPD Grid CHG Loch
-336|22 UPD Coil FIX LinEx ADD SWelle
-338|22 Fix Roof UPD InfoTxt Fix LinEx UPD Ring UPD Bezier UPD Arc CHG SWelle
-340|22 CHG VarioFill UPD fs2fn
-342|22 ADD layerProfile FIX Linear FIX Kegelmantel
-344|22 CHG Luer UPD Kegel FIX VarioFill ADD Filter
-352|22 CHG Filter UPD star FIX VarioFill CHG Kegel
-354|22 CHG Anschluss UPD Coil UPD Pin UPD vpr
-356|22 CHG SBogen CHG Anschluss
+000|23 FIX Grid UPD vMult UPD Pin
 
 */
 
@@ -270,7 +128,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=22.356;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.000;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -292,11 +150,22 @@ assert(version()[0]>2019,"Install current http://openscad.org version");
 
 {//fold // \∇∇ functions ∇∇/
 
+
+
 function l(x=1,layer=layer)=x*layer;
 function n(x=1,nozzle=nozzle)=sign(x)*(abs(x)*nozzle + 0.05*nozzle); /*(x==1?0.05*nozzle:
                                                           - layer*(1-PI/4) * (x-1)*0)); 0.05*nozzle padding for slicer */
                                                           
 function line(n=1,line=line,nozzle=nozzle)=sign(n)*(abs(n)*line + 0.05*nozzle);
+
+function testPoly(s=10)=[
+[0,0],
+[s,0],
+[s,s],
+[s/2,s/2],
+[0,s]
+];
+
 
 function Inkreis(eck,rU)=cos(180/eck)*rU;
 function Umkreis(eck,rI,name)=let(r=rI/cos(180/eck))is_undef(name)?r:echo(str(name," Umkreis=",r))r;
@@ -357,7 +226,7 @@ kreis() generates points on a circle or arc
 
 function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=kreis(r,rand,grad,grad2,fn,center,sek,r2,rand2,rcenter,rot,t);
 
-function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d,endPoint=true,fs,fs2,fn2)=
+function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d,endPoint=true,fs=fs,fs2,fn2)=
 let (
 grad2=is_undef(grad2)?grad:grad2,
 r=is_num(d)?rcenter?(d+rand)/2:d/2:
@@ -366,9 +235,10 @@ rand2=is_undef(rand2)?rand:rand2,
 r2=r2?
     rcenter?r2+rand2/2:r2
     :r,
-fn=is_undef(fs)?max(1,ceil(abs(fn))):max(abs(grad)<180?1:abs(grad)==360?3:2,ceil(abs(PI*r*2/360*grad/max(fs,0.001)))),
+fn=is_num(fn)&&fn>0?max(1,ceil(abs(fn))):max(abs(grad)<180?1:abs(grad)==360?3:2,ceil(abs(PI*r*2/360*grad/max(fs,0.001)))),
 fs2=is_undef(fs2)?fs:fs2,
-fn2=is_undef(fs2)?is_undef(fn2)?fn:max(1,ceil(abs(fn2))):max(abs(grad2)<180?1:abs(grad2)==360?3:2,ceil(abs(PI*(r-rand)*2/360*grad2/max(fs2,0.001)))),
+
+fn2=is_num(fn)&&fn>0?is_undef(fn2)?fn:max(1,ceil(abs(fn2))):max(abs(grad2)<180?1:abs(grad2)==360?3:2,ceil(abs(PI*(r-rand)*2/360*grad2/max(fs2,0.001)))),
 step=grad/fn,
 step2=grad2/fn2,
 t=is_list(t)?t:[t,0],
@@ -491,7 +361,20 @@ function gradC(grad=0,min=0,sec=0,h=0,prozent=0,gon=0,rad=0)=grad+h/24*360+min/6
 function inch(inch=1)=inch*25.4;
 function kreisbogen(r,grad=360)=PI*r*2/360*grad;
 /// calculationg fragment number from fraqment size
-function fs2fn(r,grad=360,fs=fs,minf=3)=ceil(max(minf,PI*abs(r)*2/360*abs(grad)/max(is_undef(fs)?$fs:fs,0.001)));
+function fs2fn(r,grad=360,fs=fs,minf=3,fa=fa)=
+  let(
+    fs=max(is_undef(fs)?$fs:fs,0.001),
+    fa=is_undef(fa)?$fa:fa
+  )
+  ceil(
+    min(
+      max(
+        minf,
+        PI*abs(r)*2/360*abs(grad) / fs
+      ),
+      1 / fa * abs(grad)
+    )
+  );
 
 function clampToX0(points,interval=minVal)=is_list(points[0])?[for(e=points)[abs(e[0])>interval?e[0]:0,e[1]]]:
     [abs(points[0])>interval?points[0]:0,points[1]];
@@ -931,10 +814,11 @@ T(0,20))polygon(star(angle=180,fn=3,grad=4));
 
 // */
 
+
 // vector multiplication  
 function vMult(v1=[1],v2=1)=
   is_num(v1)||is_num(v2)?v1*v2:
-                         [for(i=[0:min(len(v1),len(v2))-1])v1[i]*v2[i]];
+                         [for(i=[0:min(len(v1),len(v2))-1])vMult(v1[i],v2[i])];
 
 /// sum up vector constituents
 //echo( vSum([1,1,1]) );
@@ -2144,11 +2028,11 @@ module Grid(e=[2,2,1],es=10,s,center=true,name,help){
                                                    $info:
                                    name;
 
-    function n0(e)=is_undef(e)?1:max(e,0);
+    function n0(e)=is_undef(e)?1:max(round(e),0);
     function n0s(e)=max(e-1,1);// e-1 must not be 0
     center=is_list(center)?v3(center):[center,center,center];
-    e=is_list(e)?is_num(e[2])?[max(e[0],0),max(e[1],0),n0(e[2])]:
-                    concat(e,[1]): // z = 1
+    e=is_list(e)?is_num(e[2])?[max(round(e[0]),0),max(round(e[1]),0),n0(e[2])]:
+                    [round(e.x),round(e.y),1]: // z = 1
         es[2]?[n0(e),n0(e),n0(e)]:
         [n0(e),n0(e),1];
     
@@ -2326,7 +2210,7 @@ Rand(1,center=1.0)Star(8);
 Tz(-1)Color(alpha=0.3)Star(8);
 //*/
 
-module Rand(rand=n(1),center=false,fn=fn,fs=fs,delta=false,chamfer=false,help){
+module Rand(rand=n(1),center=false,fn=0,fs=$preview?min(fs,.3):fs,delta=false,chamfer=false,help){
   $fs=fs;
     
 if(!center){ 
@@ -2362,7 +2246,7 @@ if(center&&rand)
 if(rand==0)children();
     MO(!$children);
     
-    HelpTxt("Rand",["rand",rand,"center",center,"fn",fn,"delta",delta,"chamfer",chamfer],help);
+    HelpTxt("Rand",["rand",rand,"center",center,"fn",fn,"fs",fs,"delta",delta,"chamfer",chamfer],help);
 }
 
 /** \page Polygons
@@ -2375,13 +2259,14 @@ Rund() polygon rounds a polygon via offset
 */
 //Rund(1,2)Star();
 
-module Rund(or=+0,ir,chamfer=false,fn,fs=$preview?.3:fs,help) {
+module Rund(or=+0,ir,chamfer=false,fn,fs=$preview?min(fs,.3):fs,fa=$fa,help) {
     
     ir=is_undef(ir)?is_list(or)?or[1]:or:ir;
     or=is_list(or)?or[0]:or;
     chamfer=chamfer?true:false;
-   if(!chamfer)offset(r = or,$fn=fn,$fs=fs)offset(r = -or,$fn=fn,$fs=fs)
-               offset(r = -ir,$fn=fn,$fs=fs)offset(r = ir,$fn=fn,$fs=fs) 
+   if(!chamfer)
+          offset(r = -ir,$fn=fn,$fs=fs,$fa=fa)offset(r =  ir,$fn=fn,$fs=fs,$fa=fa) 
+          offset(r =  or,$fn=fn,$fs=fs,$fa=fa)offset(r = -or,$fn=fn,$fs=fs,$fa=fa)
        children();
      
    
@@ -4283,7 +4168,7 @@ module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,
 
   }
   
-InfoTxt("CycloidZahn",["Zähne=",z*2,linear?str(" Länge=",l):str(" Wälzkreis r=",r)," spiel",spiel],name);  
+InfoTxt("CycloidZahn",["Zähne=",z*f,linear?str(" Länge=",l):str(" Wälzkreis r=",r)," spiel",spiel],name);  
 HelpTxt("CycloidZahnrad",["modul",modul,"z",z," d",d," linear",linear,"center",center,"spiel",spiel,"fn",fn,"fs",fs,"kreisDivisor",kreisDivisor,"f",f,"name",name],help);
 }
 
@@ -5591,22 +5476,28 @@ Torus() creates a torus with optional child();
 
 \param trx radius torus
 \param d,r   diameter or radius rim (use $d,$r in children)
+\param rot rotate 2D children
 \param a,grad   angle torus
 \param fn,fn2 fragments
+\param fs,fs2 fragmentsize
 \param dia  outer diameter torus optional to trx
 \param end  add Ends
 \param trxEnd,gradEnd  end Torus radius and angle
 \param lap  overlap of extrusions 
 */
 
+//Torus(grad=180,end=+2,trxEnd=-3,fn=0,lap=.1);
 
 
-module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gradEnd=90,trxEnd=0,endRot=0,endspiel=+0,lap=0,name,help)
+
+module Torus(trx=+6,d=4,a=360,fn=fn,fn2=0,r,rot=0,grad=0,dia=0,center=true,end=0,gradEnd=90,trxEnd=0,endRot=0,endspiel=+0,lap=0,fs=fs,fs2=fs,name,help)
     rotate(grad?0:-a/2){
 
     end=is_undef(spheres)?is_bool(end)?end?-1:0:end:spheres;//compatibility
+    d=is_undef(r)?d:r*2;
     $d=d;
-    $r=d/2;   
+    $r=d/2;
+    fn2=fn2==0?ceil(fs2fn(r=$r,fs=fs2,minf=12)/2)*2:fn2;
     endRot=is_list(endRot)?endRot:[endRot,endRot];
     trx=dia?dia/2-d/2:trx;
     grad=grad?grad:a;
@@ -5614,29 +5505,28 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gr
                                  grad;
          //   end==-1&&!$children? a-(asin($r/trx)*2)*sign(a):
          //                        a;
-      
     
     $idxON=false;
     
     InfoTxt("Torus",["Innen∅",2*trx-d,"Mitten∅",2*trx,"Aussen∅",2*trx+d],info=name);
-    HelpTxt("Torus",["trx",trx,"d",d,"a",a,"fn",fn,"fn2",fn2,",r",r,", grad",grad,"dia",dia,"center",center,"end",end,"gradEnd",gradEnd,"trxEnd",trxEnd,"endRot",endRot,"endspiel",endspiel,"name",name,"$d",$d,"lap",lap],help);
+    HelpTxt("Torus",["trx",trx,"d",d,"a",a,"fn",fn,"fn2",fn2,"r",r,"rot",rot,"grad",grad,"dia",dia,"center",center,"end",end,"gradEnd",gradEnd,"trxEnd",trxEnd,"endRot",endRot,"name",name,"$d",$d,"lap",lap,"fs",fs,"fs2",fs2,"name",name],help);
     
         
   rotate(end==-1? (asin($r/trx))*sign(grad):
                   0){
      $idx=true;
      $info=is_undef(name)?is_undef($info)?false:$info:name;
-      translate([0,0,center?0:d/2])rotate(end?-lap:0) RotEx(grad=end?a+lap*2:a,fn=fn,cut=1,help=false,center=0){
+      translate([0,0,center?0:d/2])rotate(end||trxEnd?-lap:0) RotEx(grad=end||trxEnd?a+lap*2:a,fn=fn,$fs=fs,cut=1,help=false,center=0){
         $idx=0;
         $tab=is_undef($tab)?1:b($tab,false)+1;
-        if($children)T(x=trx)R(0,0,r)children();
-        else T(x=trx)R(0,0,r)circle(d=d,$fn=fn2);
+        if($children)T(x=trx)R(0,0,rot)children();
+        else T(x=trx)R(0,0,rot)circle(d=d,$fn=fn2);
       }
 
       if(end&&a!=360&&!trxEnd){
           if($children){
-              rotate(a+endspiel*sign(grad))translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=max(fn/2,6),help=false)rotate(endRot[1])children();
-              rotate(+0)translate([trx,0,center?0:d/2])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=max(6,fn/2),help=false)rotate(endRot[0])children();  
+              rotate(a)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=max(fn/2,6),help=false)rotate(endRot[1])children();
+              rotate(+0)translate([trx,0,center?0:d/2])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=max(6,fn/2),$fs=fs,help=false)rotate(endRot[0])children();  
           }
           else{
           rotate(a-sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?1:0)sphere(d=d,$fn=fn2);
@@ -5647,22 +5537,22 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=38,r=0,grad=0,dia=0,center=true,end=0,gr
       if(trxEnd)translate([0,0,center?0:d/2]){ // End Ringstück
           if($children){
           T(trx-trxEnd)rotate(gradEnd*sign(-trxEnd)){
-              RotEx(grad=(gradEnd+lap)*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
-              if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=max(6,fn/2),help=false)rotate(endRot[0])children();
+              rotate(end?-lap*sign(trxEnd):0)RotEx(grad=(gradEnd+(end?lap:0))*sign(trxEnd),cut=+0,fn=fn/360*gradEnd,$fs=fs)T(trxEnd)rotate(rot)children();
+              if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=max(6,fn/2),$fs=fs,help=false)rotate(endRot[0])children();
               }
-         rotate(180+grad-lap*0)T(-trx+trxEnd)rotate(180-lap){
-              RotEx(grad=(gradEnd+lap)*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)children();
-              if(end)rotate((gradEnd+lap)*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=max(6,fn/2),help=false)rotate(endRot[1])children();
+         rotate(180+grad)T(-trx+trxEnd)rotate(180){
+              RotEx(grad=(gradEnd+(end?lap:0))*sign(trxEnd),cut=+0,fn=fn/360*gradEnd,$fs=fs)T(trxEnd)rotate(rot)children();
+              if(end)rotate((gradEnd)*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])R(0,endRot[1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=max(6,fn/2),$fs=fs,help=false)rotate(endRot[1])children();
               } 
           }
           else{
-              T(trx-trxEnd)rotate(gradEnd*sign(-trxEnd)){
-              RotEx(grad=(gradEnd+lap)*sign(trxEnd),fn=fn/360*gradEnd,cut=+0)T(trxEnd)circle(d=d,$fn=fn2);
-              if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,help=false)circle(d=d,$fn=fn2);
+              T(trx-trxEnd)rotate((gradEnd)*sign(-trxEnd)){
+              rotate(end?-lap*sign(trxEnd):0)RotEx(grad=(gradEnd+(end?lap:0))*sign(trxEnd),fn=fn/360*gradEnd,$fs=fs,cut=+0)T(trxEnd)rotate(rot)circle(d=d,$fn=fn2);
+              if(end)translate([trxEnd,0,0])rotate(180)scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,$fs=fs,help=false)rotate(rot)circle(d=d,$fn=fn2);
               }
-         rotate(180+grad)T(-trx+trxEnd)rotate(180-lap){
-              RotEx(grad=(gradEnd+lap)*sign(trxEnd),cut=+0,fn=fn/360*gradEnd)T(trxEnd)circle(d=d,$fn=fn2);
-              if(end)rotate((gradEnd+lap)*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,help=false)circle(d=d,$fn=fn2);
+         rotate(180+grad)T(-trx+trxEnd)rotate(180){
+              RotEx(grad=(gradEnd+(end?lap:0))*sign(trxEnd),cut=+0,fn=fn/360*gradEnd,$fs=fs)T(trxEnd)rotate(rot)circle(d=d,$fn=fn2);
+              if(end)rotate((gradEnd)*sign(trxEnd))translate([trxEnd,0,0])scale([1,abs(end),1])RotEx(cut=sign(end*gradEnd),grad=180*sign(gradEnd*end),fn=fn/8,$fs=fs,help=false)rotate(rot)circle(d=d,$fn=fn2);
               }  
           }    
       }
@@ -8425,7 +8315,7 @@ d=is_num(od)&&is_num(id)?(od-id)/2 : d;
 r=is_undef(points)?is_num(od)?(od-d)/2:is_num(id)?(id+d)/2:r:r;
 r2=is_undef(r2)?r:r2;
 fn=is_undef(fn)||fn<1?fs2fn(fs=fs,r=max(abs(r),abs(r2))):fn;
-fn2=is_undef(fn2)||fn<4?fs2fn(fs=fs,r=d/2):fn2;
+fn2=is_undef(fn2)||fn<4?fs2fn(fs=fs,r=d/2,minf=12):fn2;
 p=is_undef(p)?pitch:p;
 $d=d;
 Echo("Coil using points - od, id, h or d can't compute",color="warning",condition=points&&od||points&&id);
@@ -8893,8 +8783,12 @@ Loch() creates the Volume of a slot or elongated hole
 
 module Loch(h=5,h2=1,d=3.5,l=0,d2,deg=[45,45],rad,extrude=spiel,center=[1,1,0],fn=0,fs=fs,cuts=2,2D=false,name,help){
 
+
+
 d2=is_num(d2)?[d2,d2]:d2;
-l=max(l,0);
+ly=is_list(l)?max(0,l.y):0;
+cuts=ly?0:cuts;
+l=max(is_list(l)?l.x:l,0);
 r=max(0,d/2);
 ih2=is_list(h2)?[h2[0],h2[1]]:[h2,h2];
 
@@ -8933,7 +8827,7 @@ r2=[
 iext=is_list(extrude)?extrude:is_num(extrude)?[extrude,extrude]:extrude?[500,500]:[0,0];
 extrude=[r2[0]>0?iext[0]:0,r2[1]>0?iext[1]:0];
 
-ifn=fn?ceil(fn/2)-1:fs2fn(fs=fs,r=max(r2[0],r2[1],r),grad=180)-1;
+ifn=fn?ceil(fn/2)-1:fs2fn(fs=fs,r=max(r2[0],r2[1],r),grad=ly?90:180)-1;
 
 radFn=[fs2fn(fs=fs,r=irad[0],grad=deg[0]),fs2fn(fs=fs,r=irad[1],grad=deg[1])];
 radDeltaH=[tan(deg[0]/2)*irad[0],tan(deg[1]/2)*irad[1]];
@@ -8949,10 +8843,17 @@ Echo(str(name," Loch h too small for rad"),condition=abs(radDeltaH[0])>hc+1e-16-
 InfoTxt("Loch",["d",[r2[0],r,r2[1]]*2,"length",[r2[0]*2+l,r*2+l,r2[1]*2+l]],name);
 HelpTxt("Loch",["h",h,"h2",h2,"d",d,"l",l,"d2",d2,"deg",deg,"rad",rad,"extrude",extrude,"center",center,"fn",fn,"fs",fs,"cuts",cuts,"2D",2D,"name",name],help);
 
-function langL(r=5,l=0,z=undef,fn=ifn,fs=0)=l?concat(
+function langL(r=5,l=0,z=undef,fn=ifn,fs=0)=l&&!ly?concat(
   arc(r=r,deg=180,fn=fs?fs2fn(r=r,grad=180):fn,t=[0,0],rot=90,z=z),
   arc(r=r,deg=180,fn=fs?fs2fn(r=r,grad=180):fn,t=[l,0],rot=-90,z=z)
-  ):arc(r=r,deg=360-360/(fn*2+1),fn=fn*2+1,z=z);
+  )
+  :ly?concat(
+  arc(r=r,deg=90,fn=fs?fs2fn(r=r,grad=90):fn,t=[l,ly],rot=0,z=z),
+  arc(r=r,deg=90,fn=fs?fs2fn(r=r,grad=90):fn,t=[0,ly],rot=90,z=z),
+  arc(r=r,deg=90,fn=fs?fs2fn(r=r,grad=90):fn,t=[0,0],rot=180,z=z),
+  arc(r=r,deg=90,fn=fs?fs2fn(r=r,grad=90):fn,t=[l,0],rot=-90,z=z)
+  )
+      :arc(r=r,deg=360-360/(fn*2+1),fn=fn*2+1,z=z);
 
 stepRad=[deg[0]/radFn[0],deg[1]/radFn[0]];
  points=concat(
@@ -9000,10 +8901,10 @@ T(center.x?center.x==2?0:
                        center.x==3?-l:
                                    -l/2:
           d/2,
-          center.y?0:d/2,
+          center.y?-ly/2:d/2,
           center.z?-h/2:0){
           $info=false;
-            PolyH(points=points,loop=ifn*2+2,flip=0);
+            PolyH(points=points,loop=ly?4*ifn+4:ifn*2+2,flip=0);
             if(cuts&&max(r2)-r>=1&&max(deg)>=5&&h>1)difference(){
             gapH=[deg[0]==0?0:1/sin(deg[0]),deg[1]==0?0:1/sin(deg[1])]*.5;
             cutWidth=0.03;
@@ -9134,7 +9035,7 @@ HelpTxt("REcke",["h",h,"r",r,"rad",rad,"rad2",rad2,"single",single,"grad",grad,"
 //SBogen(2D=true);
 
 
-module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2D=0,extrude=false,grad2=0,x0=0,name,help,spiel,lap=0){
+module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,fs=fs,messpunkt=false,2D=0,extrude=false,grad2=0,x0=0,name,help,spiel,lap=0){
     lap=is_undef(spiel)?lap:spiel;
     center=is_bool(center)?center?1:0:sign(center);
     r2=!is_undef(r2)?r2:r1;
@@ -9217,21 +9118,21 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,messpunkt=false,2
      
      points=center?center==1?concat(//center=1
      [[x0*sign(dist),l2]],[[extrude+abs(dist)/2+grad2X[1],l2+0]],
-     kreis(r=-r2,rand=0,grad=abs(grad)+grad2[1],rot=-90-grad2[1],center=false,fn=fn,t=[abs(dist)/2+extrude-r2,y/2]), // ok
-     kreis(r=-r1,rand=0,grad=-abs(grad)-grad2[0],fn=fn,rot=90+abs(grad),center=false,t=[-abs(dist)/2+extrude+r1,-y/2]),  // ok   
+     kreis(r=-r2,rand=0,grad=abs(grad)+grad2[1],rot=-90-grad2[1],center=false,fn=fn,fs=fs,t=[abs(dist)/2+extrude-r2,y/2]), // ok
+     kreis(r=-r1,rand=0,grad=-abs(grad)-grad2[0],fn=fn,fs=fs,rot=90+abs(grad),center=false,t=[-abs(dist)/2+extrude+r1,-y/2]),  // ok   
      [[extrude-abs(dist)/2+grad2X[0],-l1]],     
      [[x0*sign(dist),-l1]]
      ): concat(//center==-1||>1
      [[x0*sign(dist),0]],[[extrude+grad2X[1],0]],
-     kreis(r=-r2,rand=0,grad=abs(grad)+grad2[1],rot=-90-grad2[1],center=false,fn=fn,t=[extrude-r2,y/2-l2]), // ok
-     kreis(r=-r1,rand=0,grad=-abs(grad)-grad2[0],fn=fn,rot=90+abs(grad),center=false,t=[extrude+r1-abs(dist),-y/2-l2]),  // ok   
+     kreis(r=-r2,rand=0,grad=abs(grad)+grad2[1],rot=-90-grad2[1],center=false,fn=fn,fs=fs,t=[extrude-r2,y/2-l2]), // ok
+     kreis(r=-r1,rand=0,grad=-abs(grad)-grad2[0],fn=fn,fs=fs,rot=90+abs(grad),center=false,t=[extrude+r1-abs(dist),-y/2-l2]),  // ok   
      [[extrude-abs(dist)+grad2X[0],-l2-l1]],     
      [[x0*sign(dist),-l2-l1]]     
      ):
      concat(//center==0
      [[x0*sign(dist),l2+l1]],[[extrude+abs(dist)+grad2X[1],l2+l1]],
-     kreis(r=-r2,rand=0,grad=abs(grad)+grad2[1],rot=-90-grad2[1],center=false,fn=fn,t=[abs(dist)+extrude-r2,y/2+l1]), // ok
-     kreis(r=-r1,rand=0,grad=-abs(grad)-grad2[0],fn=fn,rot=90+abs(grad),center=false,t=[extrude+r1,-y/2+l1]),  // ok   
+     kreis(r=-r2,rand=0,grad=abs(grad)+grad2[1],rot=-90-grad2[1],center=false,fn=fn,fs=fs,t=[abs(dist)+extrude-r2,y/2+l1]), // ok
+     kreis(r=-r1,rand=0,grad=-abs(grad)-grad2[0],fn=fn,fs=fs,rot=90+abs(grad),center=false,t=[extrude+r1,-y/2+l1]),  // ok   
      [[extrude+grad2X[0],0]],     
      [[x0*sign(dist),0]]     
      );
@@ -9335,7 +9236,7 @@ Anschluss() creates a transision between diameter or thickness
 
 
 
-module Anschluss(h=10,d1=10,d2=15,rad=5,rad2,grad=30,r1,r2,center=true,fn=fn,fn2=36,grad2=0,x0=0,wand,2D=false,name,help,old=false){
+module Anschluss(h=10,d1=10,d2=15,rad=5,rad2,grad=30,r1,r2,center=true,fn=fn,fn2=0,grad2=0,x0=0,wand,2D=false,name,help,old=false){
 
     center=is_bool(center)?center?1:0:center;
     rad2=is_undef(rad2)?is_list(rad)?rad[1]:rad:rad2;
@@ -10029,6 +9930,7 @@ BB() creates a Ball bearing
 \param cyl support base form ring or cylinder
 \param rad  radius of rounding
 \param pip  print in place distance
+\param wFase,cFase roller with chamfer / center chamfer
 \param center center
 \param name help name help
 */
@@ -10050,9 +9952,12 @@ cage=false,
 cyl=true,
 rad=[.75,.75],
 pip=pip,
+wFase,
+cFase,
 center=true,
 name,
-help    
+help
+
 ){
     
 rand=is_list(rand)?rand:[rand,rand]; 
@@ -10068,8 +9973,12 @@ r=max(is_undef(r)?is_undef(od)?achse/2+ball/2+rand[1]:
              r
       ,ball/2+rand[1]);
 
+walzen=wFase?true:false;
+wFase=is_undef(wFase)?ball/4:wFase;
+cFase=is_undef(cFase)?0:is_bool(cFase)&&cFase?wFase:cFase; // center
+
 if(h<ball) Echo("BB h kleiner Kugel",color="red");
-if(h>ball+top*2) Echo("BB Kugel = Walze!",color="green");    
+if(h>ball+top*2||walzen) Echo("BB Kugel = Walze!",color="green");    
 achseDia=is_undef(achse)?r*2-ball-2*rand[1]-2*spiel:min(r*2-ball-2*rand[1]-2*spiel,achse);
 oDia=is_undef(od)? r*2+ball+2*rand[0]+2*spiel:max(od,r*2+ball+2*rand[0]+2*spiel);  
 e=is_undef(e)?floor(360/gradS(r=r,s=ball+spiel)):min(e,floor(360/gradS(r=r,s=ball+spiel)));    
@@ -10078,11 +9987,20 @@ if(od&&od<r*2+ball+2*rand[0]+2*spiel)Echo(str("BB OD (",od,") zu klein - limited
 
   InfoTxt("BB",["Achse",achseDia,"Hoch",h,"OD",oDia,"Kugel∅",h>ball+top*2?str(ball,"×",h-top*2):ball,"Anzahl",e],name);
 
+
  
  Tz(center?0:h/2){
   $info=false;
   $helpM=false; 
-    Polar(e,r)if(h>ball+top*2)Pille(h-top*2,d=ball);else sphere(d=ball);
+// Roller
+    Polar(e,r)if(h>ball+top*2||walzen)
+      if(cFase){
+        MKlon(tz=-.001)Pille(h/2-top,d=ball,rad=[cFase,wFase],fn2=walzen?1:0,center=false);
+        cylinder(h=cFase*2,r=ball/2-cFase+.2,center=true);
+      }
+      else Pille(h-top*2,d=ball,rad=walzen?wFase:undef,fn2=walzen?1:0);
+      else sphere(d=ball);
+// Rings
     difference(){
         union(){
             //Pille(h,d=oDia,rad=rad[0]);//Body
@@ -10092,20 +10010,36 @@ if(od&&od<r*2+ball+2*rand[0]+2*spiel)Echo(str("BB OD (",od,") zu klein - limited
       if(achseDia) Loch(h=h,l=0,d=achseDia,h2=rad[1]*.4,deg=45,center=true,cuts=0);
       //Strebe(h,d=achseDia,rad=rad[1],center=true);// Achse    
         
-        if(h>ball+top*2)Torus(trx=r,d=ball+spiel*2)MKlon(mx=1)Pille(h-top*2+spiel*2,d=$d,2D=+1);
-            else Torus(trx=r,d=ball+spiel*2);//Rille
+        if(h>ball+top*2||walzen)Torus(trx=r,d=ball+spiel*2)
+          if(!walzen)MKlon(mx=1)Pille(h-top*2+spiel*2,d=$d,2D=+1);
+          else if(cFase){
+            MKlon(ty=-.001)Quad(ball+spiel*2,h/2-(top-spiel),rad=[wFase,wFase,cFase,cFase]+spiel*[1,1,0,0],fn=1,center=[1,0]);
+            square([ball-cFase*2+.4+spiel*4,cFase*2],center=true);
+            }
+            else Quad(ball+spiel*2,h-(top-spiel)*2,rad=wFase+spiel,fn=1);
+          
+         else Torus(trx=r,d=ball+spiel*2);////Rille
+        
         Mklon(tz=h/2+1.25)Torus(trx=r,d=ball,fn2=6);//innenfase
-        Ring(h+1,d=r*2,rand=ball/2,rcenter=true,center=true);//Trennspalt
+        if(walzen)Mklon(tz=h/2+sqrt(3)/2*(ball-wFase*2)-top-.001)Torus(trx=r,r=ball-wFase*2,fn2=6);//innenfase
+        MKlon(tz=h/2-top-.1)Ring(h+1,d=r*2,rand=walzen?ball-wFase*2+spiel*2:ball/2,rcenter=true,center=false);//Trennspalt
     }
     
  if (cage) difference(){
     union(){
-        if(h>ball+top*2)Torus(trx=r,d=ball+spiel*2-pip*2)MKlon(mx=1)Pille(h-top*2+spiel*2-pip*2,d=$d,2D=+1);
-            else Torus(trx=r,d=ball+spiel*2-pip*2);
+        if(h>ball+top*2||walzen)Torus(trx=r,d=ball+spiel*2-pip*2)
+          if(!walzen)MKlon(mx=1)Pille(h-top*2+spiel*2-pip*2,d=$d,2D=+1);
+          else if(cFase){
+            MKlon(ty=-.001)Quad(ball+(spiel-pip)*2,h/2-(top-spiel),rad=[wFase,wFase,cFase,cFase]+(spiel)*[1,1,0,0],fn=1,center=[1,0]);
+            square([ball-cFase*2+.4+spiel*4-pip*2,cFase*2],center=true);
+            }
+          else Quad(ball+(spiel-pip)*2,h-(top-spiel-pip)*2,rad=(ball/2+spiel-pip)/2,fn=1);
+          
+         else Torus(trx=r,d=ball+spiel*2-pip*2);
         Ring(h=h,d=r*2,rand=ball/2,rcenter=true,center=true);
     }
     Polar(e,r){
-      if(h>ball+top*2)Pille(h-top*2+pip*2,d=ball+pip*2); else sphere(d=ball+pip*2);
+      if(h>ball+top*2||walzen)Pille(h-top*2+pip*2,d=ball+pip*2,rad=walzen?wFase+pip:undef,fn2=walzen?1:0); else sphere(d=ball+pip*2);
       Tz(-h/2)cylinder(h=h,d=ball/2-.5+pip*2,center=true);
     }
    if(support) Tz(-h/2) Ring(h=top,d=r*2,rand=ball,rcenter=true,center=false);
@@ -10113,17 +10047,23 @@ if(od&&od<r*2+ball+2*rand[0]+2*spiel)Echo(str("BB OD (",od,") zu klein - limited
 
 //supportbrim
  if(support&&!cyl)difference(){
-     Tz(-h/2) Ring(h=top+.2,d=r*2,rand=ball/2-.5,rcenter=true,center=false);
+     Tz(-h/2)union(){
+      Ring(h=walzen?top-support:top+.2,d=r*2,rand=ball/2-.5,rcenter=true,center=false);
+      if(walzen)Polar(e,r)Kegel(d2=ball-wFase*2-support*2,d1=ball-wFase*2-top*2);
+      }
      
-     if (h>ball+top*2) Tz(-h/2+top+ball/2)Polar(e,r)sphere(r=ball/2+support);
+     if(!walzen)if (h>ball+top*2) Tz(-h/2+top+ball/2)Polar(e,r)sphere(r=ball/2+support);
          else Polar(e,r)sphere(r=ball/2+support);
  }
  if(cyl)Tz(-h/2){
-     Polar(e,r)cylinder(h=h/2,d=ball/2-.5);
+     Polar(e,r){
+      cylinder(h=h/2,d=ball/2-.5);
+      if(walzen)Tz(top+0.001)R(180)Kegel(d1=ball-wFase*2,d2=ball-wFase*2-top*2);
+     }
      if(support)Ring(l(2),r=r,rand=n(2),rcenter=true);
  }
  }
-HelpTxt("BB",["achse",achse,"od",od,"h",h,"r",r,"ball",ball,"rand",rand,"e",e,"spiel",spiel,"support",support,"top",top,"cage",cage,"cyl",cyl,"rad",rad,"pip",pip,"center",center,"name",name],help); 
+HelpTxt("BB",["achse",achse,"od",od,"h",h,"r",r,"ball",ball,"rand",rand,"e",e,"spiel",spiel,"support",support,"top",top,"cage",cage,"cyl",cyl,"rad",rad,"pip",pip,"wFase",wFase,"center",center,"name",name],help); 
 }
 
 /** \page Product
@@ -10152,7 +10092,7 @@ cuth=[min(d,l[0]*1.8),min(d,l[1]*1.8)];
    
 hkomplett=l[0]+l[1]+2*tan(grad)*rdiff; 
  translate([0,0,center?0:l[0]+tan(grad)*rdiff]){
-mirror([0,0,1])difference(){
+if(l[0])mirror([0,0,1])difference(){
     union(){
         cylinder(l[0],d=d);
         Tz(l[0])Kegel(d+rdiff*2,d,grad=grad);
@@ -10162,7 +10102,7 @@ mirror([0,0,1])difference(){
   if(cut[0])  Tz(l[0]+0.2)Polar(pol[0],d-1)LinEx(cuth[0],min(cuth[0]/2.5,+1.0),0,grad=45,$d=d,center=true)Tri(h=d,top=+1,center=1,grad=45,r=0.3,fn=24);
    linear_extrude(200,center=true,convexity=3)Kreis(r=d,rand=d/2-rdiff+spiel);
 }    
-difference(){
+if(l[1])difference(){
     union(){
         cylinder(l[1],d=d);
         Tz(l[1])Kegel(d+rdiff*2,d,grad=grad);
@@ -10233,12 +10173,12 @@ HelpTxt("Klammer",[
 }
 
 
-module CyclGear(z=20,modul=2,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(0.8,$info=false),lRandBase,d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=3,fn=24,name,help){
-CyclGetriebe(z=z,modul=modul,w=w,h=h,h2=h2,grad=grad,achse=achse,achsegrad=achsegrad,light=light,lock=lock,center=center,lRand=lRand,lRandBase=lRandBase,d=d,rot=rot,rotZahn=rotZahn,linear=linear,preview=preview,spiel=spiel,f=f,fn=fn,name,help);
+module CyclGear(z=20,modul=2,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(0.8,$info=false),lRandBase,d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=3,fn=24,lap=0,name,help){
+CyclGetriebe(z=z,modul=modul,w=w,h=h,h2=h2,grad=grad,achse=achse,achsegrad=achsegrad,light=light,lock=lock,center=center,lRand=lRand,lRandBase=lRandBase,d=d,rot=rot,rotZahn=rotZahn,linear=linear,preview=preview,spiel=spiel,f=f,fn=fn,lap=lap,name,help);
 }
 
 
-module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(.5,$info=false),lRandBase,d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=2,fn=24,name,help){
+module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(.5,$info=false),lRandBase,d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=2,fn=24,name,help,lap=0){
     //$info=false;
     z=abs(round(z));
     rot=is_undef(rot)?90/z*rotZahn:rot;
@@ -10253,7 +10193,7 @@ module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60
   if(!linear){
     T(center?0:-z/f/2*modul)T(y=center>1?z/f/2*modul:0)rotate(rot - (center>1?90:0))difference(){
         $info=false;
-        LinEx(h=h,h2=h2,$d=z/f*modul,mantelwinkel=w,slices=preview?(h-1)*2:2,grad=d>r*2?-grad:grad)
+        LinEx(h=h,h2=h2,$d=z/f*modul,mantelwinkel=w,slices=preview?(h-1)*2:2,grad=d>r*2?-grad:grad,lap=lap)
           if($preview&&!preview) Kreis(d=d>r*2?d:$d,rand=d>r*2?d/2-r:r-d/2);
           else CycloidZahn(modul=modul,z=z/f,f=f,d=d,spiel=spiel,fn=fn);
         if(achse) Tz(-.01)LinEx(h=h+.02,h2=h2,$d=achse,grad=-achsegrad)circle(d=$d,$fs=.25,$fn=0,$fa=2);
@@ -11010,7 +10950,7 @@ module Luer(male=true,lock=true,slip=true,rand=n(2),help,name)
         {
 
          intersection(){
-            Gewinde(tz=-1.75,dn=8,kern=6.75,innen=true,breite=0.5,winkel=75,g=2,p=5.5,wand=0.75,h=10,new=true,center=+0,cyl=1,name=0); 
+            Gewinde(tz=-1.75,dn=8,kern=6.75,innen=true,breite=0.5,winkel=75,g=2,p=5.5,wand=0.75,h=10,new=true,center=+0,cyl=1,name=0,fn=60); 
             cylinder(6,d=20);
          }  
             difference()
@@ -12273,6 +12213,158 @@ v2019.5
 362|21  CHG RotEx fn CHG Halbrund help
 363|21  CHG func stern quad bezier kreis CHG Kehle help fix end spiel CHG Buchtung help 
 364|21  FIX Ring REP Kreis kreis
+
+2022
+
+000|22 prepare release CHG VarioFill
+001|22 CHG MKlon
+002|22 CHG Line 
+004|22 FIX Gewinde CHG Vollwelle CHG Caliper CHG GewindeV3
+005|22 CHG Gewinde
+006|22 CHG Anschluss FIX Zylinder
+007|22 FIX Ellipse CHG Points ADD PolyH
+008|22 FIX Ttorus CHG PolyH CHG RotLang
+009|22 CHG Points add center CHG kreis add z CHG quad add z
+011|22 FIX Box Prisma FIX Gewinde
+012|22 CHG Rosette Add id od FIX spelling help CHG Anorden (fix for 2021.1)
+0121|22 FIX Anordnen FIX SRing FIX Knochen
+013|22 CHG Rosette autocalc
+015|22 FIX Gewinde
+016|22 CHG RingSeg FIX Kassette help CHG Superellipse
+019|22 CHG Schnitt size
+020|22 CHG KBS CHG Prisma CHG Box CHG Pille
+021|22 CHG Pille FIX m chg v3 chg stern CHG Buchtung CHG Schnitt size
+022|22 CHG Kassette ADD pathPoints CHG kreis ADD Coil ADD wStern CHG vektorWinkel CHG Halb CHG Superellipse CHG Glied ADD SGlied CHG Prisma ADD Tdrop CHG Bezier
+Release
+033|22 CHG DRing CHG DBogen CHG Strebe CHG Ttorus CHG Glied CHG Kreis ADD wall CHG n()
+036|22 ADD star CHG SpiralCut CHG Gewinde CHG Bevel
+037|22 CHG star ADD Star
+038|22 CHG star CHG SpiralCut CHG Anordnen FIX DGlied Glied SGLied
+040|22 FIX SGLied CHG wall
+042|22 FIX CycloidZahn CHG Cycloid CHG Polar FIX star
+044|22 CHG Kegel FIX star
+045|22 CHG CycloidZahn CHG CyclGetriebe add f CHG Cycloid 
+046|22 CHG CyclGetriebe CHG CycloidZahn CHG LinEx CHG REcke
+047|22 FIX CyclGtriebe
+048|22 Add CyclGear FIX Bezier CHG v3 CHG vektorWinkel CHG Points ADD vMult
+050|22 CHG vMult CHG Gewinde
+052|22 CHG Buchtung CHG SpiralCut Add 2D
+054|22 CHG inch CHG Pille ADD Roof
+056|22 CHG PolyH CHG kreis CyclGetriebe CHG gradS CHG LinEx CHG Echo
+058|22 CHG PolyH
+060|22 CHG nametext CHG Egg CHG Stern CHG Star CHG star CHG Roof CHG Linse add fn
+062|22 CHG Pfeil
+064|22 CHG Pfeil CHG Star add fn2 CHG Roof CHG GT
+066|22 ADD naca ADD NACA CHG Roof CHG WStern CHG wall CHG Points
+068|22 FIX Polar CHG Umkreis
+070|22 FIX star ADD pathLength
+072|22 CHG NACA CHG Roof chg LinEx CHG Linse
+074|22 CHG Points
+076|22 CHG Points FIX Cring CHG Text ADD stringChunk
+078|22 CHG Servokopf CHG wall CHG Roof CHG title menue ADD line line() CHG wall chg l() n()
+080|22 CHG Star CHG kreis chg Roof
+082|22 CHG Seg7 Prisma ADD Cut 
+084|22 FIX Seg7 fix Cut
+086|22 FIX Cut CHG Achsenklammer ADD nut FIX stringChunk
+088|22 CHG bezier add p CHG Seg7 CHG wall CHG nut
+090|22 ADD Involute involute
+092|22 CHG gcode 
+094|22 ADD riemen, Riemen
+096|22 CHG Seg7
+098|22 CHG Coil CHG T
+100|22 UPD ZigZag FIX Riemen  
+101|22 reordered  
+102|22 CHG Glied CHG Riemen UPD Welle CHG Nut  
+104|22 CHG Riemen UPD Zylinder CHG Bogen SBogen  
+106|22 ADD kreisSek CHG Points  
+108|22 CHG Pivot FIX/UPD kreisSek  
+110|22 UPD Cut CHG GewindeV4  
+112|22 UPD HexGrid UPD Grid FIX vollwelle  
+114|22 CHG RotEx CHG DGlied0  
+116|22 FIX SGlied,DGlied upd Seg7  
+118|22 ADD vSum CHG Rund CHG CycloidZahn  
+120|22 CHG Roof FIX gradS UPD Coil CHG quad chg pPos  
+130|22 ADD bend ADD sq upd needs2D UPD mPoints UPD m UPD Bezier UPD Coil chg pathPoints  
+132|22 CHG Spirale UPD pathPoints  
+134|22 UPD Rundrum UPD Spirale CHG Row  
+135|22 Doxygen comments  
+137|22 FIX Spirale  
+140|22 FIX Caliper  
+142|22 CHG Quad fn  Add DPfeil FIX Text  
+144|22 ADD scene ADD map  
+146|22 CHG Disphenoid UPD vSum  
+148|22 FIX Prisma UPD LinEx UPD map
+150|22 CHG Torus UPD Ellipse
+152|22 ADD Schlaufe
+156|22 CHG Menu FIX Torus help FIX Torus2 help
+158|22 CHG Pin CHG RStern CHG Schlaufe
+160|22 CHG Schlaufe UPD Ellipse UPD MO
+162|22 UPD Involute
+164|22 UPD Schlaufe
+166|22 FIX Schlaufe
+168|22 ADD PrevPos
+170|22 FIX Torus FIX Rundrum
+172|22 UPD Rund FIX Spirale
+174|22 UPD kreis ADD polyRund PolyRund PolyDeg
+176|22 CHG stern
+178|22 FIX polyRund UPD PolyRund FIX DPfeil
+180|22 ADD revP UPD polyRund PolyRund CHG sq
+181|22 FIX polyRund
+182|22 FIX polyRund FIX PolyRund
+184|22 CHG PolyRund
+185|22 CHG PolyRund
+188|22 UPD map UPD Rand ADD sehne,UPD Roof
+190|22 CHG Quad ADD arc Arc UPD LinEx CHG vMult
+202|22 UPD tangentenP
+204|22 UPD PolyH
+206|22 ADD Knurl
+208|22 CHG Text add trueSize add cy=-1/2
+210|22 CHG Text Fix Knurl
+212|22 upd fold
+214|22 ADD parabel
+216|22 UPD Tdrop UPD Line UPD Rand
+218|22 FIX Schlaufe FIX Knurl
+220|22 FIX Kegel ADD designVersion
+222|22 FIX LinEx FIX Cut UPD M FIX Rand FIX Knurl FIX Text FIX Roof UPD vSum UPD Quad
+230|22 CHG Kreis FIX Cut CHG Pin CHG Roof FIX LinEx FIX Prisma
+232|22 UPD Sehne FIX Roof
+234|22 FIX Prisma FIX Caliper
+236|22 FIX LinEx
+240|22 UPD Polar UPD Roof
+242|22 FIX Anschluss UPD SQ
+250|22 FIX Halb UPD PrevPos
+270|22 ADD KnurlTri
+272|22 UPD Cring FIX DPfeil CHG radiusS ADD distS UPD Ring CHG Torus UPD Drehpunkt
+274|22 FIX LinEx() FIX KnurlTri
+276|22 FIX LinEx() UPD Halb()
+278|22 CHG Points UPD arc ADD LangL UPD line FIX fs2fn CHG Roof Fix Seg7
+280|22 UPD Seg7 UPD name CHG LangL↦Loch
+282|22 UPD Vollwelle UPD Nut
+283|22 UPD nut
+292|22 UPD Echo UPD BB CHG Loch FIX Gardena UPD Pille FIX fs2fn FIX Halb UPD GewindeV1
+294|22 UPD Prisma FIX Linear
+303|22 UPD Roof FIX Loch
+306|22 FIX Pille chg Quad CHG kreis CHG fs
+308|22 UPD Welle CHG PrevPos FIX Prisma CHG RotEx
+310|22 ADD string2num
+312|22 UPD Prisma FIX Roof
+316|22 UPD LinEx2 UPD Text FIX DPfeil FIX LinEx FIX Roof FIX radiusS
+322|22 FIX Kreis FIX map FIX Line UPD Ring UPD kreis FIX Prisma
+333|22 UPD GT2Pulley UPD GT UPD Ring UPD Grid CHG Loch
+336|22 UPD Coil FIX LinEx ADD SWelle
+338|22 Fix Roof UPD InfoTxt Fix LinEx UPD Ring UPD Bezier UPD Arc CHG SWelle
+340|22 CHG VarioFill UPD fs2fn
+342|22 ADD layerProfile FIX Linear FIX Kegelmantel
+344|22 CHG Luer UPD Kegel FIX VarioFill ADD Filter
+352|22 CHG Filter UPD star FIX VarioFill CHG Kegel
+354|22 CHG Anschluss UPD Coil UPD Pin UPD vpr
+356|22 CHG SBogen CHG Anschluss
+358|22 UPD Torus UPD Coil CHG kreis
+360|22 FIX Rund UPD fs2fn UPD Luer
+362|22 FIX fs2fn UPD BB CHG Torus
+364|22 UPD Rand UPD Loch UPD CyclGetriebe
+
+
 
 */
 
