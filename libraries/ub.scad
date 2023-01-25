@@ -36,9 +36,13 @@ include<ub.scad>;
 
 Changelog (archive at the very bottom)
 
-000|23 FIX Grid UPD vMult UPD Pin
-002|23 UPD Prisma UPD WStern UPD Kreis UPD Bogen FIX Rand 
-004|23 UPD Cycloid Fix Roof UPD kreis Fix Quad
+000|23 FIX Grid UPD vMult UPD Pin  
+002|23 UPD Prisma UPD WStern UPD Kreis UPD Bogen FIX Rand  
+004|23 UPD Cycloid Fix Roof UPD kreis Fix Quad  
+006|23 UPD Arc UPD Pin FIX Linse  
+008|23 UPD VorterantQ Vorterantrotor UPD Reuleaux UPD Roof FIX Gewinde  
+010|23 
+
 
 */
 
@@ -130,7 +134,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.004;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.008;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -3022,15 +3026,21 @@ Arc() creates an arc
 \param deg angle
 \param r2 end radius at deg
 \param fn fragments
+\param center center arc rotation
+\param cP center Point
 
 */
 //Arc(r=10,deg=90,r2=8,rand=1);
 
 module Arc(r=10,deg=90,r2,fn=36,rand,center=false,cP=true,help){
 deg=is_list(deg)?deg:[deg,deg];
+rand=is_num(rand)?[rand,rand]:rand;
 
-points=rand?concat(arc(r=r,deg=deg[0],r2=r2,rot=center?-deg[0]/2:0,fn=fn),arc(r=r+rand,deg=deg[1],r2=is_undef(r2)?r2:r2+rand,rot=center?-deg[1]/2:0,fn=fn,rev=true)):
-       concat(cP?[[0,0]]:[],arc(r=r,deg=deg[0],r2=r2,rot=center?-deg[0]/2:0,fn=fn));
+points=rand?concat(arc(r=r,deg=deg[0],r2=r2,rot=center?-deg[0]/2:0,fn=fn),
+                   arc(r=r+rand[0],deg=deg[1],r2=is_undef(r2)?r2:r2+rand[1],rot=center?-deg[1]/2:0,fn=fn,rev=true)
+                   )
+          
+          : concat(cP?[[0,0]]:[],arc(r=r,deg=deg[0],r2=r2,rot=center?-deg[0]/2:0,fn=fn));
 
 
 polygon(points,convexity=5);
@@ -3038,6 +3048,55 @@ polygon(points,convexity=5);
 HelpTxt("Arc",["r",r,"deg",deg,"r2",r2,"fn",fn,"rand",rand,"center",center,"cP",cP],help);
 }
 
+
+/// Vorterant Q creates a rotor for the Quad Vorterant pump
+//Grid(e=3,es=10*sqrt(2))rotate(($idx.x+$idx.y)%2?0:90)rotate(t0)VorterantQ();
+//Polar(4,10.0,rotE=90)VorterantQ(new=true);
+
+/*
+VorterantQ(ofs=2,adjusted=true);
+x=10-sqrt(2)*2;
+Tz(.1)Color()offset(2)Linse(dia=x*2,r=x*sqrt(2));
+//*/
+
+
+module VorterantQ(size=20,ofs=.5,adjusted,fs=fs,fn=0,name,help){
+adjusted=is_undef(adjusted)?useVersion&&useVersion>23?true:false
+                           :adjusted;
+s=adjusted?Umkreis(4,size/2)-ofs*2  :  Umkreis(4,size/2-ofs);
+
+k1=kreis(s,rand=0,grad=90,rot=180,endPoint=0,fs=fs,fn=fn);
+versch=[for(i=[0:len(k1)-1])[-Inkreis(4,s),0]]; 
+offset= [for(i=[0:len(k1)-1])[ofs*sin(45+i*90/len(k1)),ofs*cos(45+i*90/len(k1))]];
+function offsetvert(fn=12)= [for(i=[0:fn])[ofs*sin(-45+i*90/fn),ofs*cos(-45+i*90/fn)+Inkreis(4,s)]];
+
+linse=concat(k1+versch+offset,-offsetvert(),-k1-versch-offset,offsetvert());
+polygon(linse);
+
+if(name)echo(str(name," VQ Size=",adjusted?size-tangentenP(grad=90,rad=ofs)*2:size," ,Radius=",s,"mm - Verschoben um",Inkreis(4,s)-ofs,"mm")); 
+HelpTxt("VorterantQ",["size",size,"ofs",ofs,"adjusted",adjusted,"fn",fn,"fs",fs,"name",name],help);
+
+}
+
+/** \name Reuleaux
+\page Polygons
+Reuleaux creates a Reuleaux triangle
+\param rU Edge radius 
+\param fs fn  fraqments size / number
+*/
+
+//Reuleaux();
+
+module Reuleaux(rU=5,fn=0,fs=fs,name,help){
+  r=rU/(sqrt(3)/3); 
+  intersection_for (i=[0,120,240])
+                {
+                  rotate(i)T(rU)  circle(r=r,$fn=fn,$fs=fs);
+
+                } 
+  if(name)echo(str(name," Reuleaux rU=",rU," r=",r));
+  HelpTxt("Reuleaux",["rU",rU,"fn",fn,"name",name],help);
+}
 
 /** \page Polygons
 PolyRund([[0,1],[10,20],[-50,50]],r=5); creates a rounded polygon
@@ -4494,11 +4553,13 @@ Cycloid() creates a cycloid
 */
 
 //Cycloid(delta=0,linear=false);
+//Cycloid(delta=-0.15,option=-1,linear=true);
 
 module Cycloid(modul=1,z=5,fn=36,option=+0,l=0,delta=0,d=0,linear=false,name,help,zahn){
     z=is_undef(zahn)?z:zahn;
     r=modul*z/2;
     rCav=r;
+    rVex=r;
     e=z*2;
 
     linear=is_bool(linear)?linear==true?modul:false:linear;
@@ -4535,8 +4596,8 @@ if(!linear){
  pointsEX=[for(i=[0:fn2])
     let(iw=i%fn2)
     [
-    (r+r2)*cos(iw*step1)-r2Vex*cos(iw*(step2+step1)),
-    (r+r2)*sin(iw*step1)-r2Vex*sin(iw*(step2+step1))
+    (rVex+r2)*cos(iw*step1)-r2Vex*cos(iw*(step2+step1)),
+    (rVex+r2)*sin(iw*step1)-r2Vex*sin(iw*(step2+step1))
     ]
  ];
  pointsCAV=[for(i=[0:fn2])
@@ -4919,6 +4980,16 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn,center=true,messpunkt=false
   HelpTxt("Quad",["x",x,"y",y,"rad",r,"grad",grad,"grad2",grad2,"fn",fn,"center",center,"name",name,"messpunkt",messpunkt,"trueX",trueX,"centerX",centerX,"tangent",tangent,"fs",fs],help);
 }
 
+/** \name Linse \page polygons
+Linse() creates a convex lens shape
+\param dia length of the lens
+\param r radii of the lense arcs
+\param messpunkt show center points
+\param fn fragments (optional)
+*/
+
+//Linse();
+
 
 module Linse(dia=10,r=7.07107,name,messpunkt=true,fn,help){
 
@@ -4933,9 +5004,11 @@ dick=(r[0]-tx) + (r[1]-tx2);
 ifn=is_undef(fn)?fs2fn(r=r[0],fs=fs,grad=grad):fn;
 ifn2=is_undef(fn)?fs2fn(r=r[1],fs=fs,grad=grad2):fn;
 
-   polygon(concat(
-    kreis(rand=0,r=r[0],grad=grad,t=[tx*sign(r[0]),0],fn=ifn),
-    kreis(rand=0,r=r[1],grad=grad2,rot=-180,t=[-tx2*sign(r[1]),0],fn=ifn2)
+Echo("Linse r too small or dia too big",color="red",condition=!is_num(tx+tx2));
+
+if(is_num(tx+tx2)){polygon(concat(
+    kreis(rand=0,r=r[0],grad=grad,t=[tx*sign(r[0]),0],fn=ifn,endPoint=0),
+    kreis(rand=0,r=r[1],grad=grad2,rot=-180,t=[-tx2*sign(r[1]),0],fn=ifn2,endPoint=0)
     )
    ); 
   if(messpunkt){
@@ -4944,6 +5017,9 @@ ifn2=is_undef(fn)?fs2fn(r=r[1],fs=fs,grad=grad2):fn;
       Pivot([-tx2,0],active=[1,0,0,1,1],messpunkt=messpunkt);
       
   }
+  
+}
+
  HelpTxt("Linse",[
  "dia",dia,
  "r",r,
@@ -5603,7 +5679,7 @@ Roof(25,[1,1],deg=-45)offset(1,$fs=.2,$fn=0)polygon([
 ]);
 //*/
 
-//Roof(10,[1,1],fn=10)Quad(50,grad=45,grad2=45,r=8,fs=1.5);
+//Roof(10,[1,1],fn=10,deg=-45)Quad(50,grad=45,grad2=45,r=8,fs=1.5);
 
 module Roof(height,h,base=0,deg=45,opt=1,floor=false,center=false,twist=0,scale=1,fn=0,convexity=5,lap=0.0001,on=true,name,help,slices,segments){
 
@@ -5617,6 +5693,8 @@ h=is_list(h)?h:[floor?h:0,h];
 iSize=max(viewportSize,max(printBed)*2);
 ifn=$fn;
 base=height&&is_num(h[1])&&is_num(h[0])?height-h[0]-h[1]:base;
+ofs=[s[0]<0?-h[0]*tan(90-deg[0]):0,s[1]<0?-tan(90-deg[1])*h[1]:0];
+
 on=version()[0]>2021?on:0;
 $idxON=false;
 
@@ -5637,25 +5715,29 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
  $info=false;
  //top
   if(scale&&(h[1]||is_undef(h[1])))Tz( (center?base/2:base+(h[0]?h[0]:0))+(s[1]<0?h[1]:0) )difference(){
-  scale([1,1,s[1]])roof(method=opt[1]?"voronoi":"straight",$fn=fn,convexity=convexity)offset(delta=s[1]<0?-tan(90-deg[1])*h[1]:0){
+  scale([1,1,s[1]])roof(method=opt[1]?"voronoi":"straight",$fn=fn,convexity=convexity)offset(delta=ofs[1]){
   $fn=ifn;
   scale(scale)rotate(-twist)children(); // experimental feature comment out if not activated in preferences
   }
-  if(h[1])translate([0,0,(h[1]+iSize/2)*sign(s[1])])cube([iSize,iSize,iSize],true);// if using difference
+  //*if(h[1])translate([0,0,(h[1]+iSize/2)*sign(s[1])])cube([iSize,iSize,iSize],true);// if using difference
+  if(h[1])translate([0,0,(h[1]+iSize/2)*sign(s[1])])linear_extrude(iSize,center=true,convexity=convexity)offset(delta=1)children();// if using difference
   //if(h[1])cube([iSize,iSize,h[1]*2],true); // for intersection
   }
   
  //bottom
   if(floor&&(h[0]||is_undef(h[0])))Tz((center?-base/2:(h[0]?h[0]:0))+(s[0]<0?-h[0]:0))difference(){
-    scale([1,1,-s[0]])roof(method=opt[0]?"voronoi":"straight",$fn=fn,convexity=convexity)offset(delta=s[0]<0?-h[0]*tan(90-deg[0]):0){
+    scale([1,1,-s[0]])roof(method=opt[0]?"voronoi":"straight",$fn=fn,convexity=convexity)offset(delta=ofs[0]){
     $fn=ifn;
     children(); // experimental feature comment out if not activated in preferences
     }
     //if(h[0])cube([iSize,iSize,h[0]*2],true);//for intersection
     //if(h[0])translate([-iSize/2,-iSize/2,-h[0]])mirror([0,0,1])cube(iSize);//for difference 
-    if(h[0])translate([0,0,(-h[0]-iSize/2)]*sign(s[0]))cube(iSize,true);//for difference
+    //*if(h[0])translate([0,0,(-h[0]-iSize/2)]*sign(s[0]))cube(iSize,true);//for difference
+    if(h[0])translate([0,0,(-h[0]-iSize/2)]*sign(s[0]))linear_extrude(iSize,center=true,convexity=convexity)offset(delta=1)children();//for difference
     }
   }
+  
+  
   
 
 HelpTxt("Roof",["height",height,"h",h,"base",base,"deg",deg,"opt",opt,"floor",floor,"center",center,"twist",twist,"scale",scale,"fn",fn,"convexity",convexity,"lap",lap,"on",on,"name",name],help);
@@ -6992,19 +7074,7 @@ module Disphenoid(h=15,l=25,b=20,r=1,ty=0,tz=0,delta=[0,0],fn=36,help){
 }
 
 
-module VorterantQ(size=20,ofs=.5,name){
-s=Umkreis(4,size/2-ofs);
 
-k1=Kreis(s,rand=0,grad=90);   
-versch=[for(i=[0:len(k1)])[-Inkreis(4,s),0]]; 
-offset= [for(i=[0:len(k1)])[ofs*sin(45+i*90/len(k1)),ofs*cos(45+i*90/len(k1))]];
-function offsetvert(fn=12)= [for(i=[0:fn])[ofs*sin(-45+i*90/fn),ofs*cos(-45+i*90/fn)+Inkreis(4,s)]];    
-linse=concat(k1+versch+offset,-offsetvert(),-k1-versch-offset,offsetvert());
-polygon(linse);
-
-if(name)echo(str(name," VQ Radius=",s,"mm - Verschoben um",Inkreis(4,s)-ofs,"mm")); 
-
-}
 
 
 module GewindeV2(dn=10,s,w=0,g=1,winkel=+60,rot2=0,r1=0,kern,fn=1,detail=fn,spiel=spiel,name,tz=0,preset=0,h=10,translate=[0,0,0],rotate=[0,0,0],d=0,gd=0,r=0,center=true,help,p=1.5,endMod=true){
@@ -7885,15 +7955,6 @@ HelpTxt("Box",["x",x,"y",y,"z",z,"d2",d2,"c",c,"s",s,"eck",eck,"outer",outer,"fn
 
 
 
-module Reuleaux(rU=5,name,fn=fn){
-  r=rU/(sqrt(3)/3); 
-  intersection_for (i=[0,120,240])
-                {
-                  rotate(i)T(rU)  circle(r=r,$fn=fn);
-
-                } 
-  if(name)echo(str(name," Reuleaux rU=",rU," r=",r));              
-}
 
 
 module Kassette(r1=2,r2,size=20,h=0,gon=3,fn=fn,fn2=36,r=+0,grad=90,grad2=90,spiel=0.003,mitte=true,sizey=0,basis=1,2D=false,name,help)
@@ -8101,7 +8162,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
                Echo(str("Gewinde preset=",preset," Not found!"),color="red",condition=preset);
                if($children)difference(){
                   children();
-                    if(innen)Tz(center?tz-p/2:tz-0)cylinder(is_undef(h)?grad*p/360+p:h,d=dn+spiel*2,fn=fn);
+                    if(innen)Tz(center?tz-p/2:tz-0)cylinder(is_undef(h)?grad*p/360+p:h,d=dn+spiel*2,$fn=fn);
                 }      
                
             }
@@ -10100,7 +10161,7 @@ HelpTxt("BB",["achse",achse,"od",od,"h",h,"r",r,"ball",ball,"rand",rand,"e",e,"s
 
 /** \page Product
 * \name Pin
-Pin() creates a pin or Peg to fix or swivel with 45° lip
+Pin() creates a pin or Peg to fix or swivel with 45°(deg) lip
 \param l length ↦ [bottom,top]
 \param d diameter of core body
 \param cut number incisions [bottom,top]
@@ -10108,48 +10169,74 @@ Pin() creates a pin or Peg to fix or swivel with 45° lip
 \param lippe lip size (od=d+2×lip)
 \param spiel lip height and clearance between connected parts
 \param center center pin
+\param deg   lip angle
+\param flat  flat sides (true or num for thickness)
 */
 
+//Pin(l=[3,7],deg=[60,30]);
+//Pin(10,flat=true,cut=4,grad=85);
 
+/*
+difference(){
+  cube(20);
+  Pin(spiel=0.2,cut=false);
+  }
+Cut()Pin();
+//*/
 
-module Pin(l=10,d=5,cut=true,mitte=true,grad=60,lippe=0.25,spiel=0.1,center=true,name,help){
+module Pin(l=10,d=5,cut=true,mitte=true,grad=60,lippe=0.25,spiel=0,center=true,deg=45,flat=false,name,help){
+spiel2=0.1;
 $info=false;
-    rdiff=lippe+spiel;
-cut=is_list(cut)?cut:[cut,cut];    
+d=d+spiel*2;
+    rdiff=lippe+spiel+spiel2;
+cut=is_list(cut)?cut:[cut,cut];
+deg=is_list(deg)?deg:[deg,deg];
 pol=[is_bool(cut[0])?round(d):cut[0],is_bool(cut[1])?round(d):cut[1]];
+flat=is_bool(flat)?flat?cos(45)*d/2*2:0
+                  :flat;
 
-l=is_num(l)?[l/2,l/2]:l;    
+l=is_num(l)?[l/2+spiel2*tan(deg[0]),l/2+spiel2*tan(deg[1])]:l+spiel2*[tan(deg[0]),tan(deg[1])];    
  
 cuth=[min(d,l[0]*1.8),min(d,l[1]*1.8)];
    
 hkomplett=l[0]+l[1]+2*tan(grad)*rdiff; 
  translate([0,0,center?0:l[0]+tan(grad)*rdiff]){
-if(l[0])mirror([0,0,1])difference(){
-    union(){
-        cylinder(l[0],d=d);
-        Tz(l[0])Kegel(d+rdiff*2,d,grad=grad);
-        Tz(l[0])R(180)Kegel(d+rdiff*2,d-1,grad=40);
-      if(mitte) Kegel(d+rdiff*2,d-1,grad=45);
+//bottom
+  if(l[0])mirror([0,0,1])difference(){
+      union(){
+          cylinder(l[0]+.001,d=d);
+          Tz(l[0]-.001)Kegel(d+rdiff*2,d,grad=grad);
+          Tz(l[0])R(180)Kegel(d+rdiff*2,d-1,grad=deg[0]);
+        if(mitte) Kegel(d+rdiff*2,d-1,grad=45);
+      }
+    if(cut[0])  Tz(l[0]+5.2)Polar(pol[0],d-1)LinEx(cuth[0]+10,min(cuth[0]/2.5,+1.0),0,grad=45,$d=d,center=true)Tri(h=d,top=+1,center=1,grad=45,r=0.3,fn=24);
+     linear_extrude(hkomplett*3,center=true,convexity=3)Kreis(r=d,rand=d/2-rdiff+spiel+spiel2);
+    if(flat){
+      MKlon(flat/2+d/2)cube([d,d,hkomplett*3],true);
+      if(cut[0])Tz(l[0])R(0,90)linear_extrude(d*2,center=true)Quad(min(l[0]*2-2,6),lippe*2+.2);
     }
-  if(cut[0])  Tz(l[0]+0.2)Polar(pol[0],d-1)LinEx(cuth[0],min(cuth[0]/2.5,+1.0),0,grad=45,$d=d,center=true)Tri(h=d,top=+1,center=1,grad=45,r=0.3,fn=24);
-   linear_extrude(200,center=true,convexity=3)Kreis(r=d,rand=d/2-rdiff+spiel);
-}    
-if(l[1])difference(){
-    union(){
-        cylinder(l[1],d=d);
-        Tz(l[1])Kegel(d+rdiff*2,d,grad=grad);
-        Tz(l[1])R(180)Kegel(d+rdiff*2,d-1,grad=40);
-      if(mitte) Kegel(d+rdiff*2,d-1,grad=45);
+  }
+//top
+  if(l[1])difference(){
+      union(){
+          cylinder(l[1]+.001,d=d);
+          Tz(l[1]-.001)Kegel(d+rdiff*2,d,grad=grad);
+          Tz(l[1])R(180)Kegel(d+rdiff*2,d-1,grad=deg[1]);
+        if(mitte) Kegel(d+rdiff*2,d-1,grad=45);
+      }
+    if(cut[1])  Tz(l[1]+5.2)Polar(pol[1],d-1)LinEx(cuth[1]+10,min(cuth[1]/2.5,1),0,grad=45,$d=d,center=true)Tri(h=d,top=+1,center=1,grad=45,r=0.3,fn=24);
+     linear_extrude(hkomplett*3,center=true,convexity=3)Kreis(r=d,rand=d/2-rdiff+spiel+spiel2);
+    if(flat){
+      MKlon(flat/2+d/2)cube([d,d,hkomplett*2],true);
+      if(cut[1])Tz(l[1])R(0,90)linear_extrude(d*2,center=true)Quad(min(l[1]*2-2,6),lippe*2+.2);
     }
-  if(cut[1])  Tz(l[1]+0.2)Polar(pol[1],d-1)LinEx(cuth[1],min(cuth[1]/2.5,1),0,grad=45,$d=d,center=true)Tri(h=d,top=+1,center=1,grad=45,r=0.3,fn=24);
-   linear_extrude(200,center=true,convexity=3)Kreis(r=d,rand=d/2-rdiff+spiel);
-}
+  }
 }
 //if(achse)cylinder(h=achse,d=d+rdiff*2,center=true);
 
 InfoTxt("Pin",["l",l[0]+l[1],"reale höhe",hkomplett,"halb",str(l,"/",[l[0]+tan(grad)*rdiff,l[1]+tan(grad)*rdiff]),"plus",str(2*tan(grad)*rdiff,"/",tan(grad)*rdiff),"Lippe",lippe],name);
 
-HelpTxt("Pin",["l",l,"d",d,"cut",cut,"mitte",mitte,"grad",grad,"lippe",lippe,"spiel",spiel,"center",center,"name",name],help);
+HelpTxt("Pin",["l",l,"d",d,"cut",cut,"mitte",mitte,"grad",grad,"lippe",lippe,"spiel",spiel,"center",center,"deg",deg,"flat",flat,"name",name],help);
 
 }
 
@@ -10722,14 +10809,15 @@ help
 }
 
 
+/// Vorterantrotor creates a rotor for the Vorterant pump
+//Polar(6,10*tan(60),mitte=true,rotE=t0,rot=-t0,dr=-360)Vorterantrotor(caps=1,rund=+1);
 
-
-module Vorterantrotor(h=40,twist=360,scale=1,zahn=0,rU=10,achsloch=4,ripple=0,caps=2,caps2=0,capdia=6.5,capdia2=0,screw=1.40,screw2=0,screwrot=60,name,help)
+module Vorterantrotor(h=40,twist=360,scale=1,zahn=0,rU=10,achsloch=4,ripple=0,caps=2,caps2=0,capdia=6.5,capdia2=0,screw=1.40,screw2=0,screwrot=60,rund=0.5,name,help)
 {
-    
+ $fn=0;
  capdia2=capdia2?capdia2:capdia;
  caps2=caps2?caps2:caps;
-    
+ rU=rU-rund*sqrt(3)/1.5;
  r=rU/(sqrt(3)/3);  
 s= h/(rU*PI*2*(twist/360));
     rI=r-rU;
@@ -10738,62 +10826,56 @@ s= h/(rU*PI*2*(twist/360));
   
  if(zahn)
  {
-     
-     
      Col(3)T(z=h+2*caps)stirnrad(modul=1.5, zahnzahl=zahn, hoehe=1.5, bohrung=achsloch, eingriffswinkel = 20, schraegungswinkel = 0);
  }
  difference()
  {   
         T(z=caps)union()
         {
-           if (caps)T(z=h)rotate(-twist) hull()//Endcap oben
+           if (caps){T(z=h)rotate(-twist) hull()//Endcap oben
             { 
-                intersection_for (i=[0,120,240])
+                linear_extrude(.001)offset(rund)intersection_for (i=[0,120,240])
                 {
-                  rotate(i)T(rU)  cylinder(0.01,r=r);
+                  rotate(i)T(rU)  circle(r=r);
 
                 }
                 T(z=caps2){
-                    if(!screw2)cylinder(0.01,d=capdia2);
-                    if(screw2)rotate(screwrot)intersection_for (i=[0,120,240])
+                    if(!screw2)cylinder(0.001,d=capdia2);
+                    if(screw2)rotate(screwrot)linear_extrude(.001)offset(rund)intersection_for (i=[0,120,240])
                 {
-                  rotate(i)T(rU*screw2)  cylinder(0.01,r=r);
+                  rotate(i)T(rU*screw2)  circle(r=r);
 
                 }}
             }
                       T(z=0) hull()//Endcap unten
             { 
-               T(z=-0.01) intersection_for (i=[0,120,240])
-                {
-                  rotate(i)T(rU)  cylinder(0.01,r=r);
-
-                }
-                T(z=-caps){
-                    if(!screw)cylinder(0.01,d=capdia);
-                    if(screw)rotate(screwrot)intersection_for (i=[0,120,240])
-                {
-                  rotate(i)T(rU*screw)  cylinder(0.01,r=r);
-
-                }}
-            } 
-            
-            
-            
-         linear_extrude(h,twist=twist,scale=scale,convexity=5)//Läufer
-            difference()
-            {
-                intersection_for (i=[0,120,240])
+               T(z=-0.01)linear_extrude(.001)offset(rund)intersection_for (i=[0,120,240])
                 {
                   rotate(i)T(rU)  circle(r=r);
 
                 }
-                circle(d=achsloch);//centerloch
-            }
+                T(z=-caps){
+                    if(!screw)cylinder(0.01,d=capdia);
+                    if(screw)rotate(screwrot)linear_extrude(.001)offset(rund)intersection_for (i=[0,120,240])
+                {
+                  rotate(i)T(rU*screw)  circle(r=r);
+
+                }}
+            } 
+         }
+            
+            
+         linear_extrude(h,twist=twist,scale=scale,convexity=5)//Läufer
+                offset(rund)intersection_for (i=[0,120,240])
+                {
+                  rotate(i)T(rU)  circle(r=r);
+
+                }
             
         }
-        if(ripple)cylinder(200,d=6,center=true);//center
-       if(ripple) Linear(e=50,s=73,x=0,z=1)Torus(+2,2.8,fn2=6,n=0,fn=50);//center ripple
-       cylinder(200,d=achsloch,center=true);//center   
+     if(ripple)cylinder(200,d=6,center=true);//center
+     if(ripple) Linear(e=50,s=73,x=0,z=1)Torus(+2,2.8,fn2=6,fn=50);//center ripple
+     cylinder(200,d=achsloch,center=true);//center   
        
     }
     
