@@ -41,7 +41,8 @@ Changelog (archive at the very bottom)
 004|23 UPD Cycloid Fix Roof UPD kreis Fix Quad  
 006|23 UPD Arc UPD Pin FIX Linse  
 008|23 UPD VorterantQ Vorterantrotor UPD Reuleaux UPD Roof FIX Gewinde  
-010|23 
+010|23 ADD Tesselation FIX CyclGear UPD Twins UPD Linse CHG Pin UPD Halbrund
+020|23 
 
 
 */
@@ -134,7 +135,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.008;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.010;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -355,8 +356,10 @@ function gradS(s,r)=abs(s)>abs(2*r)&&(is_undef($idx)||!$idx)?echo("\t⭕ ‼ gra
 \param n for a n-polygon
 \param a if you have the angle 
 */
-
-function radiusS(s,n,a,r)=(s/2)/(sin((is_undef(n)? is_undef(a)?gradS(s,r):a:360/n)/2));// Radius  zur Sehne
+// Radius  zur Sehne
+function radiusS(s,n,a,r)=(s/2)/(sin((is_undef(n)? is_undef(a)?gradS(s,r)
+                                                              :a
+                                                 :360/n)/2));
 
 /// distance chord s to center
 function distS(s,r)=Kathete(r,s/2);//cos(gradS(s,r)/2)*r;
@@ -3021,6 +3024,117 @@ module Pivot(p0=[0,0,0],size,active=[1,1,1,1,1,1],messpunkt,txt,rot=0,vpr=$vpr,h
 {//fold // \∇∇ Polygons ∇∇/ //
 
 /** \page Polygons
+Tesselation creates tilings
+\param size size [x,y]
+\param d object diameter [x,y] for squares
+\param dist spacing between objects
+\param dicke line thickness
+\param pat pattern 1:grid 2:hex 3:penrose
+\param obj 0 none 1 circle  2 square ... 100 children 
+\param rot rotation
+\param ofs position offset
+\param alt alterating rotation angle
+\param fn  fraqment number
+*/
+
+//Tesselation(size=20,d=5,pat=1,fn=6,alt=30);
+
+
+module Tesselation(size=20,d=5,dist=1,dicke=1,pat=0,obj=1,rot=0,ofs=[0,0],alt=[0,0],fn=4,name, help){
+
+dist=is_list(dist)?dist:[dist,dist];
+d=is_list(d)?d:d*[1,1];
+size=is_list(size)?size:size*[1,1];
+alt=is_list(alt)?b(alt,false):b(alt,false)*[1,1];
+e=[max(1,size.x/(d.x+dist.x)),max(1,size.y/(d.y+dist.y))];
+obj=$children?100:obj;
+$d=d;
+
+HelpTxt("Tesselation",["size",size,"d",d,"dist",dist,"dicke",dicke,"pat",pat,"obj",obj,"rot",rot,"ofs",ofs,"alt",alt,"fn",fn,"name",name],help);
+
+if(pat==0)rotate(alt.y+alt.x+rot)Tile()children();
+
+if(pat==1)Grid(e=e,es=d+dist)rotate(($idx.y%2?0:alt.y)+($idx.x%2?0:alt.x)+rot)Tile()children();
+//if(opt==2)HexGrid(e=[e.x,e.y*sqrt(3)/2],es=d+dist)rotate(rot)T(ofs)circle(d=max(d),$fn=fn);
+if(pat==2)HexGrid(e=[e.x,e.y*sqrt(3)/2],es=[(d.x+dist.x)*sqrt(3)/2,(d.y+dist.y)])rotate(($idx.y%2?0:alt.y)+($idx.x%2?0:alt.x)+rot)Tile()children();
+if(pat==3)Polar(fn)Penrose(size=max(size),rec=round(max(dist)),dicke=dicke,fn=fn,chld=obj,case=1)Tile()children();
+
+module Tile(opt=obj,ofs=ofs,dicke=dicke,fn=fn)T(ofs){
+assert(min(d)>0);
+  if(opt==100)children();
+  if(opt==1)circle(d=max(d),$fn=fn); // ngon
+  if(opt==2)square(d,center=true); // squares
+// blocks
+  if(opt==3)MKlon(ty=$d.y/4+dist.y/4)square(vMult($d,[1,.5])-[0,dist.y/2],true);
+//tri blocks
+  if(opt==4)Polar(3,d.x/4)square([d.x/2,dicke],center=true);//Tri
+//triangles 
+  if(opt==5)MKlon((max(d)+dist.x)/sqrt(3)/2)circle(d=max(d)/sqrt(3)*2,$fn=3);
+  if(opt==6)rotate(30)Star(e=6,d/2,d/3);// star
+//3halfcircle 
+  if(opt==7){d=max(d)/sqrt(3);
+    Polar(3,d/2+dist.x*0,rotE=rot*0)Kreis(d=d,grad=180,rcenter=true,rand=dicke,rot=90);}
+//6halfcircle
+  if(opt==8)Polar(6,max(d)/4+dist.x/4,rot=30,rotE=rot*+1)Kreis(d=max(d)/2,grad=180,rcenter=true,rand=dicke,rot=90);
+//6Wave
+  if(opt==9)Polar(6,max(d)/4,rot=30,rotE=rot*0){d=d/4;
+              MKlon(max(d)/2)Kreis(d=max(d),grad=180,rcenter=true,rand=dicke,rot=$idx*180+90);}
+ 
+}
+
+
+module Penrose(rec=round(6-max(dist)),tri,size=70,case=1,dicke=dicke,ratio=1.618,color=5,seed = 42,fn=6,chld){//<- change start case 1 or 2
+
+function GR(a,b,ratio=ratio)=a+(b-a)/ratio; 
+ 
+chld=is_undef(chld)?$children:chld;
+
+// we using two mirrored parts so each triangle is half and the angle from center hence only a quarter
+fn=max(fn,2);
+angle= 360 / (fn*4); 
+
+
+
+tri=is_undef(tri)?let(a=[0,0])[
+  a, // a first point at center
+  a + [sin( angle), cos( angle)]* size/2,  // b the adjactant sides end point at angle and length
+  a + [sin(-angle), cos(-angle)]* size/2, // c
+  ]
+                  :tri;
+  
+  a=tri[0];
+  b=tri[1];
+  c=tri[2];
+  
+  //iratio=rands(1.5,2.0,5,seed);
+  iratio=[1,1,1,1,1]*ratio;
+  
+  if (rec>0){
+    if(case==1){
+     // the smaller resulting tri will be cut in two the next time (case 1)
+        Penrose(rec=rec-1, tri= [c       , GR(a, b), b], case=1,fn=fn,chld=chld, color= 0,ratio=iratio[0], seed = seed * rec + 0)children();
+
+    // the bigger gets cut in 3 the next time
+        Penrose(rec=rec-1, tri= [GR(a, b), c       , a], case=2,fn=fn,chld=chld, color= 1,ratio=iratio[1], seed = seed * rec + 1000)children();
+    }
+    if(case==2){
+        Penrose(rec=rec-1, tri= [GR(b, a), GR(b, c), b], case= 2,fn=fn,chld=chld, color= 2,ratio=iratio[2], seed = seed * rec + 2000)children();
+        Penrose(rec=rec-1, tri= [GR(b, c), GR(b, a), a], case= 1,fn=fn,chld=chld, color= 3,ratio=iratio[3], seed = seed * rec + 3000)children();
+        Penrose(rec=rec-1, tri= [GR(b, c),        c, a], case= 2,fn=fn,chld=chld, color= 4,ratio=iratio[4], seed = seed * rec + 4000)children();
+    }
+  }
+
+    
+  if (rec<=+0)color(color/5*[1,1,1]){// only draw the pattern at the last recursion 
+    rotate(90/fn)if(chld)T((a+(b+c)/2)/2)children();else offset(-dicke/2)polygon(tri);
+    mirror([1,0])rotate(90/fn)if(chld)T((a+(b+c)/2)/2)children();else offset(-dicke/2)polygon(tri);
+  }
+}
+
+}
+
+
+/** \page Polygons
 Arc() creates an arc
 \param r radius
 \param deg angle
@@ -4984,6 +5098,8 @@ module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn,center=true,messpunkt=false
 Linse() creates a convex lens shape
 \param dia length of the lens
 \param r radii of the lense arcs
+\param dicke thickness [left,right]
+\param deg edge angle [45,45]
 \param messpunkt show center points
 \param fn fragments (optional)
 */
@@ -4991,16 +5107,24 @@ Linse() creates a convex lens shape
 //Linse();
 
 
-module Linse(dia=10,r=7.07107,name,messpunkt=true,fn,help){
+module Linse(dia=10,r,dicke,deg=45,name,messpunkt=true,fn,help){
 
-InfoTxt("Linse",["Dicke",dick,"Kreisgrad",str(grad,"°")],name);
+InfoTxt("Linse",["Dicke",idicke,"Kreisgrad",str(grad/2+grad2/2,"°/",[grad,grad2]/2,"°"),"r",r],name);
 
-r=is_list(r)?r:[r,r];
+deg=is_list(deg)?deg:[1,1]*deg;
+
+dicke=is_num(dicke)?dicke/2*[1,1]:dicke;
+
+r=is_undef(r)?is_undef(dicke)?[dia/2/sin(deg[0]),dia/2/sin(deg[1])]:
+                              [(dicke[0]^2 + (dia/2)^2)/dicke[0]/2,(dicke[1]^2 + (dia/2)^2)/dicke[1]/2] 
+             :is_list(r)?r:[r,r];
+
 tx=Kathete(r[0],dia/2);
 tx2=Kathete(r[1],dia/2);
+
 grad=2*asin((dia/2)/r[0]);    
 grad2=2*asin((dia/2)/r[1]);    
-dick=(r[0]-tx) + (r[1]-tx2);
+idicke=(r[0]-tx) + (r[1]-tx2);
 ifn=is_undef(fn)?fs2fn(r=r[0],fs=fs,grad=grad):fn;
 ifn2=is_undef(fn)?fs2fn(r=r[1],fs=fs,grad=grad2):fn;
 
@@ -5023,6 +5147,8 @@ if(is_num(tx+tx2)){polygon(concat(
  HelpTxt("Linse",[
  "dia",dia,
  "r",r,
+ "dicke",dicke,
+ "deg",deg,
  "name",name,
  "messpunkt=",messpunkt,
  "fn",fn],
@@ -6329,13 +6455,16 @@ module Freiwinkel(w=60,h=1)
 
  }
 
+ 
 
-module Twins(h=1,d,d11=10,d12,d21=10,d22,l=20,r=0,fn=fn,center=0,sca=+0,2D=false)
+module Twins(h=1,d,d11=10,d12,d21=10,d22,l=20,r=0,fn=fn,center=0,sca=+0,2D=false,help)
 {
     d11=d?d:d11;
     d12=d?d:is_undef(d12)?d11:d12;
     d21=d?d:d21;
     d22=d?d:is_undef(d22)?d21:d22;
+    
+    2D=h?2D:true;
     
  if(!2D)   rotate([0,0,center?r:0])translate([center?-l/2:0,0,0]){
     rotate([0,-sca,0])cylinder(h,d11*.5,d12*.5,$fn=fn);
@@ -6345,7 +6474,7 @@ module Twins(h=1,d,d11=10,d12,d21=10,d22,l=20,r=0,fn=fn,center=0,sca=+0,2D=false
     rotate([0,-sca,0])circle(d=d11,$fn=fn);
     rotate([0,0,center?0:r])translate([l,0,0])rotate([0,sca,0])circle(d=d21,$fn=fn); } 
     
-    
+HelpTxt("Twins",["h",h,"d",d,"d11",d11,"d12",d12,"d21",d21,"d22",d22,"l",l,"r",r,"fn",fn,"sca",sca,"2D",2D],help);
 }
 
 
@@ -10184,6 +10313,8 @@ difference(){
 Cut()Pin();
 //*/
 
+
+
 module Pin(l=10,d=5,cut=true,mitte=true,grad=60,lippe=0.25,spiel=0,center=true,deg=45,flat=false,name,help){
 spiel2=0.1;
 $info=false;
@@ -10191,50 +10322,64 @@ d=d+spiel*2;
     rdiff=lippe+spiel+spiel2;
 cut=is_list(cut)?cut:[cut,cut];
 deg=is_list(deg)?deg:[deg,deg];
-pol=[is_bool(cut[0])?round(d):cut[0],is_bool(cut[1])?round(d):cut[1]];
+grad=is_list(grad)?grad:[grad,grad];
+pol=[is_bool(cut[0])?flat?round(d/2)*2
+                         :round(d)
+                    :cut[0],
+     is_bool(cut[1])?flat?round(d/2)*2
+                         :round(d)
+                    :cut[1]];
+
 flat=is_bool(flat)?flat?cos(45)*d/2*2:0
                   :flat;
 
+il=is_list(l)?l:[l/2,l/2];// input l
 l=is_num(l)?[l/2+spiel2*tan(deg[0]),l/2+spiel2*tan(deg[1])]:l+spiel2*[tan(deg[0]),tan(deg[1])];    
- 
-cuth=[min(d,l[0]*1.8),min(d,l[1]*1.8)];
-   
-hkomplett=l[0]+l[1]+2*tan(grad)*rdiff; 
- translate([0,0,center?0:l[0]+tan(grad)*rdiff]){
+hkomplett=[l[0]+tan(grad[0])*rdiff,l[1]+tan(grad[1])*rdiff];
+
+cutH=[
+  min(hkomplett[0]-lippe,tan(grad[0])*rdiff+(rdiff)*tan(deg[0])+4),
+  min(hkomplett[1]-lippe,tan(grad[1])*rdiff+(rdiff)*tan(deg[1])+4)
+  ];
+  
+cutDepth=[1,1];
+
+
+ translate([0,0,center?0:l[0]+tan(grad[0])*rdiff]){
 //bottom
-  if(l[0])mirror([0,0,1])difference(){
+  if(il[0])mirror([0,0,1])difference(){
       union(){
           cylinder(l[0]+.001,d=d);
-          Tz(l[0]-.001)Kegel(d+rdiff*2,d,grad=grad);
+          Tz(l[0]-.001)Kegel(d+rdiff*2,d,grad=grad[0]);
           Tz(l[0])R(180)Kegel(d+rdiff*2,d-1,grad=deg[0]);
         if(mitte) Kegel(d+rdiff*2,d-1,grad=45);
       }
-    if(cut[0])  Tz(l[0]+5.2)Polar(pol[0],d-1)LinEx(cuth[0]+10,min(cuth[0]/2.5,+1.0),0,grad=45,$d=d,center=true)Tri(h=d,top=+1,center=1,grad=45,r=0.3,fn=24);
-     linear_extrude(hkomplett*3,center=true,convexity=3)Kreis(r=d,rand=d/2-rdiff+spiel+spiel2);
+    if(cut[0])  Tz(hkomplett[0]-cutH[0]+.01)Polar(pol[0],d-cutDepth[0])LinEx(cutH[0],min(cutH[0]/2.5,+1.0),0,grad=45,$d=d,center=0)Tri(h=d,top=+1,center=1,grad=45,r=0.3,fn=24);
+     linear_extrude(vSum(hkomplett)*3,center=true,convexity=3)Kreis(r=d,rand=d/2-rdiff+spiel+spiel2);
     if(flat){
-      MKlon(flat/2+d/2)cube([d,d,hkomplett*3],true);
+      MKlon(flat/2+d/2)cube([d,d,vSum(hkomplett)*3],true);
       if(cut[0])Tz(l[0])R(0,90)linear_extrude(d*2,center=true)Quad(min(l[0]*2-2,6),lippe*2+.2);
     }
   }
 //top
-  if(l[1])difference(){
+  if(il[1])difference(){
       union(){
           cylinder(l[1]+.001,d=d);
-          Tz(l[1]-.001)Kegel(d+rdiff*2,d,grad=grad);
+          Tz(l[1]-.001)Kegel(d+rdiff*2,d,grad=grad[1]);
           Tz(l[1])R(180)Kegel(d+rdiff*2,d-1,grad=deg[1]);
         if(mitte) Kegel(d+rdiff*2,d-1,grad=45);
       }
-    if(cut[1])  Tz(l[1]+5.2)Polar(pol[1],d-1)LinEx(cuth[1]+10,min(cuth[1]/2.5,1),0,grad=45,$d=d,center=true)Tri(h=d,top=+1,center=1,grad=45,r=0.3,fn=24);
-     linear_extrude(hkomplett*3,center=true,convexity=3)Kreis(r=d,rand=d/2-rdiff+spiel+spiel2);
+    if(cut[1])  Tz(hkomplett[1]-cutH[1]+.01)Polar(pol[1],d-cutDepth[1])LinEx(cutH[1],min(cutH[1]/2.5,1),0,grad=45,$d=d,center=false)Tri(h=d,top=+1,center=1,grad=45,r=0.3,fn=24);
+     linear_extrude(vSum(hkomplett)*3,center=true,convexity=3)Kreis(r=d,rand=d/2-rdiff+spiel+spiel2);
     if(flat){
-      MKlon(flat/2+d/2)cube([d,d,hkomplett*2],true);
+      MKlon(flat/2+d/2)cube([d,d,vSum(hkomplett)*2],true);
       if(cut[1])Tz(l[1])R(0,90)linear_extrude(d*2,center=true)Quad(min(l[1]*2-2,6),lippe*2+.2);
     }
   }
 }
 //if(achse)cylinder(h=achse,d=d+rdiff*2,center=true);
 
-InfoTxt("Pin",["l",l[0]+l[1],"reale höhe",hkomplett,"halb",str(l,"/",[l[0]+tan(grad)*rdiff,l[1]+tan(grad)*rdiff]),"plus",str(2*tan(grad)*rdiff,"/",tan(grad)*rdiff),"Lippe",lippe],name);
+InfoTxt("Pin",["l",l[0]+l[1],"reale höhe",vSum(hkomplett),"halb",str(l,"/",hkomplett),"plusCap",str((tan(grad[0])+tan(grad[1]))*rdiff," (",tan(grad[0])*rdiff,"/",tan(grad[1])*rdiff,")"),"Lippe",lippe],name);
 
 HelpTxt("Pin",["l",l,"d",d,"cut",cut,"mitte",mitte,"grad",grad,"lippe",lippe,"spiel",spiel,"center",center,"deg",deg,"flat",flat,"name",name],help);
 
@@ -10350,7 +10495,7 @@ HelpTxt("CyclGetriebe",[
 "lRandBase",lRandBase,
 "d",d,
 "rot",rot,
-"rotZ",rotZahn,
+"rotZahn",rotZahn,
 "linear",linear,
 "preview",preview,
 "spiel",spiel,
@@ -11302,8 +11447,20 @@ module Stabhalter (l=10,d=3.5)// Replaced with Ring(cd=-1,rand(n(1.5)),durchmess
 }
 
 
+/** \name Halbrund \page Products
+Halbrund() removes a flat circle from a children
+\param h height (h=0 ↦ 2D polygon)
+\param d diameter
+\param d2 flat diameter (x can be used instead)
+\param x the flat reduction optional to calc ↦ d2
+\param doppel makes it doubble side flat
+*/
+
+//Halbrund(help=1);
+
 module Halbrund(h=10,d=3+2*spiel,d2,x=1.0-spiel,doppel=false,name,help)
 {
+h=is_parent(needs2D)?0:h;
    d2=is_undef(d2)?doppel?d-x*2:d-x:d2;
    x=is_undef(d2)?x:doppel?(d-d2)/2:d-d2;    
 if(h){difference()
@@ -11312,12 +11469,12 @@ if(h){difference()
   if(!doppel)difference()
     {
         cylinder(d=d,h=h*2,center=true,$fn=36);
-        translate([d/2-x, -25, -50])cube([50,50,100],center=false);
+        translate([d/2-x, -d, -h*2])cube([d*2,d*2,h*4],center=false);
     }
   else intersection()
     {
         cylinder(d=d,h=h*2,center=true,$fn=36);
-        cube([d2,d+1,100],center=true);
+        cube([d2,d+1,h*3],center=true);
         //translate([-d/2+x-50, -25, -50])cube([50,50,100],center=false);
     } 
     
