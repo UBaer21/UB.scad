@@ -1,10 +1,173 @@
 // Products
 
 //include <ub.scad>; // requires ub.scad https://github.com/UBaer21/UB.scad
-pVersion=23.022;
+pVersion=23.045;
+
 /*change log
-23|022 UPD HingBox
-/*
+23|022 UPD HingBox  
+23|026 ADD WaveWasher  
+23|045 ADD BallSocket
+
+//*/
+
+
+
+/** \name BallSocket
+BallSocket() creates a ball and socket link
+\param d ball diameter
+\param spiel clearance
+\param dist distance between center of ball socket
+\param hole center hole
+\param wand wall thickness
+\param opt part
+\param nozzleS orrifice for opt 1 nozzle
+\param rad radii for opt 1 nozzle
+\param deg  taper degree for opt 1 nozzle
+\param closed close top for end caps
+\param shortR squeezing the socket into ellipses
+*/
+
+//BallSocket();
+
+
+
+module BallSocket(d=10,opt=0,dist=15,spiel=.08,hole=8,wand=.7,nozzleS=5,rad,deg,closed=false,shortR=.05,help){
+
+part=[ 
+ "link",       // 0
+ "nozzle",    // 1 
+ "base",     // 2
+ "ball",    // 3
+ "socket"  // 4 
+];
+
+info=false;
+
+HelpTxt("BallSocket",["d",d,"opt",opt,"dist",dist,"spiel",spiel,"hole",hole,"wand",wand,"nozzleS",nozzleS,"rad",rad,"deg",deg,"closed",closed,"shortR",shortR],help);
+
+echo(opt=str(opt,"-",part[opt]),dist=dist);
+
+undercut=0.25;
+
+Echo(str("hole too big max=",d-(undercut+wand)*2),color="redring",condition=hole>d-(undercut+(opt==0||opt==2||opt==3?wand:0) )*2);
+Echo("dist too short",color="redring",condition=interSpace<wand);
+
+angle=acos(1-undercut/(d/2));//15;
+if(info)echo(angle=angle);
+lift=sin(angle)*d/2;
+l=dist+lift;
+
+neckR=hole/2+wand;
+socketR=d/2+spiel;
+socketOR=socketR+wand;
+
+interSpace=dist-Kathete(kat=neckR,hyp=socketOR)-Kathete(kat=neckR,hyp=d/2);
+
+%if(opt==0&&interSpace>0)Tz(lift+Kathete(socketOR,neckR))color("chartreuse",.5)Ring(interSpace,d=hole+wand*2+.01,id=hole+.01,$info=false);
+
+
+  RotEx(cut=closed?true:false){
+   Rund(wand/2.5,min(5,d/3,interSpace))difference(){
+    union(){
+      Rund(1,0)union(){
+        T(y=l){
+          if(opt==0||opt==2||opt==3)circle(d=d,$fn=0); // ball
+          if(closed) circle(d=hole+wand*2,$fn=0);
+          //rotate(-90)Tri(h=l,top=true,grad=49);
+          
+        }
+        if(opt==0||opt==1||opt==4)square([d/2+spiel+wand+.25,2]); // bottom rim
+        if(opt==0||opt==1||opt==4)T(y=lift)scale([1,(socketOR-shortR)/socketOR])circle(r=socketOR,$fn=0); // socket
+        T(y=l/2)square([hole+wand*2,l],true); // neck tube
+      }
+      T(y=l/2)square([hole+wand*2,l],true); // neck tube
+      if(opt==2)square([d/2,5]); // base tube
+    }
+    if(opt==0||opt==1||opt==4)T(y=lift)scale([1,(socketR-shortR)/socketR])circle(r=socketR,$fn=0); // ball cut
+    T(-500+hole/2)square([1000,(closed?l:l+d)*2],true); // hole cut
+    T(y=-500)square(1000,true);// bottom cut
+    if(closed){
+    //T(x=-500)square(1000,true);// side cut
+    T(y=l)circle($fn=0,d=hole);
+    }
+    
+    }
+    
+
+  }
+if(opt==1)Tz(l -1){
+echo(nozzleDiameter=nozzleS);
+deg=is_undef(deg)?35:deg;
+rad=is_undef(rad)?max(wand,abs(nozzleS-hole)):rad;
+l2=abs(nozzleS-hole)/2/tan(deg)+rad + 1;
+  Anschluss(h=l2,d1=hole,rad=rad,grad=deg,d2=nozzleS,wand=-wand,center=false);
+  Tz(l2)Torus(dia=nozzleS+wand*2,d=wand);
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+/** \name WaveWasher
+\param od outer diameter
+\param id inner diameter
+\param h  height
+\param a  wave amplitude
+\param dicke thickness
+\param f  number of waves
+\param opt 1 vertical 2 radial
+\param cutangle  bottom cut contact angle
+\param fs fragment size
+\param
+*/
+
+//WaveWasher();
+
+module WaveWasher(od=20,id=10,h=15,a=1,dicke=.6,f=3,opt=2,cutangle=30,fs=fs,name,help){
+
+$info=false;
+r=a*2;
+e=round(h/(sin(45)*r));
+hCenter=od/2- (cutangle?(1-cos(cutangle))*od/2:0);
+fn=fs2fn(r=od/2,fs=fs,minf=f*10);
+
+fn2=16;
+f=f;//frequency
+//a=r/2;//amplitude
+loop=ceil(fn2/4)*4+4;
+
+
+  points=[for(i=[0:fn])
+  each mPoints(
+  mPoints(quad([((od-id)/2),dicke],z=0,t=[(od+id)/4,0],fn=fn2),r=[sin(i*360/fn*f+90)*35*1,0])
+  ,r=[0,(i*360/fn),0],t=[0,sin(i*360/fn*f)*a] )
+  
+  ];
+
+ if(opt==1)difference(){
+  $info=false;
+  linear_extrude(od,convexity=5)Linear(e,es=sin(45)*r-dicke,center=true)mirror([$idx%2?0:1,0])Welle(e=ceil(od/(r*2))+1,grad=90,r=r,center=+1,rand=dicke,fs=fs);
+
+  Tz(hCenter)R(90,z=90)linear_extrude(h*3,center=true)Tdrop(d=id);
+  Tz(hCenter)R(y=90)Ring(d=od,rand=-50,h=h*3,center=true);
+ }
+  
+ if(opt==2) 
+    Halb()Tz(hCenter)Linear(h/a/2,y=1,es=a*2+0.01,center=true)Color($idx/(h/a/2))R(y=$idx%2?0:180/f)PolyH(points,loop=loop,end=0,flip=false);
+
+  
+HelpTxt("WaveWasher",["od",od,"id",id,"h",h,"a",a,"dicke",dicke,"f",f,"opt",opt,"cutangle",cutangle,"fs",fs,"name",name,],help);
+}
+
+
+
 
 
 /**

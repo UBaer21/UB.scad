@@ -42,7 +42,8 @@ Changelog (archive at the very bottom)
 006|23 UPD Arc UPD Pin FIX Linse  
 008|23 UPD VorterantQ Vorterantrotor UPD Reuleaux UPD Roof FIX Gewinde  
 010|23 ADD Tesselation FIX CyclGear UPD Twins UPD Linse CHG Pin UPD Halbrund
-020|23 
+020|23 CHG Linse CHG Pin UPD Tri CHG Bitaufnahme UPD PrevPos
+024|23 UPD vollwelle, UPD Vollwelle, UPD Arc UPD menu UPD Kegelmantel UPD Kegel
 
 
 */
@@ -135,7 +136,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.010;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.024;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -1303,8 +1304,8 @@ echo(str("<p style=background-color:#ccccdd>",
 "<ul>     •••••••••••••••••••••••••• UB (USER libary v2019) included! <a href=http://v.gd/ubaer> v.gd/ubaer </a> •••••••••••••••••••••••••\n",
 "••• Version: β",Version," v ",version(),"  ——  Layer: ",layer," Nozzle ∅: ",nozzle," ••• fn=",fn,"••• Spiel: ",spiel," •••"));
 
-else if(!anima) { echo(str("•••••••••••••••••• UB (USER library v2022) included! v.gd/ubaer  •••••••••••••••••"));
-echo(str("• Version: β",Version," v ",version(),"  —  Layer: ",layer,"(",runden(lineProfile/nozArea*100,2),"%)",line==nozzle?str(" Nozzle ∅: ",nozzle):str(" Line/Nozzle ",line,"/",nozzle)," • fn=",fn," • fs=",fs," • Spiel: ",spiel," •"));
+else if(!anima) { echo(str("•••••• UB (USER library v2022) included! v.gd/ubaer  ••••••"
+,"\n• Version: β",Version," v ",version()," • Design: ",designVersion,"\nLayer: ",layer,"(",runden(lineProfile/nozArea*100,2),"%)",line==nozzle?str(" Nozzle ∅: ",nozzle):str(" Line/Nozzle ",line,"/",nozzle)," • fn:",fn," fs:",fs," fa:",fa," • Spiel: ",spiel," •"));
 }
 Echo(str("nozzle area =",runden(nozArea,3),"mm²< print line profile",runden(lineProfile,3),"mm²"),color="redring",condition=nozArea<=lineProfile);
 
@@ -2343,21 +2344,22 @@ if(is_list(points[2]))
 /** \page Helper
 PrevPos() object position Object for preview only
 \name PrevPos
-\param t translate 
-\param z translate z
-\param rot rotates
+\param t translate preview position
+\param z translate z in preview
+\param rot rotates in preview
+\param tP translates the print position
 */
 
-module PrevPos(on=true,t=[0,0,0],z=0,rot=[180,0,0],help){
+module PrevPos(on=true,t=[0,0,0],z=0,rot=[180,0,0],tP=[0,0,0],help){
 rot=is_num(rot)?[0,0,rot]:rot;
 if($preview&&on||on==2)translate(v3(t)+[0,0,z])rotate(v3(rot))children();
-else children();
+else translate(v3(tP))children();
 
 Echo("Render with PrevPos!",color="warning",condition=on==2);
 
 MO(!$children);
 
-HelpTxt("PrevPos",["on",on,"t",t,"z",z,"rot",rot],help);
+HelpTxt("PrevPos",["on",on,"t",t,"z",z,"rot",rot,"tP",tP],help);
 };
 
 
@@ -3142,24 +3144,26 @@ Arc() creates an arc
 \param fn fragments
 \param center center arc rotation
 \param cP center Point
+\param rot rotate arc [r,rand]
 
 */
 //Arc(r=10,deg=90,r2=8,rand=1);
 
-module Arc(r=10,deg=90,r2,fn=36,rand,center=false,cP=true,help){
+module Arc(r=10,deg=90,r2,fn=36,rand,center=false,cP=true,rot=0,help){
 deg=is_list(deg)?deg:[deg,deg];
 rand=is_num(rand)?[rand,rand]:rand;
+rot=is_num(rot)?[rot,0]:rot;
 
-points=rand?concat(arc(r=r,deg=deg[0],r2=r2,rot=center?-deg[0]/2:0,fn=fn),
-                   arc(r=r+rand[0],deg=deg[1],r2=is_undef(r2)?r2:r2+rand[1],rot=center?-deg[1]/2:0,fn=fn,rev=true)
+points=rand?concat(arc(r=r,deg=deg[0],r2=r2,rot=(center?-deg[0]/2:0)+rot[0],fn=fn),
+                   arc(r=r+rand[0],deg=deg[1],r2=is_undef(r2)?r2:r2+rand[1],rot=(center?-deg[1]/2:0)+rot[1],fn=fn,rev=true)
                    )
           
-          : concat(cP?[[0,0]]:[],arc(r=r,deg=deg[0],r2=r2,rot=center?-deg[0]/2:0,fn=fn));
+          : concat(cP?[[0,0]]:[],arc(r=r,deg=deg[0],r2=r2,rot=(center?-deg[0]/2:0)+rot[0],fn=fn));
 
 
 polygon(points,convexity=5);
 
-HelpTxt("Arc",["r",r,"deg",deg,"r2",r2,"fn",fn,"rand",rand,"center",center,"cP",cP],help);
+HelpTxt("Arc",["r",r,"deg",deg,"r2",r2,"fn",fn,"rand",rand,"center",center,"cP",cP,"rot",rot],help);
 }
 
 
@@ -3366,7 +3370,7 @@ HelpTxt("Tri90",["grad",grad,"a",a,"b",b,"c",c,"r",r,"messpunkt",messpunkt,"tang
 
 
 module Tri(grad=60,l=20,l2,h=0,r=0,messpunkt=0,center=+0,top=0,tang=1,c,fn=fn,name,help){
-    
+  assert(grad!=180&&grad,"Tri bad grad");
   Echo("WIP‼ c and tang=0",color="red",condition=is_num(c)&&!tang);
   h=is_num(c)?c/tan(grad/2)/2:h;
   l22=is_undef(l2)?l:l2;  //wip
@@ -4381,7 +4385,8 @@ let(
     grad=is_list(grad)?grad:[grad,grad],
     grad2=is_list(grad2)?[max(grad2[0],-grad[0]),max(grad2[1],-grad[1])]:[max(grad2,-grad[0]),max(grad2,-grad[0])],
     sc=1,// scaling r center
-    r2=is_undef(r2)?r:r2,
+    r2=is_num(r2)?r2:is_list(r)?r[1]:r,
+    r=is_list(r)?r[0]:r,
 
  //r mittelpunkt verschiebung für tangenten Kontakt
 /* tangY=[r*sin(grad[0])-tan(90-grad[0])*(r-cos(grad[0])*r), 
@@ -4515,7 +4520,8 @@ module Vollwelle(r=1,r2,grad=+60,grad2=+0,h,l,extrude=+5,center=true,xCenter=0,f
     grad=is_list(grad)?grad:[grad,grad];
     grad2=is_list(grad2)?grad2:[grad2,grad2];
     sc=1;// scaling r center
-    r2=is_undef(r2)?r:r2;
+    r2=is_undef(r2)?is_list(r)?r[1]:r:r2;
+    r=is_list(r)?r[0]:r;
     w=(2*grad[0]-180)/2;
     wOben=(2*grad[1]-180)/2;
     fs=is_list(fs)?fs:[fs,fs];
@@ -5107,7 +5113,7 @@ Linse() creates a convex lens shape
 //Linse();
 
 
-module Linse(dia=10,r,dicke,deg=45,name,messpunkt=true,fn,help){
+module Linse(dia=10,r,dicke,deg=45,name,messpunkt=$messpunkt,fn,help){
 
 InfoTxt("Linse",["Dicke",idicke,"Kreisgrad",str(grad/2+grad2/2,"°/",[grad,grad2]/2,"°"),"r",r],name);
 
@@ -6411,17 +6417,17 @@ Kegelmantel() creates a cone blanket
  //Kegelmantel(rand=1);
 
 
-module Kegelmantel(d=10,d2=5,v=1,rand=n(2),loch=4.5,grad=0,h=0,center=false,fn=fn,name,help)
+module Kegelmantel(d=10,d2=5,v=1,rand=n(2),loch=4.5,grad=0,h=0,center=false,fn=0,fs=fs,name,help)
 {
     v=grad?tan(grad):v;
   translate([0,0,center?d>d2?(d2-d)/4*v:(d-d2)/4*v:0])  difference()
     {
-       if(rand>0) Kegel(d1=d,d2=d2,v=v,h=h,name=name,fn=fn);
-       if(rand<0) Kegel(d1=d-rand*2,d2=d2-rand*2,v=v,h=h,name=name,fn=fn);
+       if(rand>0) Kegel(d1=d,d2=d2,v=v,h=h,name=name,fn=fn,fs=fs);
+       if(rand<0) Kegel(d1=d-rand*2,d2=d2-rand*2,v=v,h=h,name=name,fn=fn,fs=fs);
        //T(z=-.001) Kegel(d1=d-2*rand,d2=0,v=v,n=0);
-       if(d2<d)T(z=-abs(rand)*v) Kegel(d1=rand>0?d:d-rand*2,d2=0,v=v,name=0,fn=fn);
-       if(d<d2)T(z=-d2/2*v+((d2-d)/2*v)+abs(rand)*v) Kegel(d1=0,d2=rand>0?d2:d2-rand*2,v=v,name=0,fn=fn); 
-        cylinder(1000,d=loch,center=true,$fn=fn);
+       if(d2<d)T(z=-abs(rand)*v) Kegel(d1=rand>0?d:d-rand*2,d2=0,v=v,name=0,fn=fn,fs=fs);
+       if(d<d2)T(z=-d2/2*v+((d2-d)/2*v)+abs(rand)*v) Kegel(d1=0,d2=rand>0?d2:d2-rand*2,v=v,name=0,fn=fn,fs=fs); 
+       if(loch>0)cylinder(1000,d=loch,center=true,$fn=fn,$fs=fs);
     }
    InfoTxt("Kegelmantel",["wandstärke", sin(atan(v))*rand],name);
    HelpTxt("Kegelmantel",[
@@ -6434,6 +6440,7 @@ module Kegelmantel(d=10,d2=5,v=1,rand=n(2),loch=4.5,grad=0,h=0,center=false,fn=f
    "h",h,
    "center",center,
    "fn",fn,
+   "fs",fs,
    "name",name],
    help);
     
@@ -6507,7 +6514,7 @@ if(!new)rotate ([0,0,0])for (i=[0:m:360])
 /** \name Kegel
 \page Objects
 Kegel() creates a cone
-\param d1 base diameter
+\param d or d1  base diameter
 \param d2 top diameter
 \param v  slope
 \param grad  slope in degree
@@ -6520,11 +6527,11 @@ Kegel() creates a cone
 
 
 
-module Kegel(d1=undef,d2=0,v=1,grad=0,h=0,r1,r2,fn=0,fs=fs,center=false,name,help)
+module Kegel(d,d2=0,d1,v=1,grad=0,h=0,r1,r2,fn=0,fs=fs,center=false,name,help)
 {
 v=grad?tan(grad):v;
-d2=h&&(is_num(d1)||is_num(r1))?h/-v*2+(is_num(r1)?2*r1:d1):is_num(r2)?2*r2:d2;
-d1=is_undef(d1)&&is_undef(r1)&&h?h/v*2+(is_num(r2)?2*r2:d2):is_num(r1)?r1*2:is_undef(d1)?0:d1;    
+d2=h&&(is_num(d)||is_num(d1)||is_num(r1))?h/-v*2+(is_num(r1)?2*r1:is_num(d)?d:d1):is_num(r2)?2*r2:d2;
+d1=is_undef(d1)&&is_undef(d)&&is_undef(r1)&&h?h/v*2+(is_num(r2)?2*r2:d2):is_num(r1)?r1*2:is_undef(d1)?is_num(d)?d:0:d1;    
 if(d1-d2&&!(d2<0))cylinder (abs((d1-d2)/2*v),d1=d1,d2=d2,$fn=fn,$fs=fs,center=center);
 //if(d2>d1)cylinder (abs((d2-d1)/2*v),d1=d1,d2=d2,$fn=fn,center=center);
 if(d1==d2&&d2!=0)cylinder (h?h:10,d1=d1,d2=d2,$fn=fn,$fs=fs,center=center);   
@@ -6533,7 +6540,7 @@ if(!d1&&!d2&&is_undef(r1))color("magenta")%cylinder(5,5,0,$fn=fn,$fs=fs,center=c
  if(d2<0||d1<0)Echo(str("‼ negativ ∅",name,"  Kegel d1=",negRed(d1)," d2=",negRed(d2)),color="red");    
  InfoTxt("Kegel",["höhe",abs((d1-d2)/2*v),"Steigung",str(v*100,"/",1/v*100,"% ",atan(v),"° /",90-atan(v),"°"),"Spitzenwinkel",str(2*(90-atan(v)),"°"),"d1",negRed(d1),"d2",negRed(d2)],name);
      
- HelpTxt("Kegel",["d1",d1,"d2",d2,"v",v,"grad",grad,"h",h,"r1",r1,"r2",r2,"fn",fn,"center",center,"name=",name],help);
+ HelpTxt("Kegel",["d",d,"d2",d2,"d1",d1,"v",v,"grad",grad,"h",h,"r1",r1,"r2",r2,"fn",fn,"center",center,"name=",name],help);
 }
 
 
@@ -10294,12 +10301,17 @@ Pin() creates a pin or Peg to fix or swivel with 45°(deg) lip
 \param l length ↦ [bottom,top]
 \param d diameter of core body
 \param cut number incisions [bottom,top]
+\param cutDepth  depth of the cuts
+\param cutDeg   angle of cuts
 \param mitte middle lip
 \param lippe lip size (od=d+2×lip)
 \param spiel lip height and clearance between connected parts
 \param center center pin
 \param deg   lip angle
 \param flat  flat sides (true or num for thickness)
+\param print orient for printing
+\param fn fs  fraqments number size
+
 */
 
 //Pin(l=[3,7],deg=[60,30]);
@@ -10315,11 +10327,12 @@ Cut()Pin();
 
 
 
-module Pin(l=10,d=5,cut=true,mitte=true,grad=60,lippe=0.25,spiel=0,center=true,deg=45,flat=false,name,help){
+module Pin(l=10,d=5,cut=true,cutDepth=1,cutDeg,mitte=true,grad=60,lippe=0.25,spiel=0,center=true,deg=45,flat=false,print=false,fn=0,fs=fs,name,help){
 spiel2=0.1;
 $info=false;
-d=d+spiel*2;
-    rdiff=lippe+spiel+spiel2;
+d=d;
+id=d+spiel*2;
+rdiff=lippe+spiel+spiel2;
 cut=is_list(cut)?cut:[cut,cut];
 deg=is_list(deg)?deg:[deg,deg];
 grad=is_list(grad)?grad:[grad,grad];
@@ -10330,50 +10343,62 @@ pol=[is_bool(cut[0])?flat?round(d/2)*2
                          :round(d)
                     :cut[1]];
 
-flat=is_bool(flat)?flat?cos(45)*d/2*2:0
+flat=is_bool(flat)?flat?cos(45)*id/2*2:0
                   :flat;
 
 il=is_list(l)?l:[l/2,l/2];// input l
 l=is_num(l)?[l/2+spiel2*tan(deg[0]),l/2+spiel2*tan(deg[1])]:l+spiel2*[tan(deg[0]),tan(deg[1])];    
 hkomplett=[l[0]+tan(grad[0])*rdiff,l[1]+tan(grad[1])*rdiff];
 
+cutDepth=is_num(cutDepth)?cutDepth*[1,1]:cutDepth;
+flatCut=max(lippe*2+.2,Kathete(id/2,flat/2)*2-2 );
+
 cutH=[
-  min(hkomplett[0]-lippe,tan(grad[0])*rdiff+(rdiff)*tan(deg[0])+4),
-  min(hkomplett[1]-lippe,tan(grad[1])*rdiff+(rdiff)*tan(deg[1])+4)
+  min(hkomplett[0]-lippe,tan(grad[0])*rdiff+(rdiff)*tan(deg[0])+3-spiel+cutDepth[0]),
+  min(hkomplett[1]-lippe,tan(grad[1])*rdiff+(rdiff)*tan(deg[1])+3-spiel+cutDepth[0])
   ];
   
-cutDepth=[1,1];
 
+cutH2=[min(cutH[0]/2,cutDepth[0]),min(cutH[1]/2,cutDepth[1])];
+cutDeg=is_num(cutDeg)?cutDeg*[1,1]:cutDeg;
+degCut=is_undef(cutDeg)?[min(flat?90:120,360/pol[0]),min(flat?90:120,360/pol[1])]:cutDeg;
 
+Tz(print?flat?flat/2:id/2+lippe:0)rotate(print?[0,90]:[0,0])
  translate([0,0,center?0:l[0]+tan(grad[0])*rdiff]){
 //bottom
   if(il[0])mirror([0,0,1])difference(){
       union(){
-          cylinder(l[0]+.001,d=d);
-          Tz(l[0]-.001)Kegel(d+rdiff*2,d,grad=grad[0]);
-          Tz(l[0])R(180)Kegel(d+rdiff*2,d-1,grad=deg[0]);
-        if(mitte) Kegel(d+rdiff*2,d-1,grad=45);
+          cylinder(l[0]+.001,d=id,$fn=fn,$fs=fs);
+          Tz(l[0]-.001)Kegel(id+rdiff*2,id,grad=grad[0],fn=fn,fs=fs);
+          if(deg[0])Tz(l[0])R(180)Kegel(id+rdiff*2,id-1,grad=deg[0],fn=fn,fs=fs);
+        if(mitte) Kegel(id+rdiff*2,id-1,grad=45,fn=fn,fs=fs);
       }
-    if(cut[0])  Tz(hkomplett[0]-cutH[0]+.01)Polar(pol[0],d-cutDepth[0])LinEx(cutH[0],min(cutH[0]/2.5,+1.0),0,grad=45,$d=d,center=0)Tri(h=d,top=+1,center=1,grad=45,r=0.3,fn=24);
-     linear_extrude(vSum(hkomplett)*3,center=true,convexity=3)Kreis(r=d,rand=d/2-rdiff+spiel+spiel2);
+    if(cut[0])  Tz(hkomplett[0]-cutH[0]+.01)Polar(pol[0],d-cutDepth[0])
+      LinEx(cutH[0],cutH2[1],0,grad=45,$d=d,center=0)
+        offset(-spiel)T(-d/2)Tri(h=$d,top=+1,tang=0,center=0,grad=degCut[0],r=0.3,fn=12);
+        
+     linear_extrude(vSum(hkomplett)*3,center=true,convexity=3)Kreis(r=id,rand=id/2-rdiff+spiel+spiel2,fn=fn,fs=fs);
     if(flat){
-      MKlon(flat/2+d/2)cube([d,d,vSum(hkomplett)*3],true);
-      if(cut[0])Tz(l[0])R(0,90)linear_extrude(d*2,center=true)Quad(min(l[0]*2-2,6),lippe*2+.2);
+      MKlon(flat/2+d/2)cube([d-spiel*2,d*2,vSum(hkomplett)*3],true);
+      if(cut[0])Tz(l[0]-min(l[0]-1,3))R(0,-90)linear_extrude(id*2,center=true)Quad(hkomplett[0],flatCut,center=[0,1]);
     }
   }
 //top
   if(il[1])difference(){
       union(){
-          cylinder(l[1]+.001,d=d);
-          Tz(l[1]-.001)Kegel(d+rdiff*2,d,grad=grad[1]);
-          Tz(l[1])R(180)Kegel(d+rdiff*2,d-1,grad=deg[1]);
-        if(mitte) Kegel(d+rdiff*2,d-1,grad=45);
+          cylinder(l[1]+.001,d=id,$fn=fn,$fs=fs);
+          Tz(l[1]-.001)Kegel(id+rdiff*2,id,grad=grad[1],fn=fn,fs=fs);
+          if(deg[1])Tz(l[1])R(180)Kegel(id+rdiff*2,id-1,grad=deg[1],fn=fn,fs=fs);
+        if(mitte) Kegel(id+rdiff*2,id-1,grad=45,fn=fn,fs=fs);
       }
-    if(cut[1])  Tz(hkomplett[1]-cutH[1]+.01)Polar(pol[1],d-cutDepth[1])LinEx(cutH[1],min(cutH[1]/2.5,1),0,grad=45,$d=d,center=false)Tri(h=d,top=+1,center=1,grad=45,r=0.3,fn=24);
-     linear_extrude(vSum(hkomplett)*3,center=true,convexity=3)Kreis(r=d,rand=d/2-rdiff+spiel+spiel2);
+    if(cut[1]) Tz(hkomplett[1]-cutH[1]+.01)Polar(pol[1],d-cutDepth[1])
+      LinEx(cutH[1],cutH2[1],0,grad=45,$d=d,center=false)
+        offset(-spiel)T(-$d/2)Tri(h=$d,top=+1,center=+0,tang=0,grad=degCut[1],r=0.3,fn=12);
+        
+     linear_extrude(vSum(hkomplett)*3,center=true,convexity=3)Kreis(r=id,rand=id/2-rdiff+spiel+spiel2,fn=fn,fs=fs);
     if(flat){
-      MKlon(flat/2+d/2)cube([d,d,vSum(hkomplett)*2],true);
-      if(cut[1])Tz(l[1])R(0,90)linear_extrude(d*2,center=true)Quad(min(l[1]*2-2,6),lippe*2+.2);
+      MKlon(flat/2+d/2)cube([d-spiel*2,d*2,vSum(hkomplett)*2],true);
+      if(cut[1])Tz(l[1]-min(l[1]-1,3))R(0,-90)linear_extrude(id*2,center=true)Quad(hkomplett[1],flatCut,center=[0,1]);
     }
   }
 }
@@ -10381,7 +10406,7 @@ cutDepth=[1,1];
 
 InfoTxt("Pin",["l",l[0]+l[1],"reale höhe",vSum(hkomplett),"halb",str(l,"/",hkomplett),"plusCap",str((tan(grad[0])+tan(grad[1]))*rdiff," (",tan(grad[0])*rdiff,"/",tan(grad[1])*rdiff,")"),"Lippe",lippe],name);
 
-HelpTxt("Pin",["l",l,"d",d,"cut",cut,"mitte",mitte,"grad",grad,"lippe",lippe,"spiel",spiel,"center",center,"deg",deg,"flat",flat,"name",name],help);
+HelpTxt("Pin",["l",l,"d",d,"cut",cut,"cutDepth",cutDepth,"cutDeg",cutDeg,"mitte",mitte,"grad",grad,"lippe",lippe,"spiel",spiel,"center",center,"deg",deg,"flat",flat,"print",print,"fn",fn,"fs",fs,"name",name],help);
 
 }
 
@@ -11138,26 +11163,49 @@ difference(){
 }
 }
 
+/// ¼" Hex Shank
+// cylinder(20,d=Umkreis(6,inch(0.25)),$fn=6);
+// Bitaufnahme(star=2);
 
 
-module Bitaufnahme(l=10,star=true,help)
+module Bitaufnahme(l=10,star=2,help)
 {
+//¼" Hex Shank = umkreis 7.33235 / inkreis 6.35
  if(star){
+    LinEx(l+1,h2=[.5,1],scaleCenter=0.97,scale=1.1,scale2=star>1?0.55:0.45){
+        if(star==true||star==1)Rund(1,fn=36)Polar(2)circle(4.6,$fn=3);
+        if(star>1)WStern(6,r=3.63,fn=6*10,help=0,r2=3.1);
+        }
+    if(star>1)T(z=l){
+     Tz(-0.30)scale([1,1,0.60]) sphere(d=5.8,$fn=36);
+     *linear_extrude(1.00,scale=0.56,convexity=5)scale(.95)WStern(6,r=3.5,fn=6*10,help=0,r2=3.1);
+        }
+   else T(z=l){
+     Tz(-0.29)scale([1,1,0.6]) sphere(d=5.3,$fn=36);
+    *linear_extrude(0.80,scale=0.56,convexity=5)scale(.95)Rund(1,fn=36)Polar(2)circle(4.6,$fn=3);
+        
+        
+    }
+ }
+ /* old
+ %T(6)union(){
     linear_extrude(l,scale=.95,convexity=5){
         if(star==true||star==1)Rund(1,fn=36)Polar(2)circle(4.6,$fn=3);
-        if(star==2)WStern(6,r=3.5,fn=6*10,help=0,r2=3.1);
+        if(star>1)WStern(6,r=3.5,fn=6*10,help=0,r2=3.1);
         }
-    if(star==2)T(z=l){
+    if(star>1)T(z=l){
      Tz(-0.30)scale([1,1,0.60]) sphere(d=5.8,$fn=36);
      linear_extrude(1.00,scale=0.56,convexity=5)scale(.95)WStern(6,r=3.5,fn=6*10,help=0,r2=3.1);
         }
    else T(z=l){
      Tz(-0.29)scale([1,1,0.6]) sphere(d=5.3,$fn=36);
-     linear_extrude(0.80,scale=0.56,convexity=5)scale(.95)Rund(1,fn=36)Polar(2)circle(4.6,$fn=3);
+    linear_extrude(0.80,scale=0.56,convexity=5)scale(.95)Rund(1,fn=36)Polar(2)circle(4.6,$fn=3);
         
         
     }
- }
+ } 
+ */
+ 
  if(!star){hull()
         {
             cylinder(l,d1=Umkreis(6,6.3),d2=Umkreis(6,6.1),$fn=6);
