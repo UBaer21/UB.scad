@@ -44,6 +44,7 @@ Changelog (archive at the very bottom)
 010|23 ADD Tesselation FIX CyclGear UPD Twins UPD Linse CHG Pin UPD Halbrund
 020|23 CHG Linse CHG Pin UPD Tri CHG Bitaufnahme UPD PrevPos
 024|23 UPD vollwelle, UPD Vollwelle, UPD Arc UPD menu UPD Kegelmantel UPD Kegel
+040|23 UPD Pin UPD Kegel UPD Welle UPD Grid UPD HexGrid
 
 
 */
@@ -136,7 +137,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.024;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.040;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -2074,24 +2075,31 @@ module Grid(e=[2,2,1],es=10,s,center=true,name,help){
     ,"center",center
     ,"name",name]
     ,help);
-
-   if(e.x&&e.y&&e.z)translate([
+    
+    centerPos=[
    center.x?((1-e[0])*es[0])/2:0,
    center.y?((1-e[1])*es[1])/2:0,
-   center.z?((1-e[2])*es[2])/2:0]) for(x=[0:e[0]-1],y=[0:e[1]-1],z=[0:e[2]-1]){
+   center.z?((1-e[2])*es[2])/2:0];
+
+   if(e.x&&e.y&&e.z) for(x=[0:e[0]-1],y=[0:e[1]-1],z=[0:e[2]-1]){
        $idx=[x,y,z];
+       $idx2=[e.y*e.x*z+e.y*y+x,e.y*e.x*z+e.x*x+y];
+       $pos=[x*es.x,y*es.y,z*es.z]+centerPos;
        $info=norm($idx)?false:name;
        $tab=is_undef($tab)?1:b($tab,false)+1;
        $es=es;
       // $helpM=norm($idx)?false:$helpM;
-       T(x*es[0],y*es[1],z*es[2])children();
+       translate([x*es[0],y*es[1],z*es[2]]+centerPos)children();
    }
 }
 
+//Grid(4)Text($pos.xy,size=3);
 
 // Grid but with alternating row offset - hex or circle packing
 //HexGrid()circle(d=$es.y);
 //HexGrid()circle(d=Umkreis(6,$d-.1),$fn=6);
+
+
 
 module HexGrid(e=[11,4],es=5,center=true,name){
   
@@ -2101,7 +2109,11 @@ module HexGrid(e=[11,4],es=5,center=true,name){
     translate([0,
     $idx[0]%2?is_list(es)?es[1]/2:es/2:
             0
-    ])children();
+    ]){
+    $pos=$pos+[0,$idx[0]%2?is_list(es)?es[1]/2:es/2:
+            0,0];
+    children();
+    }
     MO(!$children);
   
   InfoTxt("HexGrid",["es",es],name);
@@ -3455,45 +3467,88 @@ Welle() creates multiple arcs or extrusions with children
 /*
 c1=3;
 Welle(e=3,r=12,r2=7,rand=0.0,grad=200,ext=20,h=0,fn=36,center=c1);
-Welle(e=3,r=12,r2=7,rand=0.1,grad=200,ext=20,h=0,fn=36,center=c1);
+Tz(.5)Welle(e=3,r=12,r2=7,rand=0.5,grad=200,ext=20,h=0,fn=36,center=c1);
 //*/
 
-module Welle(e=3,grad=200,r=5,r2,center=3,rand=2,h=0,ext=0,fn,fs=fs,lap=0,name,help,overlap){
-    
+// Welle(rand=1,h=[6,10],e=3,ext=24);
+// Welle(rand=1,h=[6,10],r=4,r2=6,e=3,grad=120);
+
+//Welle(grad=[60,40],h=5,r=[4,7],e=2);//WIP
+//Welle(grad=40,h=6.8,r=[3,6],center=3,e=4);
+
+
+module Welle(e=3,grad=200,r=5,r2,center=3,rand=2,h=0,ext=0,end=false,fn,fs=fs,lap=0,name,help,overlap){
+    gradSUM=assert(grad)vSum(grad);
+    end=is_list(end)?end:[end,end];
+    e=round(e);
     lap=is_undef(overlap)?lap:overlap; // compatibility
-    r2=is_undef(r2)?r:r2;
+    r2=is_undef(r2)?is_list(r)?r[1]:r
+                   :r2;
+    r=is_list(r)?r[0]:r;
+
     $x=rand;    
-    w=(grad-180)/2;
-    y=2*cos(w)*r;
-    y2=2*cos(w)*abs(r2);
+    grad1=(is_list(grad)?grad[0]:grad/2); //between S segments
+    grad2=(is_list(grad)?grad[1]:grad/2); //in S segment
+    
+    w=(gradSUM-180)/2;
+    y=sin(grad2)*r ; // shift r
+    y2=sin(grad2)*r2;// shift r2
+    yg1=sin(grad1)*r ; // shift r
+    y2g1=sin(grad1)*r2;// shift r2
+    
     h=is_list(h)?h:[h/2,h/2];
-    hi=[sin(w)*r , sin(w)*r2]+h;
-    delta=assert(grad)+h[0]*tan(90-grad/2)*2+h[1]*tan(90-grad/2)*2;
+    Echo("h for 3D not implemeted",color="redring",condition=max(h)&&$children);
+    hi=[-cos(grad2)*r , -cos(grad2)*r2]+h;
+
+
+    //delta=(h[0]*tan(90-grad1)+h[1]*tan(90-grad2))*2;
+
+    delta2= vSum(h) *tan(90-grad2) ; // in S Segment
+    delta=y+y2+yg1+y2g1 + (vSum(h))*tan(90-grad1) + delta2 ;// between S segments
     
-    fn=is_undef(fn)?[fs2fn(r=r,grad=grad,fs=fs),fs2fn(r=r2,grad=grad,fs=fs)]:is_list(fn)?fn:[fn,fn];
-    
+    fn=is_undef(fn)?[fs2fn(r=r,grad=gradSUM,fs=fs),fs2fn(r=r2,grad=gradSUM,fs=fs)]:is_list(fn)?fn:[fn,fn];
     points=[
-     each for(i=[0:e-1])each[
-       arc(r2+rand,deg=grad,t=[-hi[1],-y2/2+(y+y2+delta)*i],rot=180-grad/2,fn=fn[1],rev=1),
-       arc(r-rand,deg=grad,t=[hi[0],y/2+delta/2+(y+y2+delta)*i],rot=-grad/2,fn=fn[0],rev=0)] ,
-      
-    if (rand)for(i=[0:e-1])each concat(arc(r+rand),arc(r2+rand)),// WIP !!!
-    if (rand==0) each [[ext,y+delta/2+(y+y2+delta )*(e -1)],[ext,-y2]],
-    
+     each for(i=[0:round(e-1)])each[
+       arc(r2+rand/2,deg=grad1+grad2+(i==0&&end[0]?90-grad1:0),t=[-hi[1],-y2+delta*i],rot=180-grad2,fn=fn[1],rev=1),
+       arc(r-rand/2,deg=grad1+grad2+(i==(e-1)&&end[1]?90-grad1:0),t=[hi[0],y+delta2+delta*i],rot=-grad2,fn=fn[0],rev=0)
+       ] ,
+       
+    if (rand) each[
+      if(end[1]&&hi[0]>0)[0,y+r+delta2+ delta*(e -1)-rand/2],
+      if(end[1]&&hi[0]>0)[0,y+r+delta2+ delta*(e -1)+rand/2],
+
+      each for(i=[round(e-1):-1:0])each[
+       arc(r+rand/2,deg=grad1+grad2+(i==(e-1)&&end[1]?90-grad1:0),t=[hi[0],y+delta2+delta*i],rot=-grad2,fn=fn[0],rev=1),
+       arc(r2-rand/2,deg=grad2+grad1+(i==0&&end[0]?90-grad1:0),t=[-hi[1],-y2+delta*i],rot=180-grad2,fn=fn[1],rev=0)
+      ] ,
+       
+      //[0,-y2+rand/2],[0,-y2-rand/2] ,
+      if(end[0]&&hi[1]>0 )[0,-y2-r2+rand/2],
+      if(end[0]&&hi[1]>0 )[0,-y2-r2-rand/2],
+    ],
+       // extension
+    if (rand==0) each[ [ext,y*2+delta2+ delta *(e -1)],[ext,-y2*2] ],
     ];
     
     //echo(points);
     
-    if(!$children&&rand==0)T(0,center?center>1?center>2?y2/2:-y/2:0:y2)
-    T(y=center?-(y+y2)*(e-1)/2:0)polygon(points);
-    T(0,center?center>1?center>2?y2/2:-y/2:0:y2)Linear(es=y+y2,e=e,x=0,y=1,center=center)union(){
+    if(!$children)T(0,center?center>1?center>2?y2- delta *(e-1)/2// c3
+                                              :-delta2-y- delta*(e-1)/2// c2
+                                     :0-delta2/2- delta*(e -1)/2 // c1 WIP!!
+                            :end[0]?r2+y2:y2*2)
+      polygon(points);
+    
+    
+    T(0,center?center>1?center>2?y2:-y:0:y2*2)Linear(es=(y+y2)*2,e=e,x=0,y=1,center=center)
+    union(){
 
-     if(!$children&&rand){
+     if(false){
          T(hi[0],y/2)  Kreis(grad=grad+lap,r=r,fn=fn[0],rand=rand,rcenter=true,sek=true);
          T(-hi[1],-y2/2)  Kreis(grad=grad+lap,fn=fn[1],r=-r2,rand=rand,rcenter=true,sek=true);   
      }
-     else {
-         
+
+//3D
+     if($children) {
          T(sin(w)*r,y/2)  RotEx(grad=grad+lap,fn=fn[0],center=true)T(r)children();
          union(){
              $info=0;
@@ -3503,8 +3558,9 @@ module Welle(e=3,grad=200,r=5,r2,center=3,rand=2,h=0,ext=0,fn,fs=fs,lap=0,name,h
          
      }
     }
- InfoTxt("Welle",["Wellenenhöhe r/r2=",str(r+sin(w)*r,"/",-r2-sin(w)*r2),"Abstand r/r2=",str(y,"/",y2),"Länge=",e*(y+y2)],name);  
-HelpTxt("Welle",[
+    
+ InfoTxt("Welle",["Wellenenhöhe h+r/r2=",str(h[0]+r+sin(w)*r,"/",-h[1]-r2-sin(w)*r2),"Abstand r/r2=",str(y,"/",y2),"Länge=",e*(y+y2)],name);  
+ HelpTxt("Welle",[
     "e",e,
     "grad",grad, 
     "r",r, 
@@ -3518,8 +3574,6 @@ HelpTxt("Welle",[
     "name",name] 
     ,help);    
 }
-
-
 
 
 
@@ -6529,7 +6583,7 @@ Kegel() creates a cone
 
 module Kegel(d,d2=0,d1,v=1,grad=0,h=0,r1,r2,fn=0,fs=fs,center=false,name,help)
 {
-v=grad?tan(grad):v;
+v=grad?min(1000,tan(grad)):v;
 d2=h&&(is_num(d)||is_num(d1)||is_num(r1))?h/-v*2+(is_num(r1)?2*r1:is_num(d)?d:d1):is_num(r2)?2*r2:d2;
 d1=is_undef(d1)&&is_undef(d)&&is_undef(r1)&&h?h/v*2+(is_num(r2)?2*r2:d2):is_num(r1)?r1*2:is_undef(d1)?is_num(d)?d:0:d1;    
 if(d1-d2&&!(d2<0))cylinder (abs((d1-d2)/2*v),d1=d1,d2=d2,$fn=fn,$fs=fs,center=center);
@@ -10326,13 +10380,16 @@ Cut()Pin();
 //*/
 
 
-
 module Pin(l=10,d=5,cut=true,cutDepth=1,cutDeg,mitte=true,grad=60,lippe=0.25,spiel=0,center=true,deg=45,flat=false,print=false,fn=0,fs=fs,name,help){
 spiel2=0.1;
 $info=false;
 d=d;
 id=d+spiel*2;
-rdiff=lippe+spiel+spiel2;
+nib=is_num(lippe)?[lippe,lippe]:lippe;
+rdiff=nib+[1,1]*(spiel+spiel2);
+
+rdiffCenter=(is_bool(mitte)?min(lippe):mitte)+spiel+spiel2;
+
 cut=is_list(cut)?cut:[cut,cut];
 deg=is_list(deg)?deg:[deg,deg];
 grad=is_list(grad)?grad:[grad,grad];
@@ -10348,57 +10405,74 @@ flat=is_bool(flat)?flat?cos(45)*id/2*2:0
 
 il=is_list(l)?l:[l/2,l/2];// input l
 l=is_num(l)?[l/2+spiel2*tan(deg[0]),l/2+spiel2*tan(deg[1])]:l+spiel2*[tan(deg[0]),tan(deg[1])];    
-hkomplett=[l[0]+tan(grad[0])*rdiff,l[1]+tan(grad[1])*rdiff];
+hkomplett=[
+  l[0]+(grad[0]<90?tan(grad[0])*rdiff[0]:10),
+  l[1]+(grad[1]<90?tan(grad[1])*rdiff[1]:10)
+  ];
 
 cutDepth=is_num(cutDepth)?cutDepth*[1,1]:cutDepth;
-flatCut=max(lippe*2+.2,Kathete(id/2,flat/2)*2-2 );
 
+// cut width for flat 
+flatCut=[
+max(nib[0]*2+.2,Kathete(id/2,flat/2)*2-2 ),
+max(nib[1]*2+.2,Kathete(id/2,flat/2)*2-2 )
+];
+
+// notches cut Length
 cutH=[
-  min(hkomplett[0]-lippe,tan(grad[0])*rdiff+(rdiff)*tan(deg[0])+3-spiel+cutDepth[0]),
-  min(hkomplett[1]-lippe,tan(grad[1])*rdiff+(rdiff)*tan(deg[1])+3-spiel+cutDepth[0])
+  min(hkomplett[0]-nib[0],rdiff[0]*(tan(grad[0])+tan(deg[0]) )+3-spiel+cutDepth[0]),
+  min(hkomplett[1]-nib[1],rdiff[1]*(tan(grad[1])+tan(deg[1]) )+3-spiel+cutDepth[0])
   ];
   
 
 cutH2=[min(cutH[0]/2,cutDepth[0]),min(cutH[1]/2,cutDepth[1])];
+
+// wedge angle
 cutDeg=is_num(cutDeg)?cutDeg*[1,1]:cutDeg;
 degCut=is_undef(cutDeg)?[min(flat?90:120,360/pol[0]),min(flat?90:120,360/pol[1])]:cutDeg;
 
-Tz(print?flat?flat/2:id/2+lippe:0)rotate(print?[0,90]:[0,0])
- translate([0,0,center?0:l[0]+tan(grad[0])*rdiff]){
+Tz(print?flat?flat/2:id/2+max(nib):0)rotate(print?[0,90]:[0,0])
+ translate([0,0,center?0:l[0]+tan(grad[0])*rdiff[0]]){
 //bottom
   if(il[0])mirror([0,0,1])difference(){
       union(){
           cylinder(l[0]+.001,d=id,$fn=fn,$fs=fs);
-          Tz(l[0]-.001)Kegel(id+rdiff*2,id,grad=grad[0],fn=fn,fs=fs);
-          if(deg[0])Tz(l[0])R(180)Kegel(id+rdiff*2,id-1,grad=deg[0],fn=fn,fs=fs);
-        if(mitte) Kegel(id+rdiff*2,id-1,grad=45,fn=fn,fs=fs);
+          Tz(l[0]-.001)Kegel(id+rdiff[0]*2,id,h=grad[0]==90?10:0,grad=grad[0],fn=fn,fs=fs);
+          if(deg[0])Tz(l[0])R(180)Kegel(id+rdiff[0]*2,id-1,grad=deg[0],fn=fn,fs=fs);
+          if(mitte) difference(){
+            Kegel(id+rdiffCenter*2,id-1,grad=45,fn=fn,fs=fs);
+            linear_extrude(height=rdiffCenter*2,center=true,convexity=3)Kreis(r=id,rand=id/2-rdiffCenter+spiel+spiel2,fn=fn,fs=fs);
+          }
       }
     if(cut[0])  Tz(hkomplett[0]-cutH[0]+.01)Polar(pol[0],d-cutDepth[0])
       LinEx(cutH[0],cutH2[1],0,grad=45,$d=d,center=0)
         offset(-spiel)T(-d/2)Tri(h=$d,top=+1,tang=0,center=0,grad=degCut[0],r=0.3,fn=12);
         
-     linear_extrude(vSum(hkomplett)*3,center=true,convexity=3)Kreis(r=id,rand=id/2-rdiff+spiel+spiel2,fn=fn,fs=fs);
+    Tz(rdiffCenter) linear_extrude(hkomplett[0],center=false,convexity=3)Kreis(r=id,rand=id/2-rdiff[0]+spiel+spiel2,fn=fn,fs=fs);
     if(flat){
       MKlon(flat/2+d/2)cube([d-spiel*2,d*2,vSum(hkomplett)*3],true);
-      if(cut[0])Tz(l[0]-min(l[0]-1,3))R(0,-90)linear_extrude(id*2,center=true)Quad(hkomplett[0],flatCut,center=[0,1]);
+      if(cut[0])Tz(l[0]-min(l[0]-0.5,3))R(0,-90)linear_extrude(id*2,center=true)Quad(hkomplett[0],flatCut[0],center=[0,1]);
     }
   }
 //top
   if(il[1])difference(){
       union(){
           cylinder(l[1]+.001,d=id,$fn=fn,$fs=fs);
-          Tz(l[1]-.001)Kegel(id+rdiff*2,id,grad=grad[1],fn=fn,fs=fs);
-          if(deg[1])Tz(l[1])R(180)Kegel(id+rdiff*2,id-1,grad=deg[1],fn=fn,fs=fs);
-        if(mitte) Kegel(id+rdiff*2,id-1,grad=45,fn=fn,fs=fs);
+          Tz(l[1]-.001)Kegel(id+rdiff[1]*2,id,grad=grad[1],h=grad[1]==90?10:0,fn=fn,fs=fs);
+          if(deg[1])Tz(l[1])R(180)Kegel(id+rdiff[1]*2,id-1,grad=deg[1],fn=fn,fs=fs);
+          if(mitte)difference(){
+            Kegel(id+rdiffCenter*2,id-1,grad=45,fn=fn,fs=fs);
+            linear_extrude(height=rdiffCenter*2,center=true,convexity=3)Kreis(r=id,rand=id/2-rdiffCenter+spiel+spiel2,fn=fn,fs=fs);
+          }
       }
     if(cut[1]) Tz(hkomplett[1]-cutH[1]+.01)Polar(pol[1],d-cutDepth[1])
       LinEx(cutH[1],cutH2[1],0,grad=45,$d=d,center=false)
         offset(-spiel)T(-$d/2)Tri(h=$d,top=+1,center=+0,tang=0,grad=degCut[1],r=0.3,fn=12);
         
-     linear_extrude(vSum(hkomplett)*3,center=true,convexity=3)Kreis(r=id,rand=id/2-rdiff+spiel+spiel2,fn=fn,fs=fs);
+    Tz(rdiffCenter) linear_extrude(hkomplett[1],center=false,convexity=3)Kreis(r=id,rand=id/2-rdiff[1]+spiel+spiel2,fn=fn,fs=fs);
     if(flat){
       MKlon(flat/2+d/2)cube([d-spiel*2,d*2,vSum(hkomplett)*2],true);
-      if(cut[1])Tz(l[1]-min(l[1]-1,3))R(0,-90)linear_extrude(id*2,center=true)Quad(hkomplett[1],flatCut,center=[0,1]);
+      if(cut[1])Tz(l[1]-min(l[1]-0.5,3))R(0,-90)linear_extrude(id*2,center=true)Quad(hkomplett[1],flatCut[1],center=[0,1]);
     }
   }
 }
