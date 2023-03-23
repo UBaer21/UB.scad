@@ -49,6 +49,7 @@ Changelog (archive at the very bottom)
 055|23 UPD kreis UPD polyRund upd SWelle upd PolyRund CHG Coil CHG pathPoints CHG Bezier
 060|23 CHG quad CHG printPos upd Schnitt chg Gewinde
 070|23 ADD Connector FIX Welle
+080|23 UPD Glied FIX Kehle FIX Gewinde UPD arc UPD Connector FIX Welle
 
 */
 
@@ -140,7 +141,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.070;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.080;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -1214,7 +1215,7 @@ function revP(points)=[for(p=[len(points)-1:-1:0])points[p]];
 /** \page Functions
 arc() creates points on an arc
 \param r radius
-\param deg angle
+\param deg angle optional [start,end]
 \param r2 end radius at deg
 \param rot rotate
 \param t   translate
@@ -1223,17 +1224,19 @@ arc() creates points on an arc
 \param rev reverse point order
 */
 
+//polygon(arc(deg=45));
 
 function arc(r=10,deg=90,r2,rot=0,t=[0,0,0],z,fn=36,rev=false)=
   let(
-    step=deg/fn
+    deg=is_num(deg)?[0,deg]:deg,
+    step=(deg[1]-deg[0])/fn
   )
   [for (i=rev?[fn:-1:0]:[0:fn])
     let(
       r=is_undef(r2)?r:r+(r2-r)/fn*i
     )
-    is_undef(z)?[cos(i*step+rot)*r,sin(i*step+rot)*r]+[t[0],t[1]]:
-                [cos(i*step+rot)*r,sin(i*step+rot)*r,z]+v3(t)
+    is_undef(z)?[cos(i*step +rot +deg[0])* r,sin(i*step +rot +deg[0]) * r] + [t[0],t[1]]:
+                [cos(i*step +rot +deg[0])* r,sin(i*step +rot +deg[0]) * r,z] + v3(t)
   ];
 
   
@@ -3112,13 +3115,21 @@ Connector creates a connector pin
 \param cut cut end length
 \param half for half x side 
 \param center center
+\param 2D polygon or 3D connector
+\param print rotate and move 3D pin up
+
 */
 
 //Roof(2,[.25,.25])Connector(d=3,d2=3.5,dicke=1.2,latch=.25,end=-.5,flat=0.7);
+//Connector(l=[20,15],d=5,end=-.5,d2=6,2D=false,collar=0,l2=+0,print=true,center=false);
 
-module Connector(l=10,d=5,l2=0,d2,dicke=1.5,flat=[0.5,0.5],latch=.5,collar=0,deg=45,degC=45,degEnd=45,end=-1,cut=undef,half=false,center=true,help){
 
-half=is_parent("RotEx")?true:half;
+
+module Connector(l=10,d=5,l2=0,d2,dicke=1.5,flat=[0.5,0.5],latch=.5,collar=0,deg=45,degC=45,degEnd=45,end=-.5,cut=undef,half=false,center=true,2D=true,print=false,spiel=0,help){
+
+half=is_parent("RotEx")?spiel?half:true:half;
+2D=is_parent(needs2D)?true:2D;
+
 l=is_num(l)?[l,l]:l;
 flat=is_num(flat)?[flat,flat]:flat;
 dicke=is_num(dicke)?[dicke,dicke]:dicke;
@@ -3133,9 +3144,9 @@ d=is_num(d)?[d,d]:d;
 d2=is_num(d2)?[d2,d2]:is_undef(d2)?d+collar*2:d2;
 end=is_num(end)?[end,end]:end;
 //center length 0
-cnt=max(l2[0],(d2[0]==d[0]+collar[0]*2?0:tan(degC[0]*sign(d[0]-d2[0]+collar[0]*2))*((d[0]-d2[0])/2+collar[0]))+(collar[0]?flat[1]/2:flat[1]))+(l[0]+flat[0]+tan(degEnd[0])*(-end[0]+latch[0]));
+cnt=max(l2[0],(d2[0]==d[0]+collar[0]*2?0:tan(degC[0]*sign(d[0]-d2[0]+collar[0]*2))*((d[0]-d2[0])/2+collar[0]))+(collar[0]?l2?flat[1]:flat[1]/2:-flat[1]))+(l[0]+flat[0]+tan(degEnd[0])*(-end[0]+latch[0]));
 
-HelpTxt("Connector",["l",l,"d",d,"l2",l2,"d2",d2,"dicke",dicke,"flat",flat,"collar",collar,"deg",deg,"degC",degC,"degEnd",degEnd,"end",end,"cut",cut,"half",half,"center",center],help);
+HelpTxt("Connector",["l",l,"d",d,"l2",l2,"d2",d2,"dicke",dicke,"flat",flat,"collar",collar,"deg",deg,"degC",degC,"degEnd",degEnd,"end",end,"cut",cut,"half",half,"center",center,"2D",2D,"print",print,"spiel",spiel],help);
 
 function latch(mirror=[1,1],latch=0.5,dicke=dicke[0],collar=2,l2=l2[0],l0=l[0],flat=flat,d=d[0],d2=d2[0],deg=+45,degC=25,degEnd=degEnd[0],end=end[0],cut=cut[0],center=center,cnt=cnt)=
 let(
@@ -3186,10 +3197,18 @@ concat(
  l[0]?revP(latch([-1, 1],l0=l[0],dicke=dicke[0],l2=l2[0],cut=cut[0],collar=collar[0],latch=latch[0],deg=deg[0],degC=degC[0],degEnd=degEnd[0],end=end[0],d2=d2[0],d=d[0]) ):[]
 );
 
-polygon(points);
+if(2D)offset(delta=spiel)polygon(points);
+  else {
+   deg=50;
+   h=min(d)*sin(deg)+spiel*2;
+    Tz(print?h/2:0)R(print?-90:0)
+      intersection(){
+        RotEx(cut=spiel?true:false)Connector(l=l,d=d,l2=l2,d2=d2,dicke=dicke,flat=flat,latch=latch,collar=collar,deg=deg,degC=degC,degEnd=degEnd,end=end,cut=cut,center=center,spiel=spiel);
+        R(90)LinEx(h,center=true)Connector(l=l,d=d,l2=l2,d2=d2,dicke=min(d)/2*(1-cos(deg))+.5,flat=flat,latch=latch,collar=collar,deg=deg,degC=degC,degEnd=degEnd,end=end,cut=cut,center=center,spiel=spiel);
+      }
+  }
 
 }
-
 
 
 
@@ -3310,6 +3329,7 @@ Arc() creates an arc
 \param deg angle
 \param r2 end radius at deg
 \param fn fragments
+\param rand fringe thickness
 \param center center arc rotation
 \param cP center Point
 \param rot rotate arc [r,rand]
@@ -3652,9 +3672,17 @@ module Welle(e=3,grad=200,r=5,r2,center=3,rand=2,h=0,ext=0,end=false,fn,fs=fs,la
     yg1=sin(grad1)*r ; // shift r
     y2g1=sin(grad1)*r2;// shift r2
     
-    h=is_list(h)?h:[h/2,h/2];
+    hORG=h;
+    Echo("h increased to min height",color="warning",condition=is_num(hORG)&&hORG>0&&(hORG/2<(1-cos(grad2))*r||hORG/2<(1-cos(grad2))*r2 ) );
+    
+    hList=is_list(h)?h:[max(h/2,(1-cos(grad2))*r),max(h/2,(1-cos(grad2))*r2)];
+    h=[hList[0]-(1-cos(grad2))*r , hList[1]-(1-cos(grad2))*r2 ];
     Echo("h for 3D not implemeted",color="redring",condition=max(h)&&$children);
     hi=[-cos(grad2)*r , -cos(grad2)*r2]+h;
+    
+    
+    Echo(str("h diff sum",h,"Σ=",vSum(h)," < 0"),color="redring",condition=vSum(h)<0);
+
 
 
     //delta=(h[0]*tan(90-grad1)+h[1]*tan(90-grad2))*2;
@@ -6822,7 +6850,7 @@ cylinder ((d1-d2)/2*v,d1=d1,d2=d2,$fn=fn);
 /// Fillet
 //Kehle(dia=-20,rad=1);
 
-//Kehle(rad=1);
+//Kehle(rad=5);
 
 module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn,fn2,fs=fs,r2=0,spiel=spiel,center=false,2D=false,end=false,fase=false,fillet,help)
 {
@@ -6835,7 +6863,7 @@ module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn,fn2,fs=fs,r2=0,spie
     center=center?true:false;
   $info=false;
     
-    if(is_undef(dia)&&l&&!2D){
+    if(is_undef(dia)&&l&&!2D&&rad>0){
         difference(){
             Tz(fase&&$preview?.05:0)linear_extrude(height=l -(fase&&$preview?.1:0),$fn=fn,convexity=5,center=center)
             {
@@ -6866,12 +6894,13 @@ module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn,fn2,fs=fs,r2=0,spie
        if(end==1)Tz(center?-l/2:0)R(-90)RotEx(grad=90,cut=1,fn=fn,fs=fs)Kehle(a=a,ax=ax,rad=rad,spiel=spiel,2D=true,fn2=fn2,fs=fs);     
     }
     
-    if(2D)difference(){
+    if(2D&&rad>0)difference(){
            translate([-spiel[0],-spiel[1]]) square([sin(-90+ax)*rad+rad+spiel[0],sin(a-90)*rad+rad+spiel[1]]);
             T(rad,rad)rotate(r2)circle(rad,$fn=is_undef(fn2)?round(fs2fn(r=rad,minf=16,fs=fs,grad=360)/4)*4:fn2,$fs=fs);
         }
 // dia   
-    if(!is_undef(dia)&&!2D){rotate(center?-180-angle/2:0)difference(){
+    if(!is_undef(dia)&&!2D&&rad>0){
+      rotate(center?-180-angle/2:0)difference(){
         rotate(fase&&$preview?.05:0)rotate_extrude(angle=angle-(fase&&$preview?.1:0),$fn=fn?fn:fs2fn(minf=24,r=dia/2,fs=fs),convexity=5,$fs=fs)
             difference()
             {
@@ -8646,7 +8675,7 @@ help
     breite2=gb/gi -breite -flankenBreite[0] -flankenBreite[1];
 
     rad1Max=min(breite /2/tan(Kwinkel[0]/2),breite /2/tan(Kwinkel[1]/2));
-    rad2Max=min(breite2/2/tan(Kwinkel[0]/2),breite2/2/tan(Kwinkel[1]/2));
+    rad2Max=min(breite2/2/tan(Kwinkel[0]/2),breite2/2/tan(Kwinkel[1]/2))-.05;
     
     Echo(str(name," Gewinde rad1 zu groß ",rad1,">",rad1Max),color="red",
       condition=is_num(rad1)&&rad1>rad1Max);
@@ -11695,7 +11724,7 @@ module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,d=3,h=5,rand=n(1.5),freiwink
     "freiwinkel",freiwinkel,
     "name",name,"messpunkt",messpunkt],help);
     
-    T(y=l,z=h/2)Pille(l=hSteg,d=d+1,rad=.8,fn=fn);//Torus(1.2,1.7,fn=fn,n=name);
+    T(y=l,z=h/2)Pille(l=hSteg,d=d+1,rad=min(hSteg/2,.8),fn=fn);//Torus(1.2,1.7,fn=fn,n=name);
         if (messpunkt)
         {
             %color ("blue")translate([0,l,0.1])R(z=180/12)cylinder(5, d1=1,d2=1,$fn=12,center=true);//messachse1
@@ -11709,7 +11738,7 @@ module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,d=3,h=5,rand=n(1.5),freiwink
             
             T(0,-lkopf/2,h/2) minkowski()
             {
-                cube([d-2*sphereR +0.25,lkopf-2*0.8,hSteg-2*.8],true);
+                cube([d-2*sphereR +0.25,lkopf-2*0.8,max(minVal,hSteg-2*.8)],true);
                 sphere(sphereR,$fn=fn);
             } 
             cylinder(h,d=d,$fs=0.2,$fa=5,$fn=0);//Achse!
@@ -11719,7 +11748,7 @@ module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,d=3,h=5,rand=n(1.5),freiwink
      hull(){//Ringanker
        T(0,l/2+la/2-d/2) minkowski()
         {
-          cube([max(d-2*sphereR-.5,.1),l+la-2*.8-d,h-sphereR*2 + hErr*2],true);
+          cube([max(d-2*sphereR-.5,.1),l+la-2*.8-d,max(minVal,h-sphereR*2 + hErr*2)],true);
           sphere(sphereR,$fn=fn);
         } 
        T(0,l -d/2 -rand-spiel+la) minkowski()// spitze
@@ -11735,7 +11764,7 @@ module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,d=3,h=5,rand=n(1.5),freiwink
         translate([0,l])cylinder(h*2,d=d+rand*2+spiel*4,$fn=0,$fs=0.5,center=true);// space for ring of other
         cylinder(h*2,d=d+2*spiel,$fn=fn,center=true);
         Freiwinkel();
-        Pille(l=hFreiraum,d=d+1+2*spiel,rad=1,fn=fn); 
+        Pille(l=hFreiraum,d=d+1+2*spiel,rad=min(hFreiraum/2,1),fn=fn); 
     }
     
     T(0,0,h/2)union()//B ring
@@ -11782,12 +11811,12 @@ module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,d=3,h=5,rand=n(1.5),freiwink
  T(0,+0.5){
   R(z=+w[0]) T(+0,+25-d/2)minkowski()
             {
-                cube([200,+50-.8*2,hFreiraum-2*0.8],true);
+                cube([200,+50-.8*2,max(minVal,hFreiraum-2*0.8)],true);
                 sphere(0.8,$fn=fn);
             }    
   R(z=-w[1]) T(+0,+25-d/2)minkowski()
             {
-                cube([200,+50-.8*2,hFreiraum-2*0.8],true);
+                cube([200,+50-.8*2,max(minVal,hFreiraum-2*0.8)],true);
                 sphere(0.8,$fn=fn);
             }      
 
