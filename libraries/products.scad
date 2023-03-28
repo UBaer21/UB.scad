@@ -1,14 +1,53 @@
 // Products
 
-//include <ub.scad>; // requires ub.scad https://github.com/UBaer21/UB.scad
-pVersion=23.045;
+include <ub.scad>; // requires ub.scad https://github.com/UBaer21/UB.scad
+pVersion=23.080;
 
 /*change log
 23|022 UPD HingBox  
 23|026 ADD WaveWasher  
 23|045 ADD BallSocket
+23|055 UPD BallSocket
+23|080 ADD Plug UPD WaveWasher
 
 //*/
+
+
+/** \name Plug
+Plug() creates a Plug for a tube
+\param dia  diameter
+\param h    height
+\param wall wall thickness
+\param lip  tube wall thickness
+\param rad  radius of the top
+\param clips number of clips
+\param infoPos imprint of the diameter position
+\param info  true for imprint diameter
+*/
+
+
+module Plug(dia=20,h=18,wall=1,lip=0.75,rad=0,clips=5,infoPos=[0,0],info=false,help){
+od=dia+wall*2;
+rad=rad?rad:od/3;
+
+HelpTxt("Plug",["dia",dia,"h",h,"wall",wall,"lip",lip,"rad",rad,"clips",clips,"infoPos",infoPos,"info",info],help);
+
+InfoTxt("Plug",["clips",clips],true);
+h2=2;
+
+  difference(){
+   Anschluss([h,h2],d1=dia,d2=od,rad=1,grad=45,center=false);
+   VarioFill([1,2],dia=-dia,exp=1);
+   Tz(h/2)Polar(clips,-dia/2)R(90)linear_extrude(5,center=true,convexity=5)Vollwelle(h=2.25,mitte=h-10,extrude=0,x0=-5,xCenter=-1);
+   if(info)T(infoPos)mirror([1,0])Roof(.75,.5)Seg7(dia,h=7,ratio=.5,b=0.7,center=true,spiel=.45);
+  }
+
+ 
+  Tz(h/2)Polar(clips,lip,rot=180)R(0)RotEx(gradS(s=4,r=dia/2),center=true,fn=5)T(dia/2)Vollwelle(r=2,h=lip,l=h-5,mitte=0.5,extrude=0,x0=-2.0,xCenter=+1,grad=25);
+
+
+Tz(h+h2-.001)Pille(rad,d=od,rad=[0,rad],center=false);
+}
 
 
 
@@ -31,7 +70,7 @@ BallSocket() creates a ball and socket link
 
 
 
-module BallSocket(d=10,opt=0,dist=15,spiel=.08,hole=8,wand=.7,nozzleS=5,rad,deg,closed=false,shortR=.05,help){
+module BallSocket(d=10,opt=0,dist=15,spiel=.08,hole=8,wand=.7,nozzleS=5,rad,deg,closed=false,shortR=.05,undercut=0.3,help){
 
 part=[ 
  "link",       // 0
@@ -43,27 +82,29 @@ part=[
 
 info=false;
 
-HelpTxt("BallSocket",["d",d,"opt",opt,"dist",dist,"spiel",spiel,"hole",hole,"wand",wand,"nozzleS",nozzleS,"rad",rad,"deg",deg,"closed",closed,"shortR",shortR],help);
+HelpTxt("BallSocket",["d",d,"opt",opt,"dist",dist,"spiel",spiel,"hole",hole,"wand",wand,"nozzleS",nozzleS,"rad",rad,"deg",deg,"closed",closed,"shortR",shortR,"undercut",undercut],help);
 
 echo(opt=str(opt,"-",part[opt]),dist=dist);
 
-undercut=0.25;
+;
 
 Echo(str("hole too big max=",d-(undercut+wand)*2),color="redring",condition=hole>d-(undercut+(opt==0||opt==2||opt==3?wand:0) )*2);
 Echo("dist too short",color="redring",condition=interSpace<wand);
 
 angle=acos(1-undercut/(d/2));//15;
 if(info)echo(angle=angle);
-lift=sin(angle)*d/2;
-l=dist+lift;
+
 
 neckR=hole/2+wand;
 socketR=d/2+spiel;
 socketOR=socketR+wand;
 
+lift=sin(angle)*d/2*(socketR-shortR)/socketR;
+l=dist+lift;
+
 interSpace=dist-Kathete(kat=neckR,hyp=socketOR)-Kathete(kat=neckR,hyp=d/2);
 
-%if(opt==0&&interSpace>0)Tz(lift+Kathete(socketOR,neckR))color("chartreuse",.5)Ring(interSpace,d=hole+wand*2+.01,id=hole+.01,$info=false);
+%if(opt==0&&interSpace>0)Tz(lift+Kathete(socketOR,neckR))color("chartreuse",.5)Ring(interSpace,d=hole+wand*2+0.05,id=hole+.01,$info=false);
 
 
   RotEx(cut=closed?true:false){
@@ -128,7 +169,7 @@ l2=abs(nozzleS-hole)/2/tan(deg)+rad + 1;
 \param
 */
 
-//WaveWasher();
+//WaveWasher(f=10,h=2,cutangle=0);
 
 module WaveWasher(od=20,id=10,h=15,a=1,dicke=.6,f=3,opt=2,cutangle=30,fs=fs,name,help){
 
@@ -160,7 +201,10 @@ loop=ceil(fn2/4)*4+4;
  }
   
  if(opt==2) 
-    Halb()Tz(hCenter)Linear(h/a/2,y=1,es=a*2+0.01,center=true)Color($idx/(h/a/2))R(y=$idx%2?0:180/f)PolyH(points,loop=loop,end=0,flip=false);
+    difference(){
+      Tz(hCenter)Linear(h/a/2,y=1,es=a*2+0.01,center=true)Color($idx/(h/a/2))R(y=$idx%2?0:180/f)PolyH(points,loop=loop,end=0,flip=true);
+   if(cutangle)   R(180)cylinder(50,d=500,$fn=6);
+      }
 
   
 HelpTxt("WaveWasher",["od",od,"id",id,"h",h,"a",a,"dicke",dicke,"f",f,"opt",opt,"cutangle",cutangle,"fs",fs,"name",name,],help);

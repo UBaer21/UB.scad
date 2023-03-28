@@ -50,6 +50,7 @@ Changelog (archive at the very bottom)
 060|23 CHG quad CHG printPos upd Schnitt chg Gewinde
 070|23 ADD Connector FIX Welle
 080|23 UPD Glied FIX Kehle FIX Gewinde UPD arc UPD Connector FIX Welle
+090|23 ADD QuadAnschluss upd Gewinde
 
 */
 
@@ -141,7 +142,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.080;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.090;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -8457,7 +8458,8 @@ end,
 korrektur=true,// verbreiterung durch gangwinkel
 profil=false,
 fn2=4,
-fn=fn,
+fn,
+fs=fs,
 cyl=true,
 tz=0,
 konisch=0,
@@ -8524,7 +8526,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
         dn=iso_Gewinde[zeile][2]+(innen?spiel*2:0),
         grad=grad,h=h,winkel=60,name=iso_Gewinde[zeile][0],
         innen=innen,wand=wand,mantel=mantel,cyl=cyl,tz=tz,start=start,
-        end=end,fn=fn,fn2=fn2,center=center,rund=rund,ratio=ratio,spiel=spiel,profil=profil,help=help);
+        end=end,fn=fn,fs=fs,fn2=fn2,center=center,rund=rund,ratio=ratio,spiel=spiel,profil=profil,help=help);
     if($children)difference(){
       children();
         if(innen)Tz(center?tz-iso_Gewinde[zeile][1]/2:
@@ -8547,7 +8549,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
             grad=is_undef(grad)?other_Gewinde [zeile][9]:grad,
             h=h,
             start=start,end=end,center=center,profil=profil,fn2=fn2,
-            fn=fn,cyl=cyl,tz=tz,rund=rund,ratio=ratio,spiel=spiel,
+            fn=fn,fs=fs,cyl=cyl,tz=tz,rund=rund,ratio=ratio,spiel=spiel,
             name=other_Gewinde[zeile][8],
             help=help);
             
@@ -8581,6 +8583,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
                 profil=profil,
                 fn2=fn2,
                 fn=fn,
+                fs=fs,
                 cyl=cyl,
                 tz=tz,
                 konisch=konisch,
@@ -9774,6 +9777,60 @@ HelpTxt("Buchtung",[
      help);
 }
 
+/** \name QuadAnschluss \page Objects
+QuadAnschluss() creates a transision between two rounded rectangles (wall)
+
+\param r r2  in out radius
+\param size, size2 in out size
+\param h height of transition
+\param l straight profile [base,top]
+\param dicke wall thickness 
+\param fn,fs  fraqment number, size
+\param help help
+*/
+
+//QuadAnschluss(1,5,5,12);
+
+
+module QuadAnschluss(r=5,r2=5,size=[0,0],size2=[0,0],h=10,l=1,dicke=.5,fn,fs=fs,help){
+
+fnH=is_num(fn)&&fn?fn:ceil(h/fs);
+
+function delta(i,fn=fnH,angle=180)=
+let(step=angle/fn)
+.5 +sin( i*step -90) /2;// S übergang i = [0:fnH] ↦ 0⇒1
+
+l=is_num(l)?[l,l]:l;
+size=is_list(size)?[max(2*r,size.x),max(2*r,size.y)]:max(size,r*2)*[1,1];
+size2=is_list(size2)?[max(2*r2,size2.x),max(2*r2,size2.y)]:max(size2,r2*2)*[1,1];
+
+
+ifn=is_num(fn)&&fn?ceil(fn/4)*4:ceil(fs2fn(r=max(r,r2),fs=fs,minf=36)/4)*4;
+
+HelpTxt("QuadAnschluss",["r",r,"r2",r2,"size",size2,"h",h,"l",l,"dicke",dicke,"fn",fn,"fs",fs],help);
+
+function points(ofs=0,h=h,l=l,fn=ifn)=[
+if(l[0])each quad(size+[2,2]*ofs,r=max(0,r+ofs),z=0,fn=fn), // l[0] base
+for(i=[0:fnH])each quad(size.x+(size2.x-size.x)*delta(i)+ofs*2,
+    size.y+(size2.y-size.y) * delta(i)+ofs*2,
+    r=max(0,r+(r2-r)*delta(i)+ofs),
+    z=i*h/fnH+l[0],fn=fn),
+if(l[1])each quad(size2+ofs*[2,2],r=max(0,r2+ofs),z=h+vSum(l),fn=fn) // l[1] top
+];
+
+ if(dicke>=0)difference(){
+  
+   PolyH(points(),loop=ifn +4,flip=0,name=false);
+   if(dicke>0)Tz(-1)PolyH(points(ofs=-dicke,l=l+[1,1]),loop=ifn+4,flip=0,name=false);
+  }
+
+ if(dicke<0)difference(){
+   PolyH(points(ofs=-dicke) ,loop=ifn+4,flip=0,name=false);
+   Tz(-1)PolyH(points(ofs=0,l=l+[1,1]),loop=ifn+4,flip=0,name=false);
+  }
+  
+  
+}
 /** \name Anschluss \page Objects
 Anschluss() creates a transision between diameter or thickness
 \param h height 
