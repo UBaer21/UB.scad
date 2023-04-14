@@ -1,13 +1,13 @@
 include<ub.scad>//https://github.com/UBaer21/UB.scad
 /*[Hidden]*/
-  useVersion=22.016;
-  designVersion=1.1;
+  useVersion=23.110;
+  designVersion=1.2;
   info=true;
 
 /*[ Round Objects ]*/
 r=[16,8,4,2]; // corner 1-4 radius - can also be just a number
 
-
+//Objects on y center line
 LinEx(20) Quad(20);
 
 LinEx() Quad([25,30],r=r);
@@ -33,6 +33,8 @@ T(-80,60)Rundrum(20,20,r=5,grad=60,grad2=120)rotate(90)Vollwelle(extrude=1);
 
 T(-50,30) RotEx()T(10)Quad(5);
 
+
+//Objects front line
 T(y=-60){
   
   Prisma(10,20,30,c1=5,s=3);
@@ -46,7 +48,7 @@ T(y=-60){
   
 }
 
-
+//Objects back line
 T(y=90){
   Torus(trx=5,help=1);
   Torus(dia=30,d=5,end=true);
@@ -54,8 +56,12 @@ T(y=90){
   Torus(dia=59,d=5,end=+10,grad=270)Quad($d,10);
   Torus(dia=79,trxEnd=-9,d=5,end=1,grad=270)Quad($d,10);
   T(80) Polar(3)RingSeg(120,r=15,help=1,size=3,h=5,fn2=16);
+  
+  T(-50)Anschluss();
+  T(-80)QuadAnschluss(size=[5,10],size2=[10,5],r=2,r2=.5);
 }
 
+// Objects last line
 T(y=160){
   RStern();
   T(x=50) RStern(messpunkt=0)circle();
