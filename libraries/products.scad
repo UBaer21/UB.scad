@@ -1,7 +1,7 @@
 // Products
 
 include <ub.scad>; // requires ub.scad https://github.com/UBaer21/UB.scad
-pVersion=23.080;
+pVersion=23.110;
 
 /*change log
 23|022 UPD HingBox  
@@ -9,9 +9,90 @@ pVersion=23.080;
 23|045 ADD BallSocket
 23|055 UPD BallSocket
 23|080 ADD Plug UPD WaveWasher
+23|110 ADD MicroSD ADD NEMA
+
 
 //*/
 
+/** \name NEMA
+NEMA() is a NEMA stepper dummy
+\param nr the designation 11,14,17,23
+\param l  length of the motor
+\param rot rotate arbor
+\param help help
+*/
+
+module NEMA(nr=17,l=34.3,rot=0,help){
+data=[
+["nr[0]","size[1]","holes[2]","arbor[3]","arborL[4]","disc[5]","discH[6]","flat[7]","holeD[8]"],
+
+[11     ,    28.3 ,        23,         5,         24,       22,         2,       15, 2.5],
+[14     ,    35   ,        26,         5,         24,       22,         2,       15, 3],
+[17     ,    42.3 ,        31,         5,         24,       22,         2,       15, 3],
+[23     ,    56.4 ,     47.14 ,      6.35,         21,     38.1,      1.6,       15, 5]
+
+];
+set=data[search([nr],data)[0]];
+HelpTxt("NEMA",["nr",nr,"l",l],help);
+//echo(set);
+  Tz(l-.1)cylinder(set[6]+.1,d=set[5],$fn=0);
+  Tz(l+.1)rotate(rot)difference(){
+    cylinder(set[4]-.1,d=set[3],$fn=0);
+    Tz(set[4]-set[7])T(set[3]/2 -.5 , -25)cube(50);
+    }
+  difference(){
+    linear_extrude(l)
+    Quad(set[1],rad=set[1]/8,fn=nr<20?4:36);
+    //  offset(delta=set[1]/4,chamfer=nr<23?true:false)square(set[1]/2,true);
+    //holes  
+    Tz(l-4.5)for(x=[-1,1],y=[-1,1])translate([x,y]*set[2]/2)cylinder(h=50,d=set[8],$fn=0);
+  }
+}
+
+
+
+/** \name MicroSD
+MicroSD() makes a micro SD card
+\param ofs offset increases size
+\param h thickness (+ofs)
+\param center center x
+\param notch  enalble notch
+\pram help
+
+*/
+
+//MicroSD();
+
+module MicroSD(ofs=0.15,h=.8,center=false,notch=true,help){
+/*
+full-size SD card	32 x 24 x 2.1 mm	2g
+miniSD card	21.5 x 20 x 1.4 mm	0.8g
+microSD card	15 x 11 x 1 mm
+*/
+HelpTxt("MicroSD",["ofs",ofs,"h",h,"center",center,"notch",notch],help);
+p=[
+[0,0],
+[9.7,0],
+[9.7,5.1],
+[11,6.2],
+if(notch)[11,8],// notch
+if(notch)[10.3,8.5],//< notch
+if(notch)[10.3,9.5],//< notch
+if(notch)[11,10],// notch
+[11,15],
+[0,15],
+];
+
+  T(center?[-11/2,0,-h/2-ofs]:0){
+    linear_extrude(h+ofs*2,center=false)offset(ofs)polygon(p);
+    
+    T(-ofs,15-1.8+ofs,.001)intersection(){
+      mirror([0,0,1])linear_extrude(.3)offset(ofs)offset(-ofs)square([11+ofs*2,1.8]);
+      T(11/2,25-ofs)cylinder(5,d=50,center=true);
+    }
+  }
+
+}
 
 /** \name Plug
 Plug() creates a Plug for a tube

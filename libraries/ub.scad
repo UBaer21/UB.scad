@@ -51,7 +51,8 @@ Changelog (archive at the very bottom)
 070|23 ADD Connector FIX Welle
 080|23 UPD Glied FIX Kehle FIX Gewinde UPD arc UPD Connector FIX Welle
 090|23 ADD QuadAnschluss upd Gewinde
-
+100|23 CHG Vollwelle UPD QuadAnschluss CHG Connector
+110|23 CHG Bogen CHG QuadAncshluss CHG Cut CHG Loch CHG Kehle
 */
 
 {//fold // Constants
@@ -142,7 +143,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.090;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.110;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -1601,6 +1602,7 @@ echo    ("•••••••••• BasisObjekte:   •••••••�
 •• Zylinder(help=1);\n
 •• Welle(help=1); /*opt polygon*/\n
 •• Anschluss(help=1);\n
+•• QuadAnschluss(help=1);\n
 •• RingSeg(help=1); \n
 •• Buchtung(help=1);\n
 •• SpiralCut(help=1);\n
@@ -2533,7 +2535,7 @@ MO(!$children);
 }
 
 
-module Cut(on=1,cut=[+1,+1,+1],t=[+0,0,+0.01],rot=+0,z=0,size=500,color,ghost=true,help){
+module Cut(on=1,cut=[+1,+1,+1],t=[+0,0,+0.01],rot=+0,z=0,size=500,color,ghost=false,help){
 
 cut=v3(cut);
 t=v3(t);
@@ -3117,6 +3119,7 @@ Connector creates a connector pin
 \param half for half x side 
 \param center center
 \param 2D polygon or 3D connector
+\param printCut overhang angle horizontal print
 \param print rotate and move 3D pin up
 
 */
@@ -3125,15 +3128,16 @@ Connector creates a connector pin
 //Connector(l=[20,15],d=5,end=-.5,d2=6,2D=false,collar=0,l2=+0,print=true,center=false);
 
 
-
-module Connector(l=10,d=5,l2=0,d2,dicke=1.5,flat=[0.5,0.5],latch=.5,collar=0,deg=45,degC=45,degEnd=45,end=-.5,cut=undef,half=false,center=true,2D=true,print=false,spiel=0,help){
+module Connector(l=10,d=5,l2=0,d2,dicke=1.5,flat=[0.5,0.5],flatC,latch=.5,collar=0,deg=45,degC=45,degEnd=45,end=-.5,cut=undef,half=false,center=true,2D=true,printCut=50,print=false,spiel=0,help){
 
 half=is_parent("RotEx")?spiel?half:true:half;
 2D=is_parent(needs2D)?true:2D;
 
+d=is_num(d)?[d,d]:d;
 l=is_num(l)?[l,l]:l;
 flat=is_num(flat)?[flat,flat]:flat;
-dicke=is_num(dicke)?[dicke,dicke]:dicke;
+flatC=is_undef(flatC)?flat:is_num(flatC)?[flatC,flatC]:flatC;
+dicke=is_num(dicke)?[min(d[0]/2,dicke),min(d[1]/2,dicke)]:dicke;
 l2=is_num(l2)?[l2,l2]:l2;
 collar=is_num(collar)?[collar,collar]:collar;
 cut=is_list(cut)?cut:[cut,cut];
@@ -3141,13 +3145,13 @@ latch=is_num(latch)?[latch,latch]:latch;
 deg=is_num(deg)?[deg,deg]:deg;
 degC=is_num(degC)?[degC,degC]:degC;
 degEnd=is_num(degEnd)?[degEnd,degEnd]:degEnd;
-d=is_num(d)?[d,d]:d;
+
 d2=is_num(d2)?[d2,d2]:is_undef(d2)?d+collar*2:d2;
 end=is_num(end)?[end,end]:end;
 //center length 0
-cnt=max(l2[0],(d2[0]==d[0]+collar[0]*2?0:tan(degC[0]*sign(d[0]-d2[0]+collar[0]*2))*((d[0]-d2[0])/2+collar[0]))+(collar[0]?l2?flat[1]:flat[1]/2:-flat[1]))+(l[0]+flat[0]+tan(degEnd[0])*(-end[0]+latch[0]));
+cnt=max(l2[0],(d2[0]==d[0]+collar[0]*2?0:tan(degC[0]*sign(d[0]-d2[0]+collar[0]*2))*((d[0]-d2[0])/2+collar[0]))+(collar[0]?l2?flatC[0]:flatC[0]/2:-flatC[0]))+(l[0]+flat[0]+tan(degEnd[0])*(-end[0]+latch[0]));
 
-HelpTxt("Connector",["l",l,"d",d,"l2",l2,"d2",d2,"dicke",dicke,"flat",flat,"collar",collar,"deg",deg,"degC",degC,"degEnd",degEnd,"end",end,"cut",cut,"half",half,"center",center,"2D",2D,"print",print,"spiel",spiel],help);
+HelpTxt("Connector",["l",l,"d",d,"l2",l2,"d2",d2,"dicke",dicke,"flat",flat,"flatC",flatC,"latch",latch,"collar",collar,"deg",deg,"degC",degC,"degEnd",degEnd,"end",end,"cut",cut,"half",half,"center",center,"2D",2D,"printCut",printCut,"print",print,"spiel",spiel],help);
 
 function latch(mirror=[1,1],latch=0.5,dicke=dicke[0],collar=2,l2=l2[0],l0=l[0],flat=flat,d=d[0],d2=d2[0],deg=+45,degC=25,degEnd=degEnd[0],end=end[0],cut=cut[0],center=center,cnt=cnt)=
 let(
@@ -3162,7 +3166,7 @@ let(
   l2=max(l2,(d2==d+collar*2?0:collarL)+flat2+flat1),
   end=max(-dicke+.25,end),//end diameter change to d/2
   lEnd=(l0+flat0+tan(degEnd)*(-end+latch)), // length of head section
-  cut=is_undef(cut)?lEnd-l0+min(3.5,l2+l0-.5):min(cut,lEnd+l2-.5),
+  cut=is_undef(cut)?lEnd-l0+min(3.5,l2+l0-.5):min(cut,max(0,lEnd+l2-.5) ),
   rad=min(cut/2.5,(d/2-dicke)/PHI),
   cnt=center||min(l)==0?[0,0]:[0,cnt]//l2+lEnd]
   )
@@ -3170,7 +3174,7 @@ let(
 [
 if(half&&min(l)==0)cnt+[0,0],
 if(half)cnt+[0,mirror.y * -(l2+lEnd-cut)],
-if(cut&&d/2-dicke>=latch)for(i=[0:fn])cnt+[mirror.x * (d/2-dicke-rad+rad*sin(i*step)),mirror.y * (rad*cos(i*step)-(rad+l2+lEnd-cut))],// freiraum
+if(cut&&d/2-dicke>=pip/2)for(i=[0:fn])cnt+[mirror.x * (d/2-dicke-rad+rad*sin(i*step)),mirror.y * (rad*cos(i*step)-(rad+l2+lEnd-cut))],// freiraum
 cnt+[mirror.x * (d/2-dicke),mirror.y * -(lEnd+l2)],// end freiraum
 cnt+[mirror.x * (d/2+end),mirror.y *-(lEnd+l2)],// start chamfer
 cnt+[mirror.x * (d/2+latch),mirror.y *-(l2+l0+flat0)],// end chamfer
@@ -3188,29 +3192,28 @@ if(!min(l))cnt+[mirror.x * d2/2,0]// body
 
 points=
 half?concat(
-      l[0]?latch([1, 1],l0=l[0],dicke=dicke[0],l2=l2[0],cut=cut[0],collar=collar[0],latch=latch[0],deg=deg[0],degC=degC[0],degEnd=degEnd[0],end=end[0],d2=d2[0],d=d[0]):[],
- l[1]?revP(latch([1,-1],l0=l[1],dicke=dicke[1],l2=l2[1],cut=cut[1],collar=collar[1],latch=latch[1],deg=deg[1],degC=degC[1],degEnd=degEnd[1],end=end[1],d2=d2[1],d=d[1]) ):[]
+      l[0]?latch([1, 1],l0=l[0],flat=[flat[0],flatC[0]],dicke=dicke[0],l2=l2[0],cut=cut[0],collar=collar[0],latch=latch[0],deg=deg[0],degC=degC[0],degEnd=degEnd[0],end=end[0],d2=d2[0],d=d[0]):[],
+ l[1]?revP(latch([1,-1],l0=l[1],flat=[flat[1],flatC[1]],dicke=dicke[1],l2=l2[1],cut=cut[1],collar=collar[1],latch=latch[1],deg=deg[1],degC=degC[1],degEnd=degEnd[1],end=end[1],d2=d2[1],d=d[1]) ):[]
 ):
 concat(
-      l[0]?latch([ 1, 1],l0=l[0],dicke=dicke[0],l2=l2[0],cut=cut[0],collar=collar[0],latch=latch[0],deg=deg[0],degC=degC[0],degEnd=degEnd[0],end=end[0],d2=d2[0],d=d[0]):[],
- l[1]?revP(latch([ 1,-1],l0=l[1],dicke=dicke[1],end=end[1],l2=l2[1],cut=cut[1],collar=collar[1],latch=latch[1],deg=deg[1],degC=degC[1],degEnd=degEnd[1],d2=d2[1],d=d[1]) ):[],
-     l[1]? latch([-1,-1],l0=l[1],dicke=dicke[1],l2=l2[1],cut=cut[1],collar=collar[1],latch=latch[1],deg=deg[1],degC=degC[1],degEnd=degEnd[1],end=end[1],d2=d2[1],d=d[1]):[],
- l[0]?revP(latch([-1, 1],l0=l[0],dicke=dicke[0],l2=l2[0],cut=cut[0],collar=collar[0],latch=latch[0],deg=deg[0],degC=degC[0],degEnd=degEnd[0],end=end[0],d2=d2[0],d=d[0]) ):[]
+      l[0]?latch([ 1, 1],l0=l[0],flat=[flat[0],flatC[0]],dicke=dicke[0],l2=l2[0],cut=cut[0],collar=collar[0],latch=latch[0],deg=deg[0],degC=degC[0],degEnd=degEnd[0],end=end[0],d2=d2[0],d=d[0]):[],
+ l[1]?revP(latch([ 1,-1],l0=l[1],flat=[flat[1],flatC[1]],dicke=dicke[1],end=end[1],l2=l2[1],cut=cut[1],collar=collar[1],latch=latch[1],deg=deg[1],degC=degC[1],degEnd=degEnd[1],d2=d2[1],d=d[1]) ):[],
+     l[1]? latch([-1,-1],l0=l[1],flat=[flat[1],flatC[1]],dicke=dicke[1],l2=l2[1],cut=cut[1],collar=collar[1],latch=latch[1],deg=deg[1],degC=degC[1],degEnd=degEnd[1],end=end[1],d2=d2[1],d=d[1]):[],
+ l[0]?revP(latch([-1, 1],l0=l[0],flat=[flat[0],flatC[0]],dicke=dicke[0],l2=l2[0],cut=cut[0],collar=collar[0],latch=latch[0],deg=deg[0],degC=degC[0],degEnd=degEnd[0],end=end[0],d2=d2[0],d=d[0]) ):[]
 );
 
 if(2D)offset(delta=spiel)polygon(points);
   else {
-   deg=50;
-   h=min(d)*sin(deg)+spiel*2;
+   
+   h=min(d)*sin(printCut)+spiel*2;
     Tz(print?h/2:0)R(print?-90:0)
       intersection(){
-        RotEx(cut=spiel?true:false)Connector(l=l,d=d,l2=l2,d2=d2,dicke=dicke,flat=flat,latch=latch,collar=collar,deg=deg,degC=degC,degEnd=degEnd,end=end,cut=cut,center=center,spiel=spiel);
-        R(90)LinEx(h,center=true)Connector(l=l,d=d,l2=l2,d2=d2,dicke=min(d)/2*(1-cos(deg))+.5,flat=flat,latch=latch,collar=collar,deg=deg,degC=degC,degEnd=degEnd,end=end,cut=cut,center=center,spiel=spiel);
+        RotEx(cut=spiel?true:false)Connector(l=l,d=d,l2=l2,d2=d2,dicke=dicke,flat=flat,flatC=flatC,latch=latch,collar=collar,deg=deg,degC=degC,degEnd=degEnd,end=end,cut=cut,center=center,spiel=spiel);
+        R(90)LinEx(h,center=true)Connector(l=l,d=d,l2=l2,d2=d2,dicke=min(d)/2*(1-cos(printCut))+.5,flat=flat,flatC=flatC,latch=latch,collar=collar,deg=deg,degC=degC,degEnd=degEnd,end=end,cut=cut,center=center,spiel=spiel);
       }
   }
 
 }
-
 
 
 /** \page Polygons
@@ -4751,10 +4754,11 @@ Vollwelle() creates 4 attached arcsegments to form a wave
 
 //Vollwelle();
 
-module Vollwelle(r=1,r2,grad=+60,grad2=+0,h,l,extrude=+5,center=true,xCenter=0,fn=12,x0=0,mitte=0,tMitte,g2End=[1,1],fs=fs,help,name){
+module Vollwelle(r=1,r2,grad=+60,grad2=+0,h,l,extrude=+5,center=true,xCenter=0,fn,x0=0,mitte=0,tMitte,g2End=[1,1],fs=fs,help,name){
     
     // calc for geometry is done by function -- values here are only for console
-    ifn=is_list(fn)?fn:[fn,fn];
+    
+    //ifn=is_list(fn)?fn:[fn,fn];
     //grad=is_list(grad)?is_undef(h)?echo(str("<h2><font color=red>Vollwelle define h"))[grad[0],grad[0]]:grad:[grad,grad];
     
     grad=is_list(grad)?grad:[grad,grad];
@@ -4765,7 +4769,7 @@ module Vollwelle(r=1,r2,grad=+60,grad2=+0,h,l,extrude=+5,center=true,xCenter=0,f
     w=(2*grad[0]-180)/2;
     wOben=(2*grad[1]-180)/2;
     fs=is_list(fs)?fs:[fs,fs];
-    fn=is_undef(fn)||!fn?[fs2fn(r=r2,fs=fs[0],grad=max(grad)+max(grad2) ),fs2fn(r=r,fs=fs[1],grad=max(grad) )]:fn;
+    fn=is_undef(fn)||!fn?[fs2fn(r=r2,fs=fs[0],grad=max(grad)+max(grad2),minf=5 ),fs2fn(r=r,fs=fs[1],grad=max(grad),minf=5 )]:fn;
   
    //r mittelpunkt verschiebung für tangenten Kontakt
     tangY=[tan(grad[0]/2)*r,tan(grad[1]/2)*r];
@@ -6853,7 +6857,9 @@ cylinder ((d1-d2)/2*v,d1=d1,d2=d2,$fn=fn);
 
 //Kehle(rad=5);
 
-module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn,fn2,fs=fs,r2=0,spiel=spiel,center=false,2D=false,end=false,fase=false,fillet,help)
+
+
+module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn=0,fn2,fs=fs,fa=fa,r2=0,spiel=spiel,center=false,2D=false,end=false,fase=false,fillet,help)
 {
   2D=is_parent(needs2D)?true:2D;
     fillet=is_list(fillet)?fillet:[fillet,fillet];
@@ -6871,7 +6877,7 @@ module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn,fn2,fs=fs,r2=0,spie
                 difference()
                 {
                    translate([-spiel[0],-spiel[1]]) square([sin(-90+ax)*rad+rad+spiel[0],sin(a-90)*rad+rad+spiel[1]]);
-                    T(rad,rad)rotate(r2)circle(rad,$fn=is_undef(fn2)?round(fs2fn(r=rad,minf=16,fs=fs,grad=360)/4)*4:fn2,$fs=fs);
+                    T(rad,rad)rotate(r2)circle(rad,$fn=is_undef(fn2)?round(fs2fn(r=rad,minf=16,fs=fs,grad=360,fa=fa)/4)*4:fn2);
                 }
             }
         if(fase)T(x=rad,y=rad)Tz(center?-l/2:0)Kegel(d2=0,d1=Hypotenuse(rad+spiel[0],rad+spiel[1])*2,fn=fn2,fs=fs);
@@ -6902,11 +6908,11 @@ module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn,fn2,fs=fs,r2=0,spie
 // dia   
     if(!is_undef(dia)&&!2D&&rad>0){
       rotate(center?-180-angle/2:0)difference(){
-        rotate(fase&&$preview?.05:0)rotate_extrude(angle=angle-(fase&&$preview?.1:0),$fn=fn?fn:fs2fn(minf=24,r=dia/2,fs=fs),convexity=5,$fs=fs)
+        rotate(fase&&$preview?.05:0)rotate_extrude(angle=angle-(fase&&$preview?.1:0),$fn=fn?fn:fs2fn(minf=24,r=dia/2,fs=fs,fa=fa),convexity=5,$fs=fs)
             difference()
             {
                 T(dia/2)translate([-spiel[0],-spiel[1]])square([sin(-90+ax)*rad+rad+spiel[0],sin(a-90)*rad+rad+spiel[1]]);
-                T(dia/2)T(rad,rad)rotate(r2)circle(rad,$fn=is_undef(fn2)?round(fs2fn(r=rad,minf=16,fs=fs,grad=360)/4)*4:fn2,$fs=fs);
+                T(dia/2)T(rad,rad)rotate(r2)circle(rad,$fn=is_undef(fn2)?round(fs2fn(r=rad,minf=16,fs=fs,grad=360,fa=fa)/4)*4:fn2,$fs=fs);
                 if(dia>-rad*2)T(-200,-100)square(200);
             }
           if(fase&&angle)T(dia/2+rad,z=rad)R(-90*sign(dia))Kegel(d2=0,d1=Hypotenuse(rad+spiel[0],rad+spiel[1])*2,fn=fn2,fs=fs);
@@ -6933,7 +6939,7 @@ module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn,fn2,fs=fs,r2=0,spie
         
     }
     }
-HelpTxt("Kehle",["rad",rad,"dia",dia,"l",l,"angle",angle,"grad",grad,"a",a,",ax=",ax,"fn",fn,"fn2",fn2,"fs",fs,"r2",r2,"spiel",spiel,"center",center, "2D",2D,"end",end,"fase",fase,"fillet",fillet],help);
+HelpTxt("Kehle",["rad",rad,"dia",dia,"l",l,"angle",angle,"grad",grad,"a",a,",ax=",ax,"fn",fn,"fn2",fn2,"fs",fs,"fa",fa,"r2",r2,"spiel",spiel,"center",center, "2D",2D,"end",end,"fase",fase,"fillet",fillet],help);
 
 }
 
@@ -7028,10 +7034,24 @@ module GewindeV1(d=20,s=1.5,w=5,g=1,fn=3,r=0,gd=1.75,detail=5,tz=0,name)//deprec
     
 }
 
+
+/** \name Bogen \page Objects
+Bogen() creates a bended cylinder or children
+\param grad angle
+\param rad bend radius
+\param l,l1,l2 straight length l⇒ [l1,l2]
+\param fn fn2 fraqments
+\param tcenter tangent
+\param center centern
+\param lap,spiel  overlap
+\param d diameter (if no children)
+\param messpunkt show bend center
+\param 2D  make 2D
+*/
 //Bogen(2D=1,lap=+0,fn=0);
+//Bogen();
 
-
-module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=3,fn2=fn,fs=fs,lap,spiel=-minVal,help,messpunkt=messpunkt,2D=false)
+module Bogen(grad=90,rad=5,l,l1=10,l2=12,fn=fn,center=true,tcenter=false,name,d=3,fn2=0,fs=fs,lap,spiel=-minVal,help,messpunkt=messpunkt,2D=false)
 {
     $fn=fn;
     $fs=fs;
@@ -9340,7 +9360,7 @@ Loch() creates the Volume of a slot or elongated hole
 
 
 
-module Loch(h=5,h2=1,d=3.5,l=0,d2,deg=[45,45],rad,extrude=spiel,center=[1,1,0],fn=0,fs=fs,cuts=2,2D=false,name,help){
+module Loch(h=5,h2=1,d=3.5,l=0,d2,deg=[45,45],rad,extrude=spiel,center=[1,1,0],fn=0,fs=fs,cuts=0,2D=false,name,help){
 
 
 
@@ -9785,17 +9805,21 @@ QuadAnschluss() creates a transision between two rounded rectangles (wall)
 \param h height of transition
 \param l straight profile [base,top]
 \param dicke wall thickness 
+\param t translate top quad
 \param fn,fs  fraqment number, size
 \param help help
 */
 
 //QuadAnschluss(1,5,5,12);
 
+//QuadAnschluss(1,5,5,12,dicke=2,chamfer=0.5);
 
-module QuadAnschluss(r=5,r2=5,size=[0,0],size2=[0,0],h=10,l=1,dicke=.5,fn,fs=fs,help){
+module QuadAnschluss(r=5,r2=5,size=[0,0],size2=[0,0],h=10,l=1,dicke=0,t=[0,0],chamfer=0,fn,fs=fs,help){
 
 fnH=is_num(fn)&&fn?fn:ceil(h/fs);
-
+chamfer=is_list(chamfer)?chamfer:[min(chamfer,abs(dicke/2)),min(abs(dicke/2),chamfer)];
+chamferBot=is_list(chamfer[0])?chamfer[0]:chamfer[0]*[1,1];
+chamferTop=is_list(chamfer[1])?chamfer[1]:chamfer[1]*[1,1];
 function delta(i,fn=fnH,angle=180)=
 let(step=angle/fn)
 .5 +sin( i*step -90) /2;// S übergang i = [0:fnH] ↦ 0⇒1
@@ -9807,26 +9831,32 @@ size2=is_list(size2)?[max(2*r2,size2.x),max(2*r2,size2.y)]:max(size2,r2*2)*[1,1]
 
 ifn=is_num(fn)&&fn?ceil(fn/4)*4:ceil(fs2fn(r=max(r,r2),fs=fs,minf=36)/4)*4;
 
-HelpTxt("QuadAnschluss",["r",r,"r2",r2,"size",size2,"h",h,"l",l,"dicke",dicke,"fn",fn,"fs",fs],help);
+HelpTxt("QuadAnschluss",["r",r,"r2",r2,"size",size2,"h",h,"l",l,"dicke",dicke,"t",t,"chamfer",chamfer,"fn",fn,"fs",fs],help);
 
-function points(ofs=0,h=h,l=l,fn=ifn)=[
-if(l[0])each quad(size+[2,2]*ofs,r=max(0,r+ofs),z=0,fn=fn), // l[0] base
+function points(ofs=0,h=h,l=l,fn=ifn,chamfer=[0,0])=[
+
+if(l[0]&&chamfer[0])each quad(size+[2,2]*(ofs-chamfer[0]),r=max(0,r+ofs-chamfer[0]),z=0,fn=fn), // l[0] base
+if(l[0])each quad(size+[2,2]*ofs,r=max(0,r+ofs),z=chamfer[0]?abs(chamfer[0]):0,fn=fn), // l[0] base
+
 for(i=[0:fnH])each quad(size.x+(size2.x-size.x)*delta(i)+ofs*2,
     size.y+(size2.y-size.y) * delta(i)+ofs*2,
     r=max(0,r+(r2-r)*delta(i)+ofs),
+    t=t*delta(i),
     z=i*h/fnH+l[0],fn=fn),
-if(l[1])each quad(size2+ofs*[2,2],r=max(0,r2+ofs),z=h+vSum(l),fn=fn) // l[1] top
+if(l[1])each quad(size2+ofs*[2,2],r=max(0,r2+ofs),t=t,z=h+vSum(l)-(chamfer[1]?abs(chamfer[1]):0),fn=fn), // l[1] top
+if(l[1]&&chamfer[1])each quad(size2+(ofs-chamfer[1])*[2,2],r=max(0,r2+ofs-chamfer[1]),t=t,z=h+vSum(l),fn=fn) // l[1] top
+
 ];
 
  if(dicke>=0)difference(){
   
-   PolyH(points(),loop=ifn +4,flip=0,name=false);
-   if(dicke>0)Tz(-1)PolyH(points(ofs=-dicke,l=l+[1,1]),loop=ifn+4,flip=0,name=false);
+   PolyH(points(chamfer=[chamferBot[0],chamferTop[0]]),loop=ifn +4,flip=0,name=false);
+   if(dicke>0)Tz(-.01)PolyH(points(ofs=-dicke,l=l+[.01,.01],chamfer=-[chamferBot[1],chamferTop[1]]),loop=ifn+4,flip=0,name=false);
   }
 
  if(dicke<0)difference(){
-   PolyH(points(ofs=-dicke) ,loop=ifn+4,flip=0,name=false);
-   Tz(-1)PolyH(points(ofs=0,l=l+[1,1]),loop=ifn+4,flip=0,name=false);
+   PolyH(points(ofs=-dicke,chamfer=[chamferBot[0],chamferTop[0]]) ,loop=ifn+4,flip=0,name=false);
+   Tz(-.01)PolyH(points(ofs=0,l=l+[.01,.01],chamfer=-[chamferBot[1],chamferTop[1]]),loop=ifn+4,flip=0,name=false);
   }
   
   
