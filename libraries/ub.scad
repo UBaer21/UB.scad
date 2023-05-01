@@ -53,6 +53,7 @@ Changelog (archive at the very bottom)
 090|23 ADD QuadAnschluss upd Gewinde
 100|23 CHG Vollwelle UPD QuadAnschluss CHG Connector
 110|23 CHG Bogen CHG QuadAncshluss CHG Cut CHG Loch CHG Kehle
+120|23 UPD QuadAnschluss FIX Torus UPD Coil CHG SRing CHG kreis ADD FlatMesh
 */
 
 {//fold // Constants
@@ -143,7 +144,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.110;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.120;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -242,6 +243,7 @@ kreis() generates points on a circle or arc
 
 function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=kreis(r,rand,grad,grad2,fn,center,sek,r2,rand2,rcenter,rot,t);
 
+
 function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d,endPoint=true,fs=fs,fs2,fn2,minF=1)=
 let (
 grad2=is_undef(grad2)?grad:grad2,
@@ -265,6 +267,9 @@ endPoint=rand?true:endPoint
 )
 is_num(z)?[
 if(!sek&&!rand&&abs(grad)!=360&&grad)[0+t[0],0+t[1],z], // single points replacement
+if(grad==0&&minF)[sin(rot+(center?-grad/2-90:0))*r  +t[0],
+     cos(rot+(center?-grad/2-90:0))*r2 +t[1],
+     z],
 if(grad)for(i=[0:endPoint?fn:fn-1])
         let(iw=abs(grad)==360?i%fn:i)
     [sin(rot+(center?-grad/2-90:0)+iw*step)*r  +t[0],
@@ -1592,6 +1597,7 @@ echo    ("•••••••••• BasisObjekte:   •••••••�
 
 •• [55] Kassette(r1=2,r2=2,size=20,h=0,gon=3,fn=fn,fn2=36,r=0,grad=90,grad2=90,spiel=0.001,mitte=true,sizey=0,help=$helpM);\n
 •• Surface(help=$helpM);\n
+•• FlatMesh(help=true);\n
 •• [58] Box(x=8,y=8,z=5,d2=0,c=3.5,s=1.5,eck=4,outer=true,fnC=36,fnS=24);\n
 •• [62] Spirale(grad=400,diff=2,radius=10,rand=n(2),detail=5,exp=1,hull=true);/*opt Object*/\n
 •• [63] Area(a=10,aInnen=0,rInnen=0,h=0,name);\n
@@ -5980,7 +5986,7 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=0,r,rot=0,grad=0,dia=0,center=true,end=0
     endRot=is_list(endRot)?endRot:[endRot,endRot];
     trx=dia?dia/2-d/2:trx;
     grad=grad?grad:a;
-    a=end==-1&&!trxEnd? grad-(asin($r/trx)*2)*sign(grad):
+    a=end==-1&&!trxEnd? grad-(asin(abs($r)/trx)*2)*sign(grad):
                                  grad;
          //   end==-1&&!$children? a-(asin($r/trx)*2)*sign(a):
          //                        a;
@@ -5991,7 +5997,7 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=0,r,rot=0,grad=0,dia=0,center=true,end=0
     HelpTxt("Torus",["trx",trx,"d",d,"a",a,"fn",fn,"fn2",fn2,"r",r,"rot",rot,"grad",grad,"dia",dia,"center",center,"end",end,"gradEnd",gradEnd,"trxEnd",trxEnd,"endRot",endRot,"name",name,"$d",$d,"lap",lap,"fs",fs,"fs2",fs2,"name",name],help);
     
         
-  rotate(end==-1? (asin($r/trx))*sign(grad):
+  rotate(end==-1? (asin(abs($r)/trx))*sign(grad):
                   0){
      $idx=true;
      $info=is_undef(name)?is_undef($info)?false:$info:name;
@@ -5999,7 +6005,7 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=0,r,rot=0,grad=0,dia=0,center=true,end=0
         $idx=0;
         $tab=is_undef($tab)?1:b($tab,false)+1;
         if($children)T(x=trx)R(0,0,rot)children();
-        else T(x=trx)R(0,0,rot)circle(d=d,$fn=fn2);
+        else T(x=trx)R(0,0,rot)circle(d=abs(d),$fn=fn2);
       }
 
       if(end&&a!=360&&!trxEnd){
@@ -6008,8 +6014,8 @@ module Torus(trx=+6,d=4,a=360,fn=fn,fn2=0,r,rot=0,grad=0,dia=0,center=true,end=0
               rotate(+0)translate([trx,0,center?0:d/2])rotate(180)scale([1,abs(end),1])R(0,-endRot[0])RotEx(cut=sign(end*grad),grad=180*sign(end),fn=max(6,fn/2),$fs=fs,help=false)rotate(endRot[0])children();  
           }
           else{
-          rotate(a-sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?1:0)sphere(d=d,$fn=fn2);
-          rotate(sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?0:1)sphere(d=d,$fn=fn2);
+          rotate(a-sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?1:0)sphere(d=abs(d),$fn=fn2);
+          rotate(sign(grad)*minVal)translate([trx,0,center?0:d/2])scale([1,abs(end),1])R(90)Halb(sign(grad)>0?0:1)sphere(d=abs(d),$fn=fn2);
           }
       }
       
@@ -8870,6 +8876,7 @@ Coil() creates a coil
 //Coil(h=20,scale=.5,center=-1);
 
 
+
 module Coil(
 r=20,
 d=5,
@@ -8908,7 +8915,7 @@ pitch=is_undef(h)?p:(h-d/2-d/2*scale)/grad*360;
 h=abs(pitch*grad/360+d/2+d/2*scale);
 Echo("Coil h < d",color="warning",condition=h<d);
 
-iFN=ceil(fn*abs(grad)/360*max(1,twist/360/3))-1;
+iFN=ceil(fn*abs(grad)/360*max(1,twist/360/3));
 
 path=[for(i=[iFN:-1:0])
 let(deg=grad/iFN,
@@ -8924,7 +8931,7 @@ translate([0,0,center?b(center,false)<0?-h/2+d/2
           pathPoints(ipoints,path,twist=twist,scale=scale,open=open),
         loop=len(ipoints),name=false,convexity=convexity);
       
-InfoTxt("Coil",concat(["length",pathLength(path),"heigth(h)",h,"grad",grad,"turns",grad/360],pitch?["pitch",pitch]:[]),name);
+InfoTxt("Coil",concat(["length",pathLength(path),"heigth(h)",h,"grad",grad,"turns",grad/360],pitch?["pitch",pitch]:[],r==r2?[]:["endRadius r2",r2] ),name);
 HelpTxt("Coil",["r",r,"d",d,"r2",r2,"od",od,"id",id,"grad",grad,"pitch",is_undef(p)?pitch:p,"h",h,"points","kreis(d=d)","twist",twist,"scale",scale,"fn",fn,"fn2",fn2,"fs",fs,"fa",fa,"center",center,"open",open,"convexity",convexity],help);
 }
 
@@ -9803,9 +9810,10 @@ QuadAnschluss() creates a transision between two rounded rectangles (wall)
 \param r r2  in out radius
 \param size, size2 in out size
 \param h height of transition
-\param l straight profile [base,top]
+\param l straight profile start and end [base,top] this is also used to make a chamfer
 \param dicke wall thickness 
 \param t translate top quad
+\param chamfer chamfer bevel (in l) num or [bottom,top] or [[bot out,bot in],[top out,top in]] 
 \param fn,fs  fraqment number, size
 \param help help
 */
@@ -9813,18 +9821,24 @@ QuadAnschluss() creates a transision between two rounded rectangles (wall)
 //QuadAnschluss(1,5,5,12);
 
 //QuadAnschluss(1,5,5,12,dicke=2,chamfer=0.5);
+//QuadAnschluss(dicke=2,chamfer=[[0,1],[1,0]],l=1.5);
+
 
 module QuadAnschluss(r=5,r2=5,size=[0,0],size2=[0,0],h=10,l=1,dicke=0,t=[0,0],chamfer=0,fn,fs=fs,help){
 
 fnH=is_num(fn)&&fn?fn:ceil(h/fs);
-chamfer=is_list(chamfer)?chamfer:[min(chamfer,abs(dicke/2)),min(abs(dicke/2),chamfer)];
+l=is_num(l)?[l,l]:l;
+chamfer=is_list(chamfer)?chamfer
+                        :dicke?[min(chamfer,l[0],abs(dicke/2)), min(chamfer , l[1], abs(dicke/2))]
+                              :[ min(chamfer,l[0]), min(chamfer,l[1]) ];
+                              
 chamferBot=is_list(chamfer[0])?chamfer[0]:chamfer[0]*[1,1];
 chamferTop=is_list(chamfer[1])?chamfer[1]:chamfer[1]*[1,1];
 function delta(i,fn=fnH,angle=180)=
 let(step=angle/fn)
 .5 +sin( i*step -90) /2;// S übergang i = [0:fnH] ↦ 0⇒1
 
-l=is_num(l)?[l,l]:l;
+
 size=is_list(size)?[max(2*r,size.x),max(2*r,size.y)]:max(size,r*2)*[1,1];
 size2=is_list(size2)?[max(2*r2,size2.x),max(2*r2,size2.y)]:max(size2,r2*2)*[1,1];
 
@@ -10015,6 +10029,98 @@ InfoTxt("GewindeV3",["dn∅",dn,"Steigung",str(p,"mm/U"),"Kern",kern,"Gangtiefe"
     }
  HelpTxt("GewindeV3",["dn",dn,"h",h,",kern",kern,"p",p,"w",w,"profil",profil,"gh",gh,"g",g,"scale",scale,"name",name,"fn",fn],help);
 }
+
+/** \page Objects
+\name FlatMesh
+\param  size size
+\param  fz  optional function(x,y)
+\param  base bottom 
+\param  res  resolution num or list 
+\param  randSize to add noise
+\param  amp list for amplitudes [crossx, - ,radial,x,y,diagonal,randomX,randomY(opt)]
+\param  f frequency list [crossx,crossy,radial,x,y,diagonal]
+\param  delta list for moving pattern [crossx, - ,radial,x,y,diagonal,randomX,randomY(opt)]
+\param  seed seed for noise
+\param  center v3
+\param  fs  size if resolution is number
+\param  bricks interlock y rand blocks
+*/
+
+//FlatMesh(size=[15.5,12.123],res=10,f=[0,0,50,0,0,0,0],randSize=5,amp=[0.2,0,0.1,0,0,0,0.2],delta=[0,0,0,0,0,0],center=[1,1]);
+
+
+module FlatMesh(size=[20,30],fz,base=5,res=1,randSize=0,amp=[1],f=[2],delta=[0],seed=42,center=[0,0,1],fs=1,bricks=false,help){
+center=v3(center);
+size=is_num(size)?[size,size]:size;
+
+res=is_num(res)?[round(res*size.x/fs),round(res*size.y/fs)]:res;
+f=f/max(res)*360;
+delta=delta/max(res);
+step=[size.x/res.x, size.y/res.y];
+
+HelpTxt("FlatMesh",["size",size,"fz",fz,"base",base,"res",res,"randSize",randSize,"seed",seed,"center",center],help);
+
+//amp=[0.08,.15,.5,.5,.5,.5,.5];//[0,0,0,1,1,0,0];//
+//f=[15,20,10,5,6,2];
+//delta=[1,1.5,2,1.75,.5,.3,.1]*3600*$t;
+
+randSize=is_num(randSize)?[1,1]*randSize:randSize;
+//delta=[1,1.5,2,1.75,.5,.3,0,randSize.x,randSize.y];//*$t*1000;
+deltaRand=[delta[6%len(delta)],delta[7%len(delta)]];
+
+// random
+function rand(x,y,amp=amp[6%len(amp)],randSize=randSize,delta=deltaRand,seed=seed)=
+  rands(-1,1,1,
+    seed+(round((delta.x+x+randSize.x/2)/randSize.x)*round((delta.y+y+randSize.y/2)/randSize.y)) )[0] * amp*sign(max(randSize));
+
+fz=is_function(fz)?fz:function(x,y) 
+  sin(x*f[0%len(f)]+delta[0%len(delta)])*sin(y*f[1%len(f)]+delta[1%len(delta)])*amp[0%len(amp)]//cross
+  +sin(norm([x-center.x*res.x/2,y-center.y*res.y/2])*f[2%len(f)]+delta[2%len(delta)])*amp[2%len(amp)]//circular
+  
+  +sin(x*f[3%len(f)]+delta[3%len(delta)])*amp[3%len(amp)]//x
+  +sin(y*f[4%len(f)]+delta[4%len(delta)])*amp[4%len(amp)]//y
+  +sin((x-y)*f[5%len(f)]+delta[5%len(delta)])*amp[5%len(amp)]// diagonal
+  
+  //+rands(-1,1,1,x*y+delta[6])[0]*amp[6]// noise
+ ;
+
+points0=[
+for(y=[0:res.y],x=[0:res.x])[x*step.x,y*step.y,base+fz(x,y)
+// +rand(x,y)
+//Bricks
++(bricks?
+rand(x,y,delta=[(round((y+randSize.y/2)/randSize.y)%2?1:-1)*randSize.x/4
++rands(-1,1,1,round((y+randSize.y/2)/randSize.y+seed))[0]*randSize.x/10,0])
+:rand(x,y))
+
+
+//+rand(x,y,randSize=randSize*2,amp=amp[6]*1.5,delta=[1,0]*delta[7],seed=seed+12345)
+//+rand(x,y,amp=amp[6]*2,randSize=randSize*3,delta=[0,1]*delta[8],seed=seed+5000)
+],
+];
+
+pointsBox=[
+for(i=[ [ 0, 0, 1], [ 1, 0, 1], [ 1, 1, 1], [ 0, 1, 1] ]) [i.x*size.x, i.y*size.y, 0]
+];
+
+l0=len(points0);
+faces=[
+
+//for(i=[0:l0-res.x -3])[i+1,i ,i+res.x +1,i+res.x +2],
+for(y=[0:res.y-1],x=[0:res.x -1])[x+1, x, x+res.x+1, x+res.x+2]+[1,1,1,1]*y*(res.x+1),
+[for(i=[0:3])i+l0],// bottom
+[for(i=[0:res.x])i,l0+1,l0], // side y0
+[for(i=[0:res.x])l0-i-1,l0+3,l0+2],// side y
+[for(i=[res.y:-1:0])i*(res.x +1),l0,l0+3],// side x0
+[for(i=[0:res.y])res.x+i*(res.x +1),l0+2,l0+1],// side x
+];
+
+points=concat(points0,pointsBox);
+
+translate([center.x?-size.x/2:0,center.y?-size.y/2:0,center.z?-base:0])polyhedron(points,faces,convexity=5);
+
+}
+
 
 
 module Surface(x=20,y,zBase=5,deltaZ=.25,res=6,waves=false,
@@ -11007,10 +11113,21 @@ HelpTxt("DRing",[
    ,help);    
 }
 
+/** \page Products
+\name SRing
+SRing() creates a self locking retaining ring
+\param e number of arms
+\param id target arbor diameter
+\param od outer diameter
+\param h thickness
+\param rand rim
+\param reduction  smaller id/2
+\param schlitz ratio  land/groove
+*/
 
 
 // SicherungsRing
-module SRing(e=4,id=3.5,od=10,h=.8,rand=n(3),reduction=.5,schlitz=-17,help){
+module SRing(e=4,id=3.5,od=10,h=.8,rand=1.5,reduction=.5,schlitz=-17,help){
 $info=false;
 intersection(){
     LinEx(h,.2,scale=1.05)Rund(0.3)difference(){
@@ -11018,7 +11135,7 @@ intersection(){
        Rund(0.5) Stern(e,od/2-rand,id/2-reduction-1,mod=100,delta=schlitz);
        rotate(180+180/e)intersection_for(i=[0:e-1])rotate(i*360/e)T(reduction)Kreis(id/2,fn=e*15);
     }
-    Pille(h,d=od,rad=.3,center=false);
+    Tz(-.005)Pille(h+.01,d=od,rad=min(.3,h/3),center=false);
 }
 HelpTxt("SRing",[
 "e",e,
