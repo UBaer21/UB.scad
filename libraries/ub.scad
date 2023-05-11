@@ -54,6 +54,8 @@ Changelog (archive at the very bottom)
 100|23 CHG Vollwelle UPD QuadAnschluss CHG Connector
 110|23 CHG Bogen CHG QuadAncshluss CHG Cut CHG Loch CHG Kehle
 120|23 UPD QuadAnschluss FIX Torus UPD Coil CHG SRing CHG kreis ADD FlatMesh
+130|23 CHG FlatMesh FIX GewindeV2 UPD Gewinde chg viewportsize UPD Points
+
 */
 
 {//fold // Constants
@@ -128,7 +130,7 @@ pip=0.35;
 
 pivotSize=$vpd/15;
 /// size viewport
-viewportSize=$preview?tan($vpf)*$vpd:50000; 
+viewportSize=$preview?tan($vpf)*$vpd:2000; 
 
 vpt=is_num(printPos.z)?printPos:concat(printPos,0);
 vpr=bed?[55.00,0.00,25.00]:$vpr;
@@ -144,7 +146,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.120;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.130;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -2444,11 +2446,28 @@ HelpTxt("PrevPos",["on",on,"t",t,"z",z,"rot",rot,"tP",tP],help);
 };
 
 
+/** \page Helper
+Points() show point position with numbers in preview only
+\name Points
+\param points points list to show
+\param color optional color else rainbow is used
+\param size  optional else distance is used to scale
+\param hull  optional creates a convex hull around points - number will be used for transparency/alpha
+\param loop  size of a loop of points 
+\param start start point of that loop
+\param mark  list for points to mark
+\param markS markCol marking size and color
+\param face  highlight marked points as face with normal and order number
+\param center orientation of number label radial (true) or viewpoint
+\param help help
+*/
 
 //Points(octa(5),loop=4,size=0.4);
 //Points(kreis(),mark=[0,1,2,3,4,5,6,7,8],loop=13,start=10);
 //Points(octa(5),mark=[3,4,2,1],hull=.5*0);
 //Points(octa(5),mark=[3,0,2,1],hull=true);
+
+
 
 module Points(points=[[0,0]],color,size,hull,loop,start=0,mark,markS,markCol,face=true,center,help){
   center=is_undef(center)?is_num(points[0].z)?true:false:center;
@@ -2472,10 +2491,12 @@ module Points(points=[[0,0]],color,size,hull,loop,start=0,mark,markS,markCol,fac
         p2=points[mark[(i+2)%lenM]]-points[mark[i]];
         pNormal=cross(  p2, p1  );
 //echo(i,norm(pNormal));
-        translate((p0+points[mark[(i+1)%lenM]]+points[mark[(i+2)%lenM]])/3)
-          color("HotPink",0.8)hull(){
+        translate((p0+points[mark[(i+1)%lenM]]+points[mark[(i+2)%lenM]])/3){
+          color("Lime",0.8)hull(){
             translate(pNormal/norm(pNormal)*markS)sphere(minVal,$fn=3);
             sphere(d=markS/3,$fn=9);
+          }
+          color("HotPink",0.8)sphere(d=markS/2.9,$fn=9);
           }
       }
     }
@@ -7544,7 +7565,7 @@ p=s;
 
  r1=r1?r1:p/sin(winkel/2)/2-0.01;   //overlap preventing
   rh=Kathete(r1,p/2);  //Gangtiefe
-       
+
   
 spiel=rot2==0?spiel:0;                  // spiel only for symetrische 
 dn=$children?dn+spiel*2:dn;
@@ -7581,8 +7602,8 @@ Echo("‼ using old GewindeV2 ‼",color="warning");
            union(){
               Col(6) Polar(g,n=0) difference(){
               R(90)polyhedron(RotEx(rot=w,steigung=p),faces(punkte=RotEx(rot=w)),convexity=15);
-                  if(endMod)Tz(h)rotate(-90+w%360-w%(360/detail))T(dn/2)cylinder(p,d=rh*2-spiel,center=true,$fn=4);
-                  if(endMod)rotate(-90)T(dn/2)cylinder(p,d=rh*2-spiel,center=true,$fn=4);    
+                  if(endMod&&is_num(rh))Tz(h)rotate(-90+w%360-w%(360/detail))T(dn/2)cylinder(p,d=rh*2-spiel,center=true,$fn=4);
+                  if(endMod&&is_num(rh))rotate(-90)T(dn/2)cylinder(p,d=rh*2-spiel,center=true,$fn=4);    
               }
           if(rot2==0)Col(9) Tz(-p/2) rotate(-90)cylinder(w/360*p+p,d=kern,center=false,$fn=detail);   
            }
@@ -8486,6 +8507,7 @@ profil=false,
 fn2=4,
 fn,
 fs=fs,
+fa=fa,
 cyl=true,
 tz=0,
 konisch=0,
@@ -8552,7 +8574,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
         dn=iso_Gewinde[zeile][2]+(innen?spiel*2:0),
         grad=grad,h=h,winkel=60,name=iso_Gewinde[zeile][0],
         innen=innen,wand=wand,mantel=mantel,cyl=cyl,tz=tz,start=start,
-        end=end,fn=fn,fs=fs,fn2=fn2,center=center,rund=rund,ratio=ratio,spiel=spiel,profil=profil,help=help);
+        end=end,fn=fn,fs=fs,fa=fa,fn2=fn2,center=center,rund=rund,ratio=ratio,spiel=spiel,profil=profil,help=help);
     if($children)difference(){
       children();
         if(innen)Tz(center?tz-iso_Gewinde[zeile][1]/2:
@@ -8575,7 +8597,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
             grad=is_undef(grad)?other_Gewinde [zeile][9]:grad,
             h=h,
             start=start,end=end,center=center,profil=profil,fn2=fn2,
-            fn=fn,fs=fs,cyl=cyl,tz=tz,rund=rund,ratio=ratio,spiel=spiel,
+            fn=fn,fs=fs,fa=fa,cyl=cyl,tz=tz,rund=rund,ratio=ratio,spiel=spiel,
             name=other_Gewinde[zeile][8],
             help=help);
             
@@ -8609,6 +8631,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
                 profil=profil,
                 fn2=fn2,
                 fn=fn,
+                fa=fa,
                 fs=fs,
                 cyl=cyl,
                 tz=tz,
@@ -10037,28 +10060,36 @@ InfoTxt("GewindeV3",["dn∅",dn,"Steigung",str(p,"mm/U"),"Kern",kern,"Gangtiefe"
 \param  base bottom 
 \param  res  resolution num or list 
 \param  randSize to add noise
-\param  amp list for amplitudes [crossx, - ,radial,x,y,diagonal,randomX,randomY(opt)]
-\param  f frequency list [crossx,crossy,radial,x,y,diagonal]
-\param  delta list for moving pattern [crossx, - ,radial,x,y,diagonal,randomX,randomY(opt)]
+\param  amp list for amplitudes [crossx, - ,x,y,diagonal,diagonal,radial,circular,randomX,randomY(opt)]
+\param  freq frequency list [crossx,crossy,x,y,diagonal,diagonal,radial,circular]
+\param  delta list for moving pattern [crossx, - ,x,y,diagonal,diagonal,radial,circular,randomX,randomY(opt)]
 \param  seed seed for noise
 \param  center v3
 \param  fs  size if resolution is number
 \param  bricks interlock y rand blocks
 */
 
+
 //FlatMesh(size=[15.5,12.123],res=10,f=[0,0,50,0,0,0,0],randSize=5,amp=[0.2,0,0.1,0,0,0,0.2],delta=[0,0,0,0,0,0],center=[1,1]);
+/*
+FlatMesh(amp=[1,0,1,1,0,0,0,0,0]);
+T(20)color("red")  FlatMesh(amp=[0,0,1,1,0.5,0.5,0,0,0],delta=[0,0,0,90,0,0,0,0,0,0,0]);
+T(40)color("green")FlatMesh(amp=[0,0,0,0,0,0,1,0,0,0],delta=[0,0,0,0,0,0,0,0,0],res=1,center=[0,1,1]);
+T(70)color("blue") FlatMesh(amp=[0,0,0,0,0,0,0,1,0,0],freq=[4],delta=[0,0, 0,0, 0,0, 0,90, 0,0],center=[1,1,1],res=2);
+
+//*/
 
 
-module FlatMesh(size=[20,30],fz,base=5,res=1,randSize=0,amp=[1],f=[2],delta=[0],seed=42,center=[0,0,1],fs=1,bricks=false,help){
+module FlatMesh(size=[20,30],fz,base=5,res=1,randSize=0,amp=[1],freq=[2],delta=[0],seed=42,center=[0,0,1],fs=1,bricks=false,help){
 center=v3(center);
 size=is_num(size)?[size,size]:size;
 
 res=is_num(res)?[round(res*size.x/fs),round(res*size.y/fs)]:res;
-f=f/max(res)*360;
-delta=delta/max(res);
+f=freq/max(res)*360;
+delta=delta;
 step=[size.x/res.x, size.y/res.y];
 
-HelpTxt("FlatMesh",["size",size,"fz",fz,"base",base,"res",res,"randSize",randSize,"seed",seed,"center",center],help);
+HelpTxt("FlatMesh",["size",size,"fz",fz,"base",base,"res",res,"randSize",randSize,"amp",amp,"freq",freq,"delta",delta,"seed",seed,"center",center],help);
 
 //amp=[0.08,.15,.5,.5,.5,.5,.5];//[0,0,0,1,1,0,0];//
 //f=[15,20,10,5,6,2];
@@ -10066,20 +10097,25 @@ HelpTxt("FlatMesh",["size",size,"fz",fz,"base",base,"res",res,"randSize",randSiz
 
 randSize=is_num(randSize)?[1,1]*randSize:randSize;
 //delta=[1,1.5,2,1.75,.5,.3,0,randSize.x,randSize.y];//*$t*1000;
-deltaRand=[delta[6%len(delta)],delta[7%len(delta)]];
+deltaRand=[delta[8%len(delta)],delta[9%len(delta)]];
 
 // random
-function rand(x,y,amp=amp[6%len(amp)],randSize=randSize,delta=deltaRand,seed=seed)=
+function rand(x,y,amp=amp[8%len(amp)],randSize=randSize,delta=deltaRand,seed=seed)=
   rands(-1,1,1,
     seed+(round((delta.x+x+randSize.x/2)/randSize.x)*round((delta.y+y+randSize.y/2)/randSize.y)) )[0] * amp*sign(max(randSize));
 
 fz=is_function(fz)?fz:function(x,y) 
-  sin(x*f[0%len(f)]+delta[0%len(delta)])*sin(y*f[1%len(f)]+delta[1%len(delta)])*amp[0%len(amp)]//cross
-  +sin(norm([x-center.x*res.x/2,y-center.y*res.y/2])*f[2%len(f)]+delta[2%len(delta)])*amp[2%len(amp)]//circular
+  (amp[0%len(amp)]?sin(x*f[0%len(f)]+delta[0%len(delta)])*sin(y*f[1%len(f)]+delta[1%len(delta)]) *amp[0%len(amp)]:0)//cross
+  +(amp[2%len(amp)]?sin(x*f[2%len(f)]+delta[2%len(delta)]) *amp[2%len(amp)]:0)//x
+  +(amp[3%len(amp)]?sin(y*f[3%len(f)]+delta[3%len(delta)]) *amp[3%len(amp)]:0)//y 
+  +(amp[4%len(amp)]?sin((x-y)*f[4%len(f)]+delta[4%len(delta)]) *amp[4%len(amp)]:0)// diagonal
+  +(amp[5%len(amp)]?sin((x+y)*f[5%len(f)]+delta[5%len(delta)]) *amp[5%len(amp)]:0)// diagonal
   
-  +sin(x*f[3%len(f)]+delta[3%len(delta)])*amp[3%len(amp)]//x
-  +sin(y*f[4%len(f)]+delta[4%len(delta)])*amp[4%len(amp)]//y
-  +sin((x-y)*f[5%len(f)]+delta[5%len(delta)])*amp[5%len(amp)]// diagonal
+
+  +(amp[6%len(amp)]?sin(norm([x-center.x*res.x/2,y-center.y*res.y/2])*f[6%len(f)]+delta[6%len(delta)]) *amp[6%len(amp)]:0)//radial
+  +(amp[7%len(amp)]?sin(atan2(x-center.x*res.x/2,y-center.y*res.y/2)*(freq[7%len(freq)])+delta[7%len(delta)]) *amp[7%len(amp)]*norm([x-center.x*res.x/2,y-center.y*res.y/2])/(max(res)/2):0)//circular
+
+  
   
   //+rands(-1,1,1,x*y+delta[6])[0]*amp[6]// noise
  ;
