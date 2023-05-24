@@ -55,6 +55,7 @@ Changelog (archive at the very bottom)
 110|23 CHG Bogen CHG QuadAncshluss CHG Cut CHG Loch CHG Kehle
 120|23 UPD QuadAnschluss FIX Torus UPD Coil CHG SRing CHG kreis ADD FlatMesh
 130|23 CHG FlatMesh FIX GewindeV2 UPD Gewinde chg viewportsize UPD Points
+140|23 CHG Ring CHG Riemen UPD riemen CHG Tri CHG Tri90 FIX Gewinde UPD Bogen
 
 */
 
@@ -130,7 +131,7 @@ pip=0.35;
 
 pivotSize=$vpd/15;
 /// size viewport
-viewportSize=$preview?tan($vpf)*$vpd:2000; 
+viewportSize=$preview?tan($vpf)*$vpd:1000; 
 
 vpt=is_num(printPos.z)?printPos:concat(printPos,0);
 vpr=bed?[55.00,0.00,25.00]:$vpr;
@@ -146,7 +147,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.130;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.140;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -1024,9 +1025,9 @@ is_num(z)?
   [for(i=rev?[fn:-1:0] : [0:fn]) [sin(i*step+rot), cos(i*step+rot)]*r + [sin(i*step-90+rot), cos(i*step-90+rot)] * (2*PI*r/360*i*step+i*deltaStep)]
 ;
 
-function riemen(r1=5,r2=10,tx=20,fn=fn,z,center=false)=
+function riemen(r1=5,r2=10,tx=20,fn=fn,fs=fs,z,center=false)=
 let(a=asin((r2-r1)/tx))
-concat(kreis(r=r1,rand=0,grad=180 - 2*a,center=true,fn=fn,z=z,t=[center?-tx/2:0,0]),kreis(r=r2,rand=0,grad=180 + 2*a,t=[center?tx/2:tx,0],rot=180,center=true,fn=fn,z=z));
+concat(kreis(r=r1,rand=0,grad=180 - 2*a,center=true,fn=fn,fs=fs,z=z,t=[center?-tx/2:0,0]),kreis(r=r2,rand=0,grad=180 + 2*a,t=[center?tx/2:tx,0],rot=180,center=true,fn=fn,fs=fs,z=z));
 
 
 
@@ -2028,7 +2029,7 @@ Halb() Object Cuts away half of Object at [0,0,0]
 //Halb()sphere(5);
 
 
-module Halb(i=0,x=0,y=0,z=0,2D=0,size=max(400,viewportSize*5),t=[0,0,0],help=false)
+module Halb(i=0,x=0,y=0,z=0,2D=0,size=max(400,viewportSize*4),t=[0,0,0],help=false)
 {
 t=v3(t);
 xChange=x;
@@ -3533,10 +3534,20 @@ module WStern(f=5,r=1.65,a=.25,r2,fn=0,fs=fs,fv=0,name,help){
 
 
 
+/** \name Tri90 \page Polygons
+Tri() creates a right angled triangle
+\param grad angle optional
+\param a seide lenght
+\param b second side
+\param c third side
+\param r radius rounding
+\param messpunkt show center
+\param tang but round at origin
+\param fn fs fragments
+*/
 
 
-
-module Tri90(grad,a=25,b=25,c,r=0,messpunkt=0,tang=true,fn=fn,name,help){
+module Tri90(grad,a=25,b=25,c,r=0,messpunkt=0,tang=true,fn,fs=fs,name,help){
  
   if (is_list(r)&&!tang)Echo("Tri90 Winkelfehler r is list & tang=false!",color="red");  
     
@@ -3574,25 +3585,41 @@ if(messpunkt){
 
  points=concat(
     
- r3==0?[[0,0]]:Kreis(rot=180,grad=wC,fn=fn,rand=0,r=r3,t=tC,center=false),
- r1==0?[[0,b]]:Kreis(rot=270,grad=wA,fn=fn,rand=0,r=r1,t=tA,center=false),    
- r2==0?[[a,0]]:Kreis(rot=+180-wB,grad=wB,fn=fn,rand=0,r=r2,t=tB,center=false) 
+ r3==0?[[0,0]]:kreis(rot=180,grad=wC,fn=fn,fs=fs,rand=0,r=r3,t=tC,center=false),
+ r1==0?[[0,b]]:kreis(rot=270,grad=wA,fn=fn,fs=fs,rand=0,r=r1,t=tA,center=false),    
+ r2==0?[[a,0]]:kreis(rot=+180-wB,grad=wB,fn=fn,fs=fs,rand=0,r=r2,t=tB,center=false) 
  
 );
 
  polygon(points,convexity=5);  
    
 InfoTxt("Tri90",["a",str(a," b=",b," c=",Hypotenuse(a,b),"mm",r?str(" true a=",tB[0]+r2," b=",tA[1]+r1," c=",norm(tA-tB)+r1+r2):""," grad α=",grad,"° grad β=",gradB,"° γ=90° Höhe c=",a*sin(gradB))],name);
-HelpTxt("Tri90",["grad",grad,"a",a,"b",b,"c",c,"r",r,"messpunkt",messpunkt,"tang",tang,"fn",fn,"name",name],help);     
+HelpTxt("Tri90",["grad",grad,"a",a,"b",b,"c",c,"r",r,"messpunkt",messpunkt,"tang",tang,"fn",fn,"fs",fs,"name",name],help);     
     
 }
 
+/** \name Tri \page Polygons
+Tri() creates a isosceles triangle
+\param grad angle
+\param l seide lenght
+\param l2 optional second side
+\param h height 
+\param r radius rounding
+\param messpunkt show center
+\param center center
+\param top put tip at origin
+\param tang but round at origin
+\param c side c
+\param fn fs fragments
+*/
 
-module Tri(grad=60,l=20,l2,h=0,r=0,messpunkt=0,center=+0,top=0,tang=1,c,fn=fn,name,help){
+module Tri(grad=60,l=20,l2,h=0,r=0,messpunkt=0,center=+0,top=0,tang=1,c,fn,fs=fs,name,help){
   assert(grad!=180&&grad,"Tri bad grad");
   Echo("WIP‼ c and tang=0",color="red",condition=is_num(c)&&!tang);
   h=is_num(c)?c/tan(grad/2)/2:h;
   l22=is_undef(l2)?l:l2;  //wip
+  
+  fn=is_undef(fn)?0:fn;
  
  w1=180-grad;  //Supplementwinkel 
  w2=(360-w1)/2;
@@ -3621,9 +3648,9 @@ module Tri(grad=60,l=20,l2,h=0,r=0,messpunkt=0,center=+0,top=0,tang=1,c,fn=fn,na
  t3=RotLang(90+grad/2,l3)-RotLang(90+w3/2,TangentenP(w3,r3,r3));
     
 points=concat(
-        kreis(rand=0,r=r1,grad=w1,t=t1,fn=fn/3),
-        kreis(rand=0,r=r2,rot=-rot+180,grad=w2,t=t2,fn=fn/3),    
-        kreis(rand=0,r=r3,rot=rot+180,grad=w3,t=t3,fn=fn/3)    
+        kreis(rand=0,r=r1,grad=w1,t=t1,fn=fn/3,fs=fs),
+        kreis(rand=0,r=r2,rot=-rot+180,grad=w2,t=t2,fn=fn/3,fs=fs),    
+        kreis(rand=0,r=r3,rot=rot+180,grad=w3,t=t3,fn=fn/3,fs=fs)    
 );
 
     rotate(top?0:180)translate([center?
@@ -3650,7 +3677,7 @@ points=concat(
     }
 
  InfoTxt("Tri",["reale Höhe=",tang?hc-TangentenP(w1,r1):hc,"h",tang?hc:hc+TangentenP(w1,r1),"Basis",2*Kathete(l2,tang?hc:hc+TangentenP(w1,r1)),"Umkreis r",2*Kathete(l2,hc)/(2*sin(grad)),"c",l==l22?sin(grad/2)*l*2:"WIP"],name);
- HelpTxt("Tri",["grad",grad,"l",l,"l2",l2,"h",h,"r",r,",messpunkt",messpunkt,",center=",center,"top",top,"tang",tang,"c",c,"fn",fn,"name",name],help);    
+ HelpTxt("Tri",["grad",grad,"l",l,"l2",l2,"h",h,"r",r,",messpunkt",messpunkt,",center=",center,"top",top,"tang",tang,"c",c,"fn",fn,"fs",fs,"name",name],help);    
  
 }
 
@@ -3791,12 +3818,24 @@ module Welle(e=3,grad=200,r=5,r2,center=3,rand=2,h=0,ext=0,end=false,fn,fs=fs,la
 }
 
 
+/** \name Riemen \page Polygons
+Riemen() creates a belt form  can use polygons as children for 3D
+\param r1 radius pulley 1
+\param r2 raduis pulley 2
+\param tx pulley distance 
+\param fn fs fragments
+\param center center
+\param lap overlap (for 3D)
+\param name help name help
+*/
 
 //Rand(1)Riemen(tx=25,r1=5,r2=10,center=-1,$messpunkt=true);
 //Cut()Riemen(center=+0,fn=25)rotate(90)Rund(0.2,fn=12)Nut(a=undef,b=undef,es=2,e=5,grad=70,center=false);
 
 
-module Riemen(r1=5,r2=10,tx=25,fn=fn,center=false,lap=0.005,spiel=0,name,help){
+
+
+module Riemen(r1=5,r2=10,tx=25,fn,fs=fs,center=false,lap=0.005,spiel=0,name,help){
 lapL=0;
 r1=r1+spiel;
 r2=r2+spiel;
@@ -3808,21 +3847,27 @@ U=lTrum*2+r1*PI/180*(180-a*2)+r2*PI/180*(180+a*2);
 if(r1!=r2)Pivot(p0=b(center,false)<0?[0,0]:[(center?-tx/2:0)-tx0,0],rot=a);
 
 InfoTxt("Riemen",["alpha",a,"Trum",lTrum,"Umfang",U,"tx",tx,"ratio",str("1:",r1/r2,"/",r2/r1,":1")],name);
-Echo(str(name," Wellen Abstand ",tx,"mm nicht Norm gemäß! min=",1.4*(r1+r2)," max=",4*(r1+r2)),color="warning",condition=(1.4*(r1+r2)>tx||4*(r1+r2)<tx));
+
+Echo(str(name," Wellen Abstand ",tx,"mm nicht Norm gemäß! min tx=",1.4*(r1+r2)," max=",4*(r1+r2)," Winkel=",a,"°"),color="warning",condition=(1.4*(r1+r2)>tx||4*(r1+r2)<tx)&&($children||r1+r2>20)&&(is_undef($idx)||!$idx));
+
 if(!$children){
-  if(b(center,false)<0&&r1!=r2) translate([tx0,0])polygon(riemen(r1=r1,r2=r2,tx=tx,fn=fn,center=0));
-  else polygon(riemen(r1=r1,r2=r2,tx=tx,fn=fn,center=center));
+  if(b(center,false)<0&&r1!=r2) translate([tx0,0])polygon(riemen(r1=r1,r2=r2,tx=tx,fn=fn,fs=fs,center=0));
+  else polygon(riemen(r1=r1,r2=r2,tx=tx,fn=fn,fs=fs,center=center));
   } else translate([(center?b(center,false)<0&&r1!=r2?tx0:-tx/2:0),0,0]){
+  $idx=1;
   
-  rotate(180)RotEx(grad=180 - a*2 +gradS(s=lap,r=r1)*2,center=true)T(r1)children();
-  T(tx)RotEx(grad=180 + a*2 +gradS(s=lap,r=r2)*2,center=true)T(r2)children();
+  union(){
+  $idx=0;
+  rotate(180)RotEx(grad=180 - a*2 +gradS(s=lap,r=r1)*2,center=true,fn=fn)T(r1)children();
+  }
+  
+  T(tx)RotEx(grad=180 + a*2 +gradS(s=lap,r=r2)*2,center=true,fn=fn)T(r2)children();
   rotate([0, 90,-a +180])T(0,r1)rotate(-270)Tz(-lTrum+lapL)linear_extrude(lTrum-lapL*2,convexity=5)children();
   rotate([0,-90, a +180])T(0,-r1)rotate(-90)Tz(+lapL)linear_extrude(lTrum-lapL*2,convexity=5)children();
-  
   }
   
 //echo(pathLength(riemen(r1=r1,r2=r2,tx=tx,fn=fn,center=center),close=true));
-HelpTxt("Riemen",["r1",r1,"r2",r2,"tx",tx,"fn",fn,"center",center,"spiel",spiel,"name",name],help);
+HelpTxt("Riemen",["r1",r1,"r2",r2,"tx",tx,"fn",fn,"fs",fs,"center",center,"spiel",spiel,"name",name],help);
 
 }
 
@@ -6560,33 +6605,53 @@ difference(){
 }
 
 
+/** \name Ring \page Objects
+Ring() creates a ring
+\param h height 0 for 2D
+\param rand rim thickness
+\param d,r diameter radius
+\param id ir inner diameter/radius
+\param grad  angle
+\param rcenter center rim on d/r
+\param center center h
+\param fn,fs fraqment number, size
+\param name name
+\param 2D makes a 2D ring
+\param help help
+\param cd  if false d or r (old - use rcenter instead)
+*/
+//Ring(r=10,ir=5,rcenter=0);
 
-module Ring(h=5,rand,d=10,r,cd=1,id=6,ir,grad=360,rcenter,center=false,fn=fn,fs=fs,name,2D=0,help){
+
+module Ring(h=5,rand,d=10,r,id=6,ir,grad=360,rcenter,center=false,fn,fs=fs,name,2D=0,help,cd=1){
     
     id=is_undef(id)?d-rand*2:id;
     r=is_undef(r)?d/2:r;
     ir=is_undef(ir)?id/2:ir;
     rcenter=is_undef(rcenter)?!abs(cd):rcenter;
-    rand=is_undef(rand)?r-ir:rand*sign(cd==0?1:cd);
+    rand=is_undef(rand)?rcenter?(r-ir)*2:r-ir:rand*sign(cd==0?1:cd);
     2D=is_parent(parent= needs2D)?true:2D;
     if(2D||!h)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,fn=fn?fn:undef,fs=fs,rot=0,center=center,name=0,help=0);
         else rotate([h>0?0:180])linear_extrude(abs(h),center=center,convexity=5)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,center=center,fn=fn?fn:undef,fs=fs,rot=0,name=0,help=0);
     
 InfoTxt("Ring",[str("Aussen∅= ",rcenter?d+abs(rand):rand>0?d:d-rand*2,"mm — Mitte∅= ",rcenter?d:d-rand,"mm — Innen∅"),str(rcenter?d-abs(rand):rand>0?d-(rand*2):d,"mm groß — Rand=",rand,"mm und ",2D||!h?"2D":str(h," hoch") )],name);    
  
-HelpTxt("Ring",["h",h,
+HelpTxt("Ring",[
+    "h",h,
     "rand",rand,
     "d",d,
     "r",r,
     "id",id,
     "ir",ir,
-    "cd",cd,
+    "grad",grad,
     "rcenter",rcenter,
     "center",center,
     "fn",fn,
     "fs",fs,
     "name",name,
-    "2D",2D,],help);
+    "2D",2D,
+    "cd",cd,
+    ],help);
 
 }
 
@@ -8858,12 +8923,18 @@ facesALL=concat(
 faces0(points=RotEx(+0))//floor endcap
 ,faces1(points=RotEx(0),start=len(RotEx(grad))-len(RotEx(0)))//top endcap
 
+//Outer wall
 ,[if(innen)for(level=[0:detail-1])each faces31(points=RotEx(0),start=(len(RotEx(0)))*level)
-    else for(level=[0:detail-1])each faces3(points=RotEx(0),start=(len(RotEx(0)))*level)]//Outer wall
+    else for(level=[0:detail-1])each faces3(points=RotEx(0),start=(len(RotEx(0)))*level)]
+//inner wall
 ,[if(innen)for(level=[0:detail-1])each faces41(points=RotEx(0),start=(len(RotEx(0)))*level)
-   else for(level=[0:detail-1])each faces4(points=RotEx(0),start=(len(RotEx(0)))*level)]//inner wall
-,[for(level=[0:(fn*min(1,grad/360))- 1])each faces5(points=RotEx(0),start=(len(RotEx(0)))*level)]// bottom     
-,[for(level=[detail-(fn*min(1,grad/360)):detail- 1])each faces6(points=RotEx(0),start=(len(RotEx(0)))*(level-(innen?1:+0)))]//top wall     
+   else for(level=[0:detail-1])each faces4(points=RotEx(0),start=(len(RotEx(0)))*level)]
+// bottom wall
+,[if(konisch==0)for(level=[0:(fn*min(1,grad/360))- 1])each faces5(points=RotEx(0),start=(len(RotEx(0)))*level)
+   else for(level=[0:detail- 1])each faces5(points=RotEx(0),start=(len(RotEx(0)))*level)]
+//upper wall
+,[if(konisch==0)for(level=[detail-(fn*min(1,grad/360)):detail- 1])each faces6(points=RotEx(0),start=(len(RotEx(0)))*(level-(innen?1:+0)))
+   else for(level=[0:detail- 1])each faces6(points=RotEx(0),start=(len(RotEx(0)))*(level-(innen?1:+0)))]
 );
 
 pointsALL=RotEx(grad);//3D
@@ -9762,7 +9833,7 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,fs=fs,messpunkt=f
 
     //Warnings    
   Echo(str(name," SBogen has no 2D-Object"),color=Hexstring([1,0.5,0]),size=4,condition=!$children&&!2D&&!extrudeTrue);
-  Echo(str(name," SBogen width is determined by var 2D=",2D,"mm"),color="info",size=4,condition=2D==1&&!extrudeTrue&&(is_undef($idx)||!$idx));       
+  Echo(str(name," SBogen width is determined by var 2D=",2D,"mm"),color="info",size=4,condition=2D==1&&!extrudeTrue&&(is_undef($idx)||!$idx)&&$info);       
    
   Echo(str(name," SBogen r1/r2 to big  middle <0"),condition=l2m<0);
   Echo(str(name," SBogen radius 1 negative"),condition=r1<0);
