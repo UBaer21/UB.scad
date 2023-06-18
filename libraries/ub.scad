@@ -55,7 +55,8 @@ Changelog (archive at the very bottom)
 110|23 CHG Bogen CHG QuadAncshluss CHG Cut CHG Loch CHG Kehle
 120|23 UPD QuadAnschluss FIX Torus UPD Coil CHG SRing CHG kreis ADD FlatMesh
 130|23 CHG FlatMesh FIX GewindeV2 UPD Gewinde chg viewportsize UPD Points
-140|23 CHG Ring CHG Riemen UPD riemen CHG Tri CHG Tri90 FIX Gewinde UPD Bogen
+140|23 CHG Ring CHG Riemen UPD riemen CHG Tri CHG Tri90 FIX Gewinde UPD SBogen
+150|23 CHG SBogen CHG Kegel FIX Bezier chg fa UPD Anschluss UPD Welle UPD M
 
 */
 
@@ -118,7 +119,7 @@ fn=$fn?$fn:$preview?36:
 
 
 fs=$preview?.75:hires?.1:.2;
-fa=$preview?5:hires?.5:1;
+fa=$preview?10:hires?.5:1;
 
 
 /// demo objects
@@ -147,7 +148,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.140;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.150;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -1821,7 +1822,7 @@ M() multmatrix objects
 
 // short for multmatrix and skewing objects
 module M(skewZX=0,skewZY=0,skewXZ=0,skewXY=0,skewYZ=0,skewYX=+0,scale=1,scaleXY=1,scaleXZ=1,scaleYZ=1,help=false,skewxy,skewxz,skewyx,skewyz,skewzx,skewzy,scalexy,scalexz,scaleyz){
-
+    scale=is_list(scale)?scale:scale*[1,1,1];
     skewXY=is_undef(skewxy)?skewXY:skewxy;
     skewXZ=is_undef(skewxz)?skewXZ:skewxz;
     skewYX=is_undef(skewyx)?skewYX:skewyx;
@@ -1833,9 +1834,9 @@ module M(skewZX=0,skewZY=0,skewXZ=0,skewXY=0,skewYZ=0,skewYX=+0,scale=1,scaleXY=
     scaleXZ=is_undef(scalexz)?scaleXZ:scalexz;
     scaleYZ=is_undef(scaleyz)?scaleYZ:scaleyz;
     
-    scaleX=scale*scaleXY*scaleXZ;
-    scaleY=scale*scaleXY*scaleYZ;
-    scaleZ=scale*scaleXZ*scaleYZ;
+    scaleX=scale.x*scaleXY*scaleXZ;
+    scaleY=scale.y*scaleXY*scaleYZ;
+    scaleZ=scale.z*scaleXZ*scaleYZ;
     
     multmatrix([
     [scaleX,skewYX,skewZX,0],
@@ -3748,7 +3749,7 @@ module Welle(e=3,grad=200,r=5,r2,center=3,rand=2,h=0,ext=0,end=false,fn,fs=fs,la
     delta2= vSum(h) *tan(90-grad2) ; // in S Segment
     delta=y+y2+yg1+y2g1 + (vSum(h))*tan(90-grad1) + delta2 ;// between S segments
     
-    fn=is_undef(fn)?[fs2fn(r=r,grad=gradSUM,fs=fs),fs2fn(r=r2,grad=gradSUM,fs=fs)]:is_list(fn)?fn:[fn,fn];
+    fn=is_undef(fn)||fn==0?[fs2fn(r=r,grad=gradSUM,fs=fs),fs2fn(r=r2,grad=gradSUM,fs=fs)]:is_list(fn)?fn:[fn,fn];
     points=[
      each for(i=[0:round(e-1)])each[
        arc(r2+rand/2,deg=grad1+grad2+(i==0&&end[0]?90-grad1:0),t=[-hi[1],-y2+delta*i],rot=180-grad2,fn=fn[1],rev=1),
@@ -6889,7 +6890,7 @@ hc=abs(c/2*v);
 ri=c*hc/(2*Hypotenuse(c/2,hc)+c);
 
 
-rLim=[ min(ri, height/2) , min(height/2, abs(min(d1,d2)/2-x0-rList[d1>d2?3:2])*(1+tan(abs(90-deg))) ) ];
+rLim=[ min(ri, height) , min(height, abs(min(d1,d2)/2-x0-rList[d1>d2?3:2])*(1+tan(abs(90-deg))) ) ];
 
 
 rad=[min( rList[0],rLim[d1>d2?0:1] ), min( rList[1],rLim[d1>d2?1:0] ), rList[2], rList[3] ];
@@ -7868,6 +7869,9 @@ HelpTxt("Strebe",["h",h,"d",d,"d2",d2,"rad",rad,"rad2",rad2,"sc",sc,"grad",grad,
 
 }
 
+/// Bezier() creates a Bezier shape polygon or 3D
+
+//RotEx(cut=true)Bezier(mpRot=true);
 
 module Bezier(
 p0=[+0,+10,0],
@@ -7969,7 +7973,7 @@ help
     
     
     
-    if(messpunkt){
+    %if(messpunkt){
         ex=is_undef(ex)?0:ex;
          vpr=mpRot?[90,0,0]:$vpr;
         Pivot(mpRot?[p0[0]+ex,0,p0[1]]:p0+[ex,0,0],messpunkt,txt="p0",vpr=vpr);
@@ -9715,7 +9719,7 @@ HelpTxt("REcke",["h",h,"r",r,"rad",rad,"rad2",rad2,"single",single,"grad",grad,"
 //SBogen(2D=true);
 
 
-module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,fs=fs,messpunkt=false,2D=0,extrude=false,grad2=0,x0=0,name,help,spiel,lap=0){
+module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn,fs=fs,messpunkt=false,2D=0,extrude=false,grad2=0,x0=0,name,help,spiel,lap=0){
     lap=is_undef(spiel)?lap:spiel;
     center=is_bool(center)?center?1:0:sign(center);
     r2=!is_undef(r2)?r2:r1;
@@ -9768,20 +9772,20 @@ module SBogen(dist=10,r1=10,r2,grad=45,l1=15,l2,center=1,fn=fn,fs=fs,messpunkt=f
 
 
  if(grad&&!extrudeTrue)mirror(gradN<0?[1,0]:[0,0])translate(center?[0,0,0]:[dist/2,l1]){
-    translate([dist/2,y/2,0])T(-r2)rotate(grad2[1])T(r2)Bogen(rad=r2,grad=grad+grad2[1],center=false,l1=l2-y/2,l2=l2m,help=0,name=0,messpunkt=messpunkt,2D=2D,fn=fn,d=2D,lap=lap)
+    translate([dist/2,y/2,0])T(-r2)rotate(grad2[1])T(r2)Bogen(rad=r2,grad=grad+grad2[1],center=false,l1=l2-y/2,l2=l2m,help=0,name=0,messpunkt=messpunkt,2D=2D,fn=fn,fs=fs,d=2D,lap=lap)
     if($children){
 
       $idx=is_undef($idx)?0:$idx;
       $tab=is_undef($tab)?1:b($tab,false)+1;
       children();
     }
-    else circle($fn=fn);
-  T(-dist/2,-y/2) mirror([1,0,0])rotate(180)T(r1)rotate(-grad2[0])T(-r1)Bogen(rad=r1,grad=-grad-grad2[0],center=false,l1=l1-y/2,l2=l2m,help=0,name=0,messpunkt=messpunkt,2D=2D,fn=fn,d=2D,lap=lap)
+    else circle($fn=fn,$fs=fs);
+  T(-dist/2,-y/2) mirror([1,0,0])rotate(180)T(r1)rotate(-grad2[0])T(-r1)Bogen(rad=r1,grad=-grad-grad2[0],center=false,l1=l1-y/2,l2=l2m,help=0,name=0,messpunkt=messpunkt,2D=2D,fn=fn,fs=fs,d=2D,lap=lap)
     if($children){
       $idx=1;
       children();
     }
-    else circle($fn=fn);
+    else circle($fn=fn,$fs=fs);
  }
  
  if(!grad&&!extrudeTrue) //0 grad Grade
@@ -9987,8 +9991,9 @@ Anschluss() creates a transision between diameter or thickness
 
 
 
-module Anschluss(h=10,d1=10,d2=15,rad=5,rad2,grad=30,r1,r2,center=true,fn=fn,fn2=0,grad2=0,x0=0,wand,2D=false,name,help,old=false){
-
+module Anschluss(h=10,d1=10,d2=15,rad=5,rad2,grad=30,r1,r2,center=true,fn=fn,fn2=0,grad2=0,x0=0,wand,2D=false,name,help,old=false,dicke){
+     
+    wand=is_undef(dicke)?wand:dicke; 
     center=is_bool(center)?center?1:0:center;
     rad2=is_undef(rad2)?is_list(rad)?rad[1]:rad:rad2;
     rad=is_list(rad)?rad[0]:rad;
@@ -10043,7 +10048,7 @@ module Anschluss(h=10,d1=10,d2=15,rad=5,rad2,grad=30,r1,r2,center=true,fn=fn,fn2
    "fn2",fn2,
    "grad2",grad2,
    "x0",x0,
-   "wand",wand,
+   "dicke",dicke,
    "2D",2D,
    "name",name]
    ,help);
