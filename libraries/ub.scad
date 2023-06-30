@@ -57,6 +57,7 @@ Changelog (archive at the very bottom)
 130|23 CHG FlatMesh FIX GewindeV2 UPD Gewinde chg viewportsize UPD Points
 140|23 CHG Ring CHG Riemen UPD riemen CHG Tri CHG Tri90 FIX Gewinde UPD SBogen
 150|23 CHG SBogen CHG Kegel FIX Bezier chg fa UPD Anschluss UPD Welle UPD M
+160|23 UPD Pille UPD Connector CHG DPfeil, UPD Kreis kreis
 
 */
 
@@ -148,7 +149,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.150;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.160;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -248,7 +249,7 @@ kreis() generates points on a circle or arc
 function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=kreis(r,rand,grad,grad2,fn,center,sek,r2,rand2,rcenter,rot,t);
 
 
-function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d,endPoint=true,fs=fs,fs2,fn2,minF=1)=
+function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d,endPoint=true,fs=fs,fs2,fn2,minF=1,fa=fa)=
 let (
 grad2=is_undef(grad2)?grad:grad2,
 r=is_num(d)?rcenter?(d+rand)/2:d/2:
@@ -258,12 +259,13 @@ r2=r2?
     rcenter?r2+rand2/2:r2
     :r,
 fn=is_num(fn)&&fn>0?max(1,ceil(abs(fn)))
-                    :max(abs(grad)<180?1
+                    :min(max(abs(grad)<180?1
                                        :abs(grad)==360?3
-                                                      :2,ceil(abs(PI*r*2/360*grad/max(fs,0.001))),minF),
+                                                      :2,ceil(abs(PI*r*2/360*grad/max(fs,0.001))),minF),grad/fa ),
 fs2=is_undef(fs2)?fs:fs2,
 
-fn2=is_num(fn)&&fn>0?is_undef(fn2)?fn:max(1,ceil(abs(fn2))):max(abs(grad2)<180?1:abs(grad2)==360?3:2,ceil(abs(PI*(r-rand)*2/360*grad2/max(fs2,0.001))),minF),
+fn2=is_num(fn)&&fn>0?is_undef(fn2)?fn:max(1,ceil(abs(fn2))):min(max(abs(grad2)<180?1:abs(grad2)==360?3:2,ceil(abs(PI*(r-rand)*2/360*grad2/max(fs2,0.001))),minF),grad/fa),
+
 step=grad/fn,
 step2=grad2/fn2,
 t=is_list(t)?t:[t,0],
@@ -3234,11 +3236,11 @@ concat(
 if(2D)offset(delta=spiel)polygon(points);
   else {
    
-   h=min(d)*sin(printCut)+spiel*2;
+   h=printCut==false?max(d)*3:min(d)*sin(printCut)+spiel*2;
     Tz(print?h/2:0)R(print?-90:0)
       intersection(){
         RotEx(cut=spiel?true:false)Connector(l=l,d=d,l2=l2,d2=d2,dicke=dicke,flat=flat,flatC=flatC,latch=latch,collar=collar,deg=deg,degC=degC,degEnd=degEnd,end=end,cut=cut,center=center,spiel=spiel);
-        R(90)LinEx(h,center=true)Connector(l=l,d=d,l2=l2,d2=d2,dicke=min(d)/2*(1-cos(printCut))+.5,flat=flat,flatC=flatC,latch=latch,collar=collar,deg=deg,degC=degC,degEnd=degEnd,end=end,cut=cut,center=center,spiel=spiel);
+        R(90)LinEx(h,center=true)Connector(l=l,d=d,l2=l2,d2=d2,dicke=printCut==false?d/2-latch-[.5,.5]:min(d)/2*(1-cos(printCut))+.5,flat=flat,flatC=flatC,latch=latch,collar=collar,deg=deg,degC=degC,degEnd=degEnd,end=end,cut=cut,center=center,spiel=spiel);
       }
   }
 
@@ -4132,19 +4134,19 @@ Kreis() creates a circle polygon
 \param help help
 \param d diameter optional to r = d↦r
 \param b optional to grad, L of the circular arc
-\param fs fragment size optional to fn fs↦fn
+\param fs,fa fragment size optional to fn fs↦fn,min fraqment angle
 
 */
 
 
 
-module Kreis(r=10,rand=0,grad=360,grad2,fn,center=true,sek=false,r2=0,rand2,rcenter=0,rot=0,t=[0,0],name,help,d,b,fs=fs){
+module Kreis(r=10,rand=0,grad=360,grad2,fn,center=true,sek=false,r2=0,rand2,rcenter=0,rot=0,t=[0,0],name,help,d,b,fs=fs,fa=fa){
     r=is_undef(d)?r:d/2;
     d=2*r;
     grad=is_undef(b)?grad:r==0?0:b/(2*PI*r)*360;
     b=2*r*PI*grad/360;
     
-   polygon( kreis(r=r,rand=rand,grad=grad,grad2=grad2,fn=fn,center=center,sek=sek,r2=r2,rand2=rand2,rcenter=rcenter,rot=grad==360?center?rot:rot+90:center?rot+180:rot+90,t=t,fs=fn?undef:fs,endPoint=grad==360?false:true),convexity=5);
+   polygon( kreis(r=r,rand=rand,grad=grad,grad2=grad2,fn=fn,center=center,sek=sek,r2=r2,rand2=rand2,rcenter=rcenter,rot=grad==360?center?rot:rot+90:center?rot+180:rot+90,t=t,fs=fn?undef:fs,endPoint=grad==360?false:true,fa=fa),convexity=5);
    
     
     HelpTxt("Kreis",["r",r,"rand",rand,"grad",grad,"grad2",grad2,"fn",fn,"center",center,"sek",sek,"r2",r2,"rand2",rand2,"rcenter",rcenter,"rot",rot,"t",t,"name",name,"d",d,", b",b,"fs",fs],help);
@@ -4477,6 +4479,8 @@ Pfeil() creates an arrow
 \param help activate help
 */
 
+
+
 module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d=0,center=true,name,help){
  shift=is_list(shift)?shift:[shift,-shift];
  l=is_list(l)?l:[l/2,l/2]; 
@@ -4549,6 +4553,7 @@ DPfeil() creates a double head arrow
 \param grad arrow head angle
 \param d form circular arrow
 \param txt add text
+\param rot rotate text
 \param center centers arrow
 \param name  names arrow
 \param help activate help
@@ -4559,24 +4564,25 @@ T(0,10)DPfeil();
 T(0,-10)DPfeil(shift=-1,txt=true);
 */
 
+//for(l=[3:5:30])T(y=l/1)DPfeil([l,4],txt=true,rot=0);
 
-
-module DPfeil(l=40,b=1.5,shift=0,grad=35,d=0,txt,center=true,name,help){
+module DPfeil(l=40,b=undef,shift=0,grad=35,d=0,txt,rot,center=true,name,help){
  
  l=is_list(l)?l:[l,l/8];
  shift=is_list(shift)?shift:[shift,txt?-shift:0];
  lP=[l[0]/2-l[1],l[1]]; 
- b=is_list(b)?b:[b,2*(lP[1]-(d?0:shift[0]))*tan(grad/2)];
+ b=is_list(b)?b:[is_undef(b)?l[0]/20:b,2*(lP[1]-(d?0:shift[0]))*tan(grad/2)];
  //center=is_bool(center)?center?[1,1]:[0,0]:is_list(center)?center:[center,center];
  d=d?max(abs(d),abs(b[1]))*sign(d) : 0;
  txt=txt==true?str(l[0],"mm") : txt;
- txtL=txt?len(str(txt)) * b[1] *0.65 : 0;
+ txtL=txt?len(str(txt)) * b[1] *0.675 +.25 : 0;
+ rot=is_num(rot)?rot:rot?90:0;
 
-if(!d)T(center?0:l[0]/2)MKlon((l[0]-lP[1]*2)/2)Pfeil(l=lP-[txtL/2,0],b=b,shift=shift,grad=grad,d=d,center=true,name=name,help=false);
+if(!d)T(center?0:l[0]/2)MKlon(max(0.1,(l[0]-lP[1]*2)/2 ))Pfeil(l=[lP[0]-(rot&&abs(rot)!=180?b[1]/2:lP[0]>txtL/2?txtL/2:0) ,lP[1]],b=b,shift=shift,grad=grad,d=d,center=true,name=name,help=false);
 
 if(d)T(y=center?0:d/2)MKlon(mx=1)rotate(-gradB(b=min(lP[0],PI*d/2-lP[1]),r=d/2))Pfeil(l=[min(lP[0]-txtL/2,PI*d/2-lP[1]-txtL/2),lP[1]],b=b,shift=shift,grad=grad,d=d,center=true,name=name,help=false);
 
-if(txt)T(center?0:d?[0,d/2]:l[0]/2)Text(h=0,text=txt,size=b[1],center=true,cy=d?false:true,radius=d?d/2-b[1]/2:0,viewPos=false,name=false,trueSize="body");
+if(txt)T(center?0:d?[0,d/2]:l[0]/2,!rot&&lP[0]<txtL/2?b[1]:0)rotate(rot)Text(h=0,text=txt,size=b[1],center=true,cy=d?false:true,radius=d?d/2-b[1]/2:0,viewPos=false,name=false,trueSize="body");
 
 //InfoTxt("DPfeil",["Winkel",2*atan((b[1]/2)/(l[1]-shift[0]))],name);    
 HelpTxt("DPfeil",[   
@@ -4586,6 +4592,7 @@ HelpTxt("DPfeil",[
     "grad",grad,
     "d",d,
     "txt",txt,
+    "rot",rot,
     "center",center,
     "name",name],help);
 
@@ -7506,6 +7513,7 @@ center=true,
 fn,
 fn2,
 fs=fs,
+fa=fa,
 fs2,
 loch=false,
 grad=360,
@@ -7542,11 +7550,11 @@ rgrad2=min(abs(deg[1]),asin(deltaRy2/abs(rad2)) )*sign(rad2);
 
 chamfer=is_list(chamfer)?[chamfer[0],chamfer[1]]:[chamfer,chamfer];
 fs=is_list(fs)?fs:[fs,fs];
-fn=is_undef(fn)?fs2fn(r=d/2,fs=fs[0],grad=grad,minf=8):fn;
+fn=is_undef(fn)?fs2fn(r=d/2,fs=fs[0],grad=grad,minf=8,fa=fa):fn;
 
 ifs2=is_undef(fs2)?fs[1]:fs2;
 fs2=is_list(ifs2)?ifs2:[ifs2,ifs2];
-fn2FS=[fs2fn(r=rad[0],fs=fs2[0],grad=rgrad),fs2fn(r=rad2,fs=fs2[1],grad=rgrad2)];
+fn2FS=[fs2fn(r=rad[0],fs=fs2[0],grad=rgrad,fa=fa),fs2fn(r=rad2,fs=fs2[1],grad=rgrad2,fa=fa)];
 fn2=is_num(fn2)?[fn2,fn2]:
                 is_list(fn2)?[is_undef(fn2[0])?fn2FS[0]:
                                                fn2[0]
@@ -7569,8 +7577,10 @@ points=concat(
   rad[0]==0?[[d/2,0]]:Kreis(r=rad[0],rand=0,grad=rgrad,t=[d/2-rad[0],(chamfer[0]?rad[0]-ausgleich:sin(rgrad)*rad[0])],fn=fn2[0],center=false,rot=90)
 );
 
-if(!2D)if(rgrad==90&&rgrad2==90)Tz(center?-l/2:0)RotEx(grad=grad,fn=fn)polygon(points);
-    else Tz(center?-l/2:0)RotEx(grad=grad,fn=fn)polygon(clampToX0(points));
+if(!2D)if(rgrad==90&&rgrad2==90)Tz(center?-l/2:0)//RotEx(grad=grad,fn=fn)
+  rotate_extrude(angle=grad,$fn=fn)polygon(points);
+    else Tz(center?-l/2:0)//RotEx(grad=grad,fn=fn)
+      rotate_extrude(angle=grad,$fn=fn)polygon(clampToX0(points));
 if(2D)T(0,center?-l/2:0)polygon(points);    
 
   InfoTxt("Pille",["Länge",l,"Rundung",str(rad[0],"/",rad2,str(rad[0]>d/2?" Spitz":rad[0]==d/2?" Rund":" Flach","/",rad2>d/2?"Spitz":rad2==d/2?"Rund":"Flach")),"Durchmesser",d,"Radius",d/2,"Grad",str(grad,"°")],name);    
@@ -8233,6 +8243,7 @@ Prisma() rounded cube (square prism)
 */
 
 //Prisma(r=[1,2,3,4]);
+
 
 
 module Prisma(x1=12,y1,z,c1=5,s=1,x2,y2,x2d=0,y2d=0,rad,c2=0,vC=[0,0,1],cRot=0,fnC=fn,fnS=36,fs=fs,center=false,r,deg=[50,90],optimize=false,name,help){
