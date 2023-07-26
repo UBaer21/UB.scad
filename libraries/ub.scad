@@ -59,7 +59,9 @@ Changelog (archive at the very bottom)
 150|23 CHG SBogen CHG Kegel FIX Bezier chg fa UPD Anschluss UPD Welle UPD M
 160|23 UPD Pille UPD Connector CHG DPfeil UPD Kreis kreis
 180|23 UPD kreis FIX Text FIX kreis UPD SBogen UPD RotEx FIX Pille 
-190|23 CHG Points ADD sternDeg UPD Rund
+190|23 CHG Points ADD sternDeg ADD SternDeg UPD Rund
+200|23 UPD SternDeg UPD nut UPD Gewinde UPD octa FIX SGlied UPD KnurlTri
+210|23
 
 */
 
@@ -151,7 +153,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.190;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.200;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -653,12 +655,12 @@ s=is_list(s)?s:
             [s,-s,s,-s,s,-s]
 )
 [
-  [ s[1],  0,  0], 
-  [ s[0],  0,  0], 
-  [  0, s[2],  0], 
-  [  0, s[3],  0], 
-  [  0,  0, s[4]], 
-  [  0,  0, s[5]]
+  [ s[1%len(s)],  0,  0], 
+  [ s[0%len(s)],  0,  0], 
+  [  0, s[2%len(s)],  0], 
+  [  0, s[3%len(s)],  0], 
+  [  0,  0, s[4%len(s)]], 
+  [  0,  0, s[5%len(s)]]
 ];
 
 //hull() polyhedron(octa(),[[for(i=[0:len(octa())-1])i]]);
@@ -748,7 +750,8 @@ sternDeg() creates points for a star shape with angle
 \name sternA
 \param e number of tips
 \param r tip radius
-\param deg tip angle
+\param deg tip angle ↦ r2
+\param r2 inner tip radius (optional)
 \param z for 3D points
 \param rot rotation
 */
@@ -765,6 +768,7 @@ is_num(z)?[for(i=[0:e*2-1])[each([cos(i*step+rot),sin(i*step+rot)]*(i%2?r2:r)),z
 ;
 
 //Points(sternDeg(e=12,deg=120),hull=true);
+//PolyH([for(z=[0:5])each sternDeg(e=12,z=z)],loop=24,flip=false);
 
 
 
@@ -1009,12 +1013,13 @@ nut() creates points for a groove dovetail or notch
 \param shift move a in x
 \param grad  angle (can be list if b is undef)
 \param z  add z value to points
+\param t translate
 */
 //polygon(nut(base=2));
 
-function nut (e=2,es=10,a=6,b,base=1,h=1,s,shift=0,grad,z)=
+function nut (e=2,es=10,a=6,b,base=1,h=1,s,shift=0,grad,z,t=0)=
   let(
-   
+  t=v3(t),
   s=assert(grad!=0)is_undef(s)?is_num(grad)&&is_num(b)?e*(a+b-2*h*tan(90+grad)):
                                        is_undef(es)?assert( is_num(b) && is_num(a),"define a + b")a+b:
                                                     e * es:
@@ -1029,20 +1034,20 @@ function nut (e=2,es=10,a=6,b,base=1,h=1,s,shift=0,grad,z)=
                                  [h*tan(90+grad)+(es-a)/2,h*tan(90+grad)+(es-a)/2]
   )
  is_num(z)?
-   [[s,base,z],[s,0,z],[0,0,z],[0,base,z],
+   [[s,base,z]+t,[s,0,z]+t,[0,0,z]+t,[0,base,z]+t,
   for(i=[0:e-1])each[
-      [b[0]+i*es,base,z],    
-      [es/2-a/2+shift+i*es,h+base,z],
-      [es/2+a/2+shift+i*es,h+base,z],
-      [(es-b[1])+i*es,base,z]]
+      [b[0]+i*es,base,z]+t,    
+      [es/2-a/2+shift+i*es,h+base,z]+t,
+      [es/2+a/2+shift+i*es,h+base,z]+t,
+      [(es-b[1])+i*es,base,z]+t]
       ]:
 
-   [[s,base],[s,0],[0,0],[0,base],
+   [[s,base]+t.xy,[s,0]+t.xy,[0,0]+t.xy,[0,base]+t.xy,
   for(i=[0:e-1])each[
-      [b[0]+i*es,base],    
-      [es/2-a/2+shift+i*es,h+base],
-      [es/2+a/2+shift+i*es,h+base],
-      [es-b[1]+i*es,base]]
+      [b[0]+i*es,base]+t.xy,    
+      [es/2-a/2+shift+i*es,h+base]+t.xy,
+      [es/2+a/2+shift+i*es,h+base]+t.xy,
+      [es-b[1]+i*es,base]+t.xy]
       ];
       
       
@@ -2060,13 +2065,13 @@ Halb() Object Cuts away half of Object at [0,0,0]
 \param size  cuttingblock size
 */
 
-//Halb()sphere(5);
+//Halb(x=1)sphere(5);
 
 
 module Halb(i=0,x=0,y=0,z=0,2D=0,size=max(400,viewportSize*4),t=[0,0,0],help=false)
 {
 t=v3(t);
-xChange=x;
+xChange=-x;
 x=(is_num(useVersion)&&useVersion<22.250&&!2D)?y:x;
 y=(is_num(useVersion)&&useVersion<22.250&&!2D)?xChange:y;
 
@@ -5523,16 +5528,28 @@ SternDeg() creates a polygon star with defined angle
 \param r radius tip
 \param deg tip angle ↦ r2
 \param r2 optional radius 2
+\param d circle wall (optional)
+\param fn,fs,fa fragments for d circle
 \param help help
 */
-module SternDeg(e=5,r=10,deg=36,r2,help){
+module SternDeg(e=5,r=10,deg=36,r2,d=0,fn,fs=fs,fa=fa,help){
+fn=fn?fn:fs2fn(r=d/2,fs=fs,fa=fa);
+points=d?[each sternDeg(e,r,deg,r2),
+          for(i=[0:fn-1])[cos(i*360/fn),sin(i*360/fn)]*d/2
+           ]:sternDeg(e,r,deg,r2);
 
-polygon(sternDeg(e,r,deg,r2));
+path=[
+  [for(i=[0:e*2-1])i],
+  if(d)[for(i=[0:fn-1])i+e*2]
+  ];
 
-HelpTxt("SternDeg",["e",e,"r",r,"deg",deg,"r2",r2],help);
+polygon(points,path);
+
+
+HelpTxt("SternDeg",["e",e,"r",r,"deg",deg,"r2",r2,"d",d,"fn",fn,"fs",fs,"fa",fa],help);
 }
 
-//SternDeg();
+//SternDeg(d=25);
 
 
 module Stern(e=5,r1=10,r2=5,mod=2,delta=+0,center=1,name,help){
@@ -8171,17 +8188,20 @@ HelpTxt("Kontaktwinkel",["winkel",winkel,"d",d,"baseD",baseD,"r",r,"center",cent
 }
 
 
+
+/// creates Octahedron with n spherical subdivision
+
 module OctaH(r=1,n=0,d,help){
   
 HelpTxt("OctaH",["r",r,"n",n,"d",d],help);
   
   scaling=is_list(r)||is_list(d)?true:false; // if subdiv needs sep scaling
-  r=is_list(r)?[for(i=[0:5]) i%2? -abs(r[i]):   // neg quadrant
-                                   abs(r[i])]:  //pos quadrants
+  r=is_list(r)?[for(i=[0:5]) i%2? -abs(r[i%len(r)]):   // neg quadrant
+                                   abs(r[i%len(r)])]:  //pos quadrants
               is_undef(d)?[r, -r, r, -r, r, -r]:
-                          is_list(d)? [d.x /2, -d.x /2,
-                                       d.y /2, -d.y /2,
-                                       d.z /2, -d.z /2]:
+                          is_list(d)?[for(i=[0:2]) each[d[i%len(d)] , -d[i%len(d)] ]] /2:
+                                //       d.y /2, -d.y /2,
+                                //       d.z /2, -d.z /2]:
                                      [d /2, -d /2, d /2, -d /2, d /2, -d /2];
   
   faces=[
@@ -8614,7 +8634,11 @@ if(name)echo(str(is_bool(name)?"":"<H3>",name," Kassette - Höhe=",h+r1+r2,"mm (
 
 }
 
-
+/**
+\name Gewinde()
+Gewinde is a preloader for GewindeV4 and presets
+\param presets e.g. "M2" or "M6" - metric ISO, "BSW1" for ½", "BSW2" for ¾" - "Flasche" for PCO28 Flasche2 with p=4 
+*/
 
 module Gewinde(
 dn=6,
@@ -8624,7 +8648,8 @@ breite,
 rad1,
 rad2,
 winkel=60,
-wand=+1,
+wand,
+dicke=1,
 mantel,
 h,
 gb,
@@ -8650,6 +8675,8 @@ help,
 
 s,w=0,g=1,rot2=0,r1=0,detail=fn,name,preset=0,translate=[0,0,0],rotate=[0,0,0],d=0,gd=0,r=0,help,endMod=true,new
 ){
+dicke=is_undef(wand)?dicke:wand; // backward compatibility
+
   $info=is_undef($info)?false:$info;
  iso_Gewinde=[ //name,pSteigung,dn
   ["M1",0.25,1],
@@ -8703,7 +8730,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
         p=iso_Gewinde [zeile][1],
         dn=iso_Gewinde[zeile][2]+(innen?spiel*2:0),
         grad=grad,h=h,winkel=60,name=iso_Gewinde[zeile][0],
-        innen=innen,wand=wand,mantel=mantel,cyl=cyl,tz=tz,start=start,
+        innen=innen,dicke=dicke,mantel=mantel,cyl=cyl,tz=tz,start=start,
         end=end,fn=fn,fs=fs,fa=fa,fn2=fn2,center=center,rund=rund,ratio=ratio,spiel=spiel,profil=profil,help=help);
     if($children)difference(){
       children();
@@ -8723,7 +8750,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
             rad1=is_undef(rad1)?other_Gewinde [zeile][5]:rad1,
             rad2=is_undef(rad1)?other_Gewinde [zeile][6]:rad2,
             winkel=other_Gewinde [zeile][7],
-            wand=wand,mantel=mantel,innen=innen,
+            dicke=dicke,mantel=mantel,innen=innen,
             grad=is_undef(grad)?other_Gewinde [zeile][9]:grad,
             h=h,
             start=start,end=end,center=center,profil=profil,fn2=fn2,
@@ -8749,7 +8776,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
                 rad1=rad1,
                 rad2=rad2,
                 winkel=winkel,
-                wand=wand,
+                dicke=dicke,
                 mantel=mantel,
                 h=h,
                 gb=gb,
@@ -8794,7 +8821,8 @@ breite,// thickness of end rounding
 rad1, // rounding radius 1 (⇐ p g rund breite)
 rad2,//  rounding radius 2 (⇐ p g rund breite)
 winkel=60,// inclusive thread angle e.g 29 for ACME or 55 for BSW can be list [10,40] for buttress
-wand=+1,// wall thickness (⇐ mantel)
+wand,// wall thickness (⇐ mantel)
+dicke=1,
 mantel,// inner or outer shell diameter (↦ wand)
 h, // height (↦ grad)
 gb, // thread path height (⇐ p)
@@ -8832,8 +8860,8 @@ help
     fn=is_undef(fn)||fn==0?fs2fn(r=max(kern,dn)/2,fs=fs,minf=36,fa=fa):ceil(fn);
     start=ceil(is_undef(start)?fn/3:fn/360*start);
     end=is_undef(end)?start:ceil(fn/360*end);    
-    
-    wand=is_undef(mantel)?innen?wand:wand>kern/2?0:wand:abs(mantel-kern)/2;
+    dicke=is_undef(wand)?dicke:wand;
+    wand=is_undef(mantel)?innen?dicke:dicke>kern/2?0:dicke:abs(mantel-kern)/2;
     d1=innen?-kern:dn;//Gewindespitzen
     d2=innen?-dn:kern;//Gewindetäler
     grad=max(//windungen
@@ -8909,7 +8937,7 @@ HelpTxt("Gewinde",
 ,"rad1",rad1
 ,"rad2",rad2
 ,"winkel",halbWinkel[0]==halbWinkel[1]?halbWinkel[0]*2:halbWinkel
-,"wand",wand
+,"dicke",dicke
 ,"mantel",abs(mantel)
 ,"h",h
 ,"gb",gb // gang breite gesamt
@@ -9425,14 +9453,17 @@ KnurlTri() creates a triangle knurled cylinder or cone
 \param h height of knurl
 \param depth height of surface tetrahedrons
 \param deltaH  move center in Z
-\param scale scales 
+\param scale scales
+\param lambda size tetrahedron
 */
 
 //KnurlTri();
 
-module KnurlTri(e=[16,9],r=10,h=30,depth=[1,+1],deltaH=[0,0],scale=1,name,help){
 
-e=is_list(e)?e:[e,round(h/sqrt((sehne(r=r,n=e)*sqrt(3)/2)^2 - (r-Inkreis(e,r))^2  ) )];
+module KnurlTri(e=[16,9],r=10,h=30,depth=[1,+1],deltaH=[0,0],scale=1,lambda,name,help){
+lambda=is_num(lambda)?[lambda,lambda]:lambda;
+e=is_undef(lambda)?is_list(e)?e:[e,round(h/sqrt((sehne(r=r,n=e)*sqrt(3)/2)^2 - (r-Inkreis(e,r))^2  ) )]
+                  : [round(360/gradS(s=lambda.x,r=r)),round(h/lambda.y)];
 s=sehne(r=r,n=e[0]);
 depth=is_list(depth)?depth:is_undef(depth)?s*sqrt(6)/3*[1,1]:[depth,depth];
 deltaH=is_list(deltaH)?deltaH:[deltaH,deltaH];
@@ -11267,6 +11298,8 @@ HelpTxt("CyclGetriebe",[
 }
 
 
+//DRing(d=5);
+
 
 module DRing(d=4,id=20,r=.5,l=0,grad=180,fn=fn,center=true,name,help){
     $info=false;
@@ -12053,14 +12086,16 @@ module Knochen(l=+15,d=3,d2=5,b=0,fn=fn,help)
 
 }
 
-module DGlied(sym,l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=20,fn=36,help){
+/// dual glied
+
+module DGlied(sym,l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=.6,freiwinkel=20,fn=36,help){
 if (sym) DGlied1(l=l,l1=l1,l2=l2,la=la,spiel=spiel,d=d,h=h,rand=rand,spielZ=spielZ,freiwinkel=freiwinkel,fn=fn);
 else DGlied0(l=l,l1=l1,l2=l2,la=la,spiel=spiel,d=d,h=h,rand=rand,spielZ=spielZ,freiwinkel=freiwinkel,fn=fn);
 
 HelpTxt("DGlied",["sym",sym,"l",l,"l1",l1,"l2",l2,"spiel",spiel,"spielZ",spielZ,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
 }
 
-module DGlied0(l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=20,fn=36)
+module DGlied0(l=12,l1,l2,la=+0.0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=.6,freiwinkel=20,fn=36)
 {
 l1=is_undef(l1)?is_list(l)?l[0]:l:l1;
 l2=is_undef(l2)?is_list(l)?l[1]:l:l2;
@@ -12068,7 +12103,7 @@ l2=is_undef(l2)?is_list(l)?l[1]:l:l2;
     rotate(180)Glied(l2,la=la,spiel=spiel,spielZ=spielZ,d=d,h=h,rand=rand,freiwinkel=freiwinkel,fn=fn);
 }
 
-module DGlied1(l=12,l1,l2,la=0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=20,fn=fn)
+module DGlied1(l=12,l1,l2,la=0,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=.6,freiwinkel=20,fn=fn)
 {
 l1=is_undef(l1)?is_list(l)?l[0]:l:l1;
 l2=is_undef(l2)?is_list(l)?l[1]:l:l2;
@@ -12076,13 +12111,15 @@ l2=is_undef(l2)?is_list(l)?l[1]:l:l2;
     T(0,-l2)Glied(l2,la=la,d=d,h=h,spiel=spiel,spielZ=spielZ,rand=rand,freiwinkel=freiwinkel,fn=fn);
 }
 
+/// symetric Glied  male or female
+// SGlied(sym=+0);
 
 
-module SGlied(sym=0,l=12,la=-.5,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=n(1.5),freiwinkel=30,help,messpunkt=messpunkt,fn=36){
+module SGlied(sym=0,l=12,la=-.5,d=3,h=5,spiel=0.4,spielZ=nozzle/2,rand=.6,freiwinkel=30,help,messpunkt=messpunkt,fn=36){
 
   T(0,l/2){
-  Halb(!sym,x=1)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,fn=fn,freiwinkel=sym?freiwinkel:90,messpunkt=false);
-  Halb(sym,x=1)rotate(180)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,fn=fn,messpunkt=false,freiwinkel=sym?freiwinkel:90);
+  Halb(sym,y=1)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,fn=fn,freiwinkel=sym?freiwinkel:90,messpunkt=false);
+  Halb(!sym,y=1)rotate(180)T(0,-l/2)Glied(l,la=la,spiel=spiel,d=d,h=h,rand=rand,fn=fn,messpunkt=false,freiwinkel=sym?freiwinkel:90);
   }
   HelpTxt("SGlied",["sym",sym,"l",l,"spiel",spiel,"spielZ",spielZ,"la",la,"fn",fn,"d",d,"h",h,"rand",rand,"freiwinkel",freiwinkel],help);
 
@@ -12099,14 +12136,18 @@ rotate(30+180)T(0,-31)Glied(l=31,d=3,la=-1,spielZ=0);
 }
 // */
 
-module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,d=3,h=5,rand=n(1.5),freiwinkel=30,fn=36,name=0,help,messpunkt=messpunkt)
+/// joint
+
+
+
+module Glied(l=12,spiel=0.4,spielZ=nozzle/2,la=-0.5,d=3,h=5,rand=.6,freiwinkel=30,fn=36,name=0,help,messpunkt=messpunkt)
 
 {
   freiwinkel= is_num(freiwinkel)?[freiwinkel,freiwinkel]:freiwinkel;
     hFreiraum=h/2 + spielZ;
     hSteg=h/2 - spielZ;
     sphereR=.8;
-    hErr=sphereR-cos(90/ceil(fn/2))*sphereR+.00001; // sphere fn error minkowski
+    hErr=sphereR-cos(90/ceil(fn/2))*sphereR+.0001; // sphere fn error minkowski
     
     $info=false;
     $helpM=false;
