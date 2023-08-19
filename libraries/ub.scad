@@ -61,7 +61,9 @@ Changelog (archive at the very bottom)
 180|23 UPD kreis FIX Text FIX kreis UPD SBogen UPD RotEx FIX Pille 
 190|23 CHG Points ADD sternDeg ADD SternDeg UPD Rund
 200|23 UPD SternDeg UPD nut UPD Gewinde UPD octa FIX SGlied UPD KnurlTri
-210|23
+210|23 ADD bool UPD Knurl UPD Text ADD FlatKnurl UPD FlatMesh CHG Tesselation UPD Roof
+220|23 UPD distS UPD Kehle ADD Penrose ADD RectTiling CHG Ellipse UPD Filter UPD Calliper
+230|23
 
 */
 
@@ -153,7 +155,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.200;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.220;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -193,9 +195,13 @@ function testPoly(s=10)=[
 
 
 function Inkreis(eck,rU)=cos(180/eck)*rU;
+function inkreis(eck,rU)=cos(180/eck)*rU;
 function Umkreis(eck,rI,name)=let(r=rI/cos(180/eck))is_undef(name)?r:echo(str(name," Umkreis=",r))r;
+function umkreis(eck,rI,name)=let(r=rI/cos(180/eck))is_undef(name)?r:echo(str(name," Umkreis=",r))r;
 function Hypotenuse(a,b)=sqrt(pow(a,2)+pow(b,2));
+function hypotenuse(a,b)=sqrt(pow(a,2)+pow(b,2));
 function Kathete(hyp,kat)=sqrt(pow(hyp,2)-pow(kat,2));
+function kathete(hyp,kat)=sqrt(pow(hyp,2)-pow(kat,2));
 
 /** \page Functions
 Sehne() gives you the length of a chord
@@ -389,7 +395,7 @@ function radiusS(s,n,a,r)=(s/2)/(sin((is_undef(n)? is_undef(a)?gradS(s,r)
                                                  :360/n)/2));
 
 /// distance chord s to center
-function distS(s,r)=Kathete(r,s/2);//cos(gradS(s,r)/2)*r;
+function distS(s,r,n,a)=kathete(radiusS(s,n,a,r),s/2);//cos(gradS(s,r)/2)*r;
 
 function runden(x,dec=2)=round(x*pow(10,dec))/pow(10,dec);//auf komastelle runden
 
@@ -480,7 +486,7 @@ is_num(f)||len(points[pos])>4?str(" F",len(points[pos])==5?points[pos][4]:f):"",
 i>= 0?str(gcode(i=i-chunksize,chunksize=chunksize,points=points,f=f),chunk(i,max(0,i-chunksize))):"";
 
 
-
+function bool(n,bool)= b(n,bool);
 function b(n,bool)=  is_list(n)?[for(i=[0:len(n)-1])b(n[i],bool)]:
                                is_num(n)?bool||is_undef(bool)?n?true:
                                                                 false:
@@ -1598,6 +1604,8 @@ echo    ("•••••• Polygons ••••••\n
 •• Arc(help=1);\n
 •• Tesselation(help=1);\n
 •• Connector(help=1);\n
+•• Penrose(help=1);\n
+•• RectTiling(help=1);\n
 
 ");
 }
@@ -1805,7 +1813,7 @@ if(is_list(x))
     multmatrix(m=[
     [1,0,0,x[0]],
     [0,1,0,x[1]],    
-    [0,0,1,is_undef(x.z)?z:x[2]],
+    [0,0,1,is_undef(x.z)?z:x[2]+z],
     [0,0,0,1]    
     ])children(); 
 else
@@ -2198,6 +2206,7 @@ HexGrid() children(); creates an interlaced grid of children
 \param e elements [x,y]
 \param es element spacing [x,y]
 \param center true/false or -7 ⇔ 7 for x shift
+\param $d $r $es $idx $idx2 $pos output for children
 */
 
 module HexGrid(e=[11,4],es=5,center=true,name){
@@ -2948,11 +2957,11 @@ else HelpTxt("Help",["titel",titel,"string",string,"help",help],help=1);
  \param center centered length
  \param messpunkt show / size of gizmo
  \param translate  translates the text and arrow
- \param end differnt end options triangle, arrow, square
+ \param end differnt end options [0:none,1:triangle, 2:square, 3:arrow in, 4:arrow out]
  \param h height while end=0 is 2D 
  \param render=true if Caliper should be rendered 
 */
-
+//Caliper(end=0,messpunkt=0,in=1,translate=[20,-5],center=+1);
 
 module Caliper(l=20,in=1,s,center=true,messpunkt=true,translate=[0,0,0],end=1,h=1.1,render=false,l2,txt,size=$vpd/15,help){
     
@@ -2996,10 +3005,10 @@ module Caliper(l=20,in=1,s,center=true,messpunkt=true,translate=[0,0,0],end=1,h=
          if(!textOut&&l-textl - diffT*2>0) T(-l/2)T((l-textl)/4 +diffT/2,0)square([(l-textl)/2-diffT,line],center=true);
          if(!textOut&&l-textl + diffT*2>0) T( l/2)T(-(l-textl)/4 +diffT/2,0)square([(l-textl)/2+diffT,line],center=true);
         }
-            //End lines
+//End lines
         translate(in!=2&&in!=3?[-translate.x,0]:[0,-translate.y])rotate(in?in==2?90:in==3?-90:180:0){MKlon(tx=l/2){
-           T(+line/2) square([line,l2],center=true);
-           Pfeil([0,min(l/3,s/2)],b=[line,l2],center=[-1,1],name=false);
+           T(end?end==4?-line/2:+line/2:0) square([line,l2],center=true);
+           if(end)rotate(end==4?180:0)Pfeil([0,min(l/3,s/2)],b=[line,l2],center=[-1,1],name=false);
         }
         if(textOut) square([l,line],true); // Verbindung Pfeile
    // text pos
@@ -3013,9 +3022,10 @@ module Caliper(l=20,in=1,s,center=true,messpunkt=true,translate=[0,0,0],end=1,h=
         if(textOut&&tOutDist)rotate(tOutDist<0?180:0)translate([0,-line/2])square([abs(tOutDist)-textl/2 ,line]);
         }
         
-        // verlängerungen translate auf 0
-       if(translate.y&&in!=2&&in!=3)translate([-translate.x,0])MKlon(tx=l/2) mirror([0,translate.y>0?1:0,0])square([line,abs(translate.y)],false);
-       if(translate.x&&(in==2||in==3))translate([0,-translate.y])MKlon(ty=l/2) mirror([translate.x>0?1:0,0,0])square([abs(translate.x),line],false);    
+// verlängerungen translate auf 0
+      mkL=end?end==4?l/2-line:l/2:l/2-line/2;
+       if(translate.y&&in!=2&&in!=3)translate([-translate.x,0])MKlon(tx=mkL) mirror([0,translate.y>0?1:0,0])square([line,abs(translate.y)],false);
+       if(translate.x&&(in==2||in==3))translate([0,-translate.y])MKlon(ty=mkL) mirror([translate.x>0?1:0,0,0])square([abs(translate.x),line],false);    
        //if(translate.x) mirror([translate.x>0?1:0,0,0])T(l/2,-line/2)square([abs(translate.x),line],false);
 
         }
@@ -3299,52 +3309,192 @@ Tesselation creates tilings
 */
 
 //Tesselation(size=20,d=5,pat=1,fn=6,alt=30);
+//Tesselation(size=20,d=4,pat=2,dist=0.6,fn=6);
 
+//Tesselation(size=20,d=5,tile=3,pat=1,dist=.5,fn=6,alt=90);//alternating rectangles
+//Tesselation(size=80,pat=4,d=5,tile=12);//pentaTile
 
-module Tesselation(size=20,d=5,dist=1,dicke=1,pat=0,obj=1,rot=0,ofs=[0,0],alt=[0,0],fn=4,name, help){
+/* //TriHex
+difference(){
+  Tesselation(size=30,pat=2,d=3,rot=60,dist=+0.5,tile=5,fn=6,center=1);//TriHex
+  color("lime")Tesselation(size=30,pat=2,d=3,rot=60,dist=+0.5,dicke=.5,tile=5,fn=6,center=1);//TriHex
+}//*/
+
+//Tesselation(pat=2,rot=0,tile=5,dist=+0.1,dicke=2,fn=6);// TriHex
+
+/*
+HexGrid(es=10/(3/4)+.5)
+Tesselation(tile=13,dist=0.5,pat=0);//floral
+//*/
+
+ /*//hex tri penta 
+difference(){
+square(50,true);
+Tesselation(tile=11,pat=2,fn=6,dist=.4,dicke=.7,alt=[60,60]);
+}//*/
+
+//Tesselation(tile=9,dist=0.75,alt=60,dicke=.5,fn=6,pat=2);
+
+//Tesselation(size=80,tile=0,pat=3,fn=5,d=2,dicke=1);
+
+//Tesselation(pat=5,tile=0);
+
+module Tesselation(size=[40,40],d=5,dist=1,dicke=0,pat=0,tile=1,rot=0,ofs=[0,0],alt=[0,0],fn=6,center=true,name, help,obj){
 
 dist=is_list(dist)?dist:[dist,dist];
 d=is_list(d)?d:d*[1,1];
+radius=is_num(size)?size/2:0;
 size=is_list(size)?size:size*[1,1];
 alt=is_list(alt)?b(alt,false):b(alt,false)*[1,1];
 e=[max(1,size.x/(d.x+dist.x)),max(1,size.y/(d.y+dist.y))];
-obj=$children?100:obj;
+tile=$children?100:is_undef(obj)?tile:obj;
 $d=d;
+$r=d/2;
+$info=false;
 
-HelpTxt("Tesselation",["size",size,"d",d,"dist",dist,"dicke",dicke,"pat",pat,"obj",obj,"rot",rot,"ofs",ofs,"alt",alt,"fn",fn,"name",name],help);
+HelpTxt("Tesselation",["size",size,"d",d,"dist",dist,"dicke",dicke,"pat",pat,"tile",tile,"rot",rot,"ofs",ofs,"alt",alt,"fn",fn,"center",center,"name",name],help);
 
 if(pat==0)rotate(alt.y+alt.x+rot)Tile()children();
 
-if(pat==1)Grid(e=e,es=d+dist)rotate(($idx.y%2?0:alt.y)+($idx.x%2?0:alt.x)+rot)Tile()children();
-//if(opt==2)HexGrid(e=[e.x,e.y*sqrt(3)/2],es=d+dist)rotate(rot)T(ofs)circle(d=max(d),$fn=fn);
-if(pat==2)HexGrid(e=[e.x,e.y*sqrt(3)/2],es=[(d.x+dist.x)*sqrt(3)/2,(d.y+dist.y)])rotate(($idx.y%2?0:alt.y)+($idx.x%2?0:alt.x)+rot)Tile()children();
-if(pat==3)Polar(fn)Penrose(size=max(size),rec=round(max(dist)),dicke=dicke,fn=fn,chld=obj,case=1)Tile()children();
+if(pat==1)Grid(e=e,es=d+dist,center=center)rotate(($idx.y%2?0:alt.y)+($idx.x%2?0:alt.x)+rot)
+      if(radius?norm($pos)<=radius-max(d)/2
+      :abs($pos.x)<=(size.x-max(d))/2&&abs($pos.y)<=(size.y-max(d))/2
+      )
+Tile()children();
 
-module Tile(opt=obj,ofs=ofs,dicke=dicke,fn=fn)T(ofs){
+if(pat==2)HexGrid(e=[e.x,e.y*sqrt(3)/2]*2,es=[(d.x+dist.x)*sqrt(3)/2,(d.y+dist.y)],center=center)rotate(($idx.y%2?0:alt.y)+($idx.x%2?0:alt.x)+rot)
+      if(radius?norm($pos)<=radius-max(d)/2
+      :abs($pos.x)<=(size.x-max(d))/2&&abs($pos.y)<=(size.y-max(d))/2
+      )
+      
+      Tile(d=fn==6?umkreis(6,d):d)children();
+//Penrose
+  if(pat==3)Polar(fn)Penrose(radius=max(size)/2,dicke=dicke,fn=fn,chld=tile,case=1,d=max(d) )rotate(rot)Tile()children();
+
+//Cairo tile diagonal
+  if(pat==4){
+   dist=max(dist);
+  es=[max(d),max(d)*2]*1.5;
+  e=[ceil(size.x/es.x),ceil(size.y/es.y)];
+   
+    HexGrid(e=[e.x,e.y],es=es,center=center)
+       if(abs($pos.x)<=size.x/2-es.x&&abs($pos.y)<=size.y/2-es.y/2)
+       Tile()children();
+  }
+// Rectangle Tiling
+ if(pat==5)RectTiling(size=size,dicke=dicke,chld=tile,d=max(d))rotate(rot)Tile()children();
+
+
+module Tile(opt=tile,ofs=ofs,dicke=dicke,fn=fn,d=d,dist=dist)T(ofs)render(){
 assert(min(d)>0);
   if(opt==100)children();
   if(opt==1)circle(d=max(d),$fn=fn); // ngon
   if(opt==2)square(d,center=true); // squares
 // blocks
-  if(opt==3)MKlon(ty=$d.y/4+dist.y/4)square(vMult($d,[1,.5])-[0,dist.y/2],true);
+  if(opt==3){
+    MKlon(ty=d.y/4+dist.y/4)square(vMult(d,[1,.5])-[0,dist.y/2],true);
+    }
 //tri blocks
-  if(opt==4)Polar(3,d.x/4)square([d.x/2,dicke],center=true);//Tri
-//triangles 
-  if(opt==5)MKlon((max(d)+dist.x)/sqrt(3)/2)circle(d=max(d)/sqrt(3)*2,$fn=3);
-  if(opt==6)rotate(30)Star(e=6,d/2,d/3);// star
-//3halfcircle 
-  if(opt==7){d=max(d)/sqrt(3);
-    Polar(3,d/2+dist.x*0,rotE=rot*0)Kreis(d=d,grad=180,rcenter=true,rand=dicke,rot=90);}
-//6halfcircle
-  if(opt==8)Polar(6,max(d)/4+dist.x/4,rot=30,rotE=rot*+1)Kreis(d=max(d)/2,grad=180,rcenter=true,rand=dicke,rot=90);
-//6Wave
-  if(opt==9)Polar(6,max(d)/4,rot=30,rotE=rot*0){d=d/4;
-              MKlon(max(d)/2)Kreis(d=max(d),grad=180,rcenter=true,rand=dicke,rot=$idx*180+90);}
+  if(opt==4)Polar(fn/2,d.x/4)square([d.x/2,dicke?dicke:1],center=true);//Tri
+//tri Hex
+
+  
+ if(opt==5){
+    f=sqrt(3)/2;
+    d=max(d)/f; 
+    dicke=(is_list(dicke)?1:[1,1])*(dicke?dicke:d/2);
+    
+    Polar(3,rot=30)hull(){circle(d=dicke.y,$fn=6);T(d/2-dicke.x/2)circle(d=dicke.x,$fn=fn);}
+  //color("red")Polar(3,dicke/2,rot=30)circle(d=dicke,$fn=6);
+  } 
  
+//triangles Hex  
+if(opt==6)difference(){
+    circle(d=d.x,$fn=fn);
+    Polar(fn,d.x/2,rot=0)square([d.x,dicke?dicke:dist.y],true);
+  }  
+  
+/*//triangles Hex   
+  if(opt==6){
+    d=umkreis(3,max(d))/sqrt(3);
+    Polar(6,max(d)/2,rot=30)offset(-max(dist)/2)rotate(60)circle(d=d,$fn=3);
+    }
+    //*/
+    
+//triangles 
+  if(opt==7)MKlon((max(d)+dist.x)/sqrt(3)/2)circle(d=max(d)/sqrt(3)*2,$fn=3);
+//Star
+  if(opt==8)rotate(180/fn)Star(e=round(fn),d/2,d/3);// star 
+ // diamonds Hex
+  if(opt==9)difference(){
+    circle(d=d.x,$fn=fn);
+    Polar(3,d.x/2,rot=0)square([d.x,dicke?dicke:dist.y],true);
+  }
+  
+//PentaTile
+  if(opt==10)difference(){
+    circle(d=d.x,$fn=fn);
+    square([d.x+2,dicke?dicke:dist.y],true);
+  }
+  if(opt==11)difference(){
+    circle(d=d.x,$fn=fn);
+    Polar(fn/2,d.x/2,rot=180/fn)square([d.x,dicke?dicke:dist.y],true);
+  }
+
+//Cairo
+  if(opt==12)union(){
+    dist=max(dist);
+    d=max(d);
+    MKlon(ty=-d)offset(-dist/2)polygon(5gon(d*0.75,d*0.25,d*0.5,d));
+    rotate(90)MKlon(ty=d*0.5)offset(-dist/2)polygon(5gon(d*0.75,d*0.25,d*0.5,d));
+  }
+//Penta floral  
+  if(opt==13){ 
+    d=max(d);
+    p=[for(i=[0:3])[cos(i*60),sin(i*60)]*d/2/(sqrt(3)/2)+[0,d],[0,0]];
+    Polar(6,rot=rot?rot:90+atan(sqrt(3)/9))offset(-max(dist)/2)polygon(p);
+  }
+
+  union(){
+  dicke=dicke?dicke:1;
+  //3halfcircle 
+    if(opt==14){d=max(d)/sqrt(3);
+      Polar(3,d/2+dist.x*0,rotE=rot*0)Kreis(d=d,grad=180,rcenter=true,rand=dicke,rot=90);}
+  //6halfcircle
+    if(opt==15)Polar(6,max(d)/4+dist.x/4,rot=30,rotE=rot*+1)Kreis(d=max(d)/2,grad=180,rcenter=true,rand=dicke,rot=90);
+  //6Wave
+    if(opt==16)Polar(6,max(d)/4,rot=30,rotE=rot*0){d=d/4;
+                MKlon(max(d)/2)Kreis(d=max(d),grad=180,rcenter=true,rand=dicke,rot=$idx*180+90);}
+  }
+
+
 }
 
+} // end Tesselation
 
-module Penrose(rec=round(6-max(dist)),tri,size=70,case=1,dicke=dicke,ratio=1.618,color=5,seed = 42,fn=6,chld){//<- change start case 1 or 2
+
+
+/** \name Penrose Tiling
+\page Polygons
+Penrose() creates a penrose tiling or children arrangement
+\param rec recursion limit (optional)
+\param tri start triangle [p0,p1,p2] (optional)
+\param radius penrose size via fn and radius ↦ tri
+\param case  tiling start case
+\param dicke space between triangles
+\param ratio tiling ratio
+\param fn symetry ↦ tri
+\param d triangle size limit (recursion stop condition)
+\param mirror mirror triangles for symetry ↦ tri
+\param $d $pos $tri output variables - inner diameter center triangle points
+
+*/
+//Polar(10)Penrose(mirror=0,fn=10,d=5);
+
+
+module Penrose(rec=20,tri,radius=50,case=1,dicke=1,ratio=1.618,color=5,seed = 42,fn=6,chld,d=5,mirror=true,help){//<- change start case 1 or 2
+
+HelpTxt("Penrose",["rec",rec,"tri",tri,"radius",radius,"case",case,"dicke",dicke,"ratio",ratio,"fn",fn,"d",d,"mirror",mirror],help);
 
 function GR(a,b,ratio=ratio)=a+(b-a)/ratio; 
  
@@ -3352,14 +3502,14 @@ chld=is_undef(chld)?$children:chld;
 
 // we using two mirrored parts so each triangle is half and the angle from center hence only a quarter
 fn=max(fn,2);
-angle= 360 / (fn*4); 
-
+angle= mirror?360 / (fn*4):360/fn/2; 
+dicke=is_undef(dicke)?0:dicke;
 
 
 tri=is_undef(tri)?let(a=[0,0])[
   a, // a first point at center
-  a + [sin( angle), cos( angle)]* size/2,  // b the adjactant sides end point at angle and length
-  a + [sin(-angle), cos(-angle)]* size/2, // c
+  a + [sin( angle), cos( angle)]* radius,  // b the adjactant sides end point at angle and length
+  a + [sin(-angle), cos(-angle)]* radius, // c
   ]
                   :tri;
   
@@ -3370,29 +3520,113 @@ tri=is_undef(tri)?let(a=[0,0])[
   //iratio=rands(1.5,2.0,5,seed);
   iratio=[1,1,1,1,1]*ratio;
   
-  if (rec>0){
+// side length
+  sA=norm(c-b);
+  sB=norm(c-a);
+  sC=norm(b-a);
+// circumfence
+  u=(sA+sB+sC);
+  s=u/2;
+  
+// inner diameter
+  $d=sqrt( ((s-sA)*(s-sB)*(s-sC))/s )*2-dicke;
+    
+  if ($d>(d*2)&&rec>0){
     if(case==1){
      // the smaller resulting tri will be cut in two the next time (case 1)
-        Penrose(rec=rec-1, tri= [c       , GR(a, b), b], case=1,fn=fn,chld=chld, color= 0,ratio=iratio[0], seed = seed * rec + 0)children();
+        Penrose(rec=rec-1, tri= [c       , GR(a, b), b], case=1,fn=fn,chld=chld,d=d, dicke=dicke, mirror=mirror, color= 0,ratio=iratio[0], seed = seed * rec + 0)children();
 
     // the bigger gets cut in 3 the next time
-        Penrose(rec=rec-1, tri= [GR(a, b), c       , a], case=2,fn=fn,chld=chld, color= 1,ratio=iratio[1], seed = seed * rec + 1000)children();
+        Penrose(rec=rec-1, tri= [GR(a, b), c       , a], case=2,fn=fn,chld=chld,d=d, dicke=dicke, mirror=mirror, color= 1,ratio=iratio[1], seed = seed * rec + 1000)children();
     }
     if(case==2){
-        Penrose(rec=rec-1, tri= [GR(b, a), GR(b, c), b], case= 2,fn=fn,chld=chld, color= 2,ratio=iratio[2], seed = seed * rec + 2000)children();
-        Penrose(rec=rec-1, tri= [GR(b, c), GR(b, a), a], case= 1,fn=fn,chld=chld, color= 3,ratio=iratio[3], seed = seed * rec + 3000)children();
-        Penrose(rec=rec-1, tri= [GR(b, c),        c, a], case= 2,fn=fn,chld=chld, color= 4,ratio=iratio[4], seed = seed * rec + 4000)children();
+        Penrose(rec=rec-1, tri= [GR(b, a), GR(b, c), b], case= 2,fn=fn,chld=chld,d=d, dicke=dicke, mirror=mirror, color= 2,ratio=iratio[2], seed = seed * rec + 2000)children();
+        Penrose(rec=rec-1, tri= [GR(b, c), GR(b, a), a], case= 1,fn=fn,chld=chld,d=d, dicke=dicke, mirror=mirror, color= 3,ratio=iratio[3], seed = seed * rec + 3000)children();
+        Penrose(rec=rec-1, tri= [GR(b, c),        c, a], case= 2,fn=fn,chld=chld,d=d, dicke=dicke, mirror=mirror, color= 4,ratio=iratio[4], seed = seed * rec + 4000)children();
     }
   }
 
     
-  if (rec<=+0)color(color/5*[1,1,1]){// only draw the pattern at the last recursion 
-    rotate(90/fn)if(chld)T((a+(b+c)/2)/2)children();else offset(-dicke/2)polygon(tri);
-    mirror([1,0])rotate(90/fn)if(chld)T((a+(b+c)/2)/2)children();else offset(-dicke/2)polygon(tri);
+   else { // only draw the pattern at the last recursion
+   
+   iM=[ (sA*a.x+sB*b.x+sC*c.x)/u ,  (sA*a.y+sB*b.y+sC*c.y)/u ];
+   $pos=iM;
+   $tri=tri;
+    color(color/5*[1,1,1]){
+    rotate(90/fn)
+      if(chld)T(iM)children();
+      //T((a+(b+c)/2)/2)children();
+       else {
+        offset(-dicke/2)polygon(tri);
+        }
+
+    if(mirror)mirror([1,0])rotate(90/fn)
+      if(chld)T(iM)children();//T((a+(b+c)/2)/2)children();
+      
+       else offset(-dicke/2)polygon(tri);
+    }
   }
-}
+} // end Penrose
+
+
+
+/** \page Polygons \name RectTiling
+RectTiling() tiles a rectangle in random smaller rectangles
+\param size size
+\param ratio [min:max] dividing ratio or list or num
+\param d minimal size (recursive stop condition)
+\param dicke space thickness between
+\param seed  seed for randomness
+\param $size $seed output data
+\param chld use children
+\param info help info help
+*/
+//RectTiling(dicke=0);
+
+//RectTiling(ratio=[2.7,2],d=5);
+
+
+
+
+module RectTiling(size=[30,40],ratio=[1.25:5],d=5,dicke=1,chld,seed=13,rec=0,info,help){
+chld=is_undef(chld)?$children:chld;
+assert (is_undef(ratio[2])?min(ratio)>=1:min([ratio[1],ratio[2]])>=1,"ratio <= 1");
+assert (d>0,"d need to be > 0");
+assert (is_num(dicke),"dicke need to be a number");
+
+ratio=is_num(ratio)?[1/(1-1/ratio),ratio]:ratio;
+if(rec==0&&info)echo(ratio=ratio);
+useRatio=is_list(ratio)?ratio[floor(rands(0,len(ratio),1,seed)[0])]
+                       :rands(ratio[0],ratio[2],1,seed)[0];
+if(info)echo(useRatio=useRatio,rec=rec);
+HelpTxt("RectTiling",["size",size,"ratio",ratio,"d",d,"dicke",dicke,"seed",seed,"info",info],help);
+
+  if(max(size)/useRatio>d+dicke*1.0&&max(size)-max(size)/useRatio>d+dicke&&rec<30){
+    if(size.x>size.y){
+      RectTiling(size=[size.x/useRatio,size.y],ratio=ratio,d=d,dicke=dicke,chld=chld,seed=seed+1,rec=rec+1, info=info)children();
+      translate([size.x/useRatio,0])RectTiling(size=[size.x-size.x/useRatio,size.y],ratio=ratio,d=d,dicke=dicke,chld=chld,seed=seed*2,rec=rec+1, info=info)children();
+    }
+    else {
+      RectTiling(size=[size.x,size.y/useRatio],ratio=ratio,d=d,dicke=dicke,chld=chld, seed=seed+1,rec=rec+1, info=info)children();
+      translate([0,size.y/useRatio])RectTiling(size=[size.x,size.y-size.y/useRatio],ratio=ratio,d=d,dicke=dicke,chld=chld, seed=seed*2,rec=rec+1, info=info)children();
+    }
+
+  }
+  else {
+    if(chld) {
+      $size=size;
+      $seed=seed;
+      translate(size/2)children();
+    }
+    else //color(rands(0,1,3))
+    Color(rands(0,1,1)[0],l=dicke?1:0.5)
+    offset(-dicke/2)square(size);
+
+    if(info)%color("grey")scale([1,1,2])translate(size/2)text(str(rec,"/",seed),size=d/4,halign="center",valign="center");
+   }
 
 }
+
 
 
 /** \page Polygons
@@ -6203,7 +6437,7 @@ Roof(25,[1,1],deg=-45)offset(1,$fs=.2,$fn=0)polygon([
 
 //Roof(10,[1,1],fn=10,deg=-45)Quad(50,grad=45,grad2=45,r=8,fs=1.5);
 
-module Roof(height,h,base=0,deg=45,opt=1,floor=false,center=false,twist=0,scale=1,fn=0,convexity=5,lap=0.0001,on=true,name,help,slices,segments){
+module Roof(height,h,base=0,deg=45,opt=1,floor=false,center=false,twist=0,scale=1,fn=0,convexity=5,lap=0.0001,on=true,name,help,slices,segments,fs=fs){
 
 lap=is_list(lap)?lap:[lap,lap];
 deg=is_list(deg)?deg:[deg,deg];
@@ -6226,7 +6460,7 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
   Tz(on?(center?0:h[0]?h[0]:0):0){
   $tab=is_undef($tab)?1:b($tab,false)+1;
   $idx=is_undef($idx)?0:$idx;
-  if(base)Tz(center?0:-lap[0])linear_extrude(base+(on?vSum(lap):h[0]+h[1]),center=b(center,true),twist=twist,scale=scale,convexity=convexity,$fn=fn,slices=slices,segments=segments){
+  if(base)Tz(center?0:-lap[0])linear_extrude(base+(on?vSum(lap):h[0]+h[1]),center=b(center,true),twist=twist,scale=scale,convexity=convexity,$fn=fn,slices=slices,segments=segments,$fs=fs){
   $fn=ifn;
   children();
   }
@@ -6237,7 +6471,7 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
  $info=false;
  //top
   if(scale&&(h[1]||is_undef(h[1])))Tz( (center?base/2:base+(h[0]?h[0]:0))+(s[1]<0?h[1]:0) )difference(){
-  scale([1,1,s[1]])roof(method=opt[1]?"voronoi":"straight",$fn=fn,convexity=convexity)offset(delta=ofs[1]){
+  scale([1,1,s[1]])roof(method=opt[1]?"voronoi":"straight",$fn=fn,$fs=fs,convexity=convexity)offset(delta=ofs[1]){
   $fn=ifn;
   scale(scale)rotate(-twist)children(); // experimental feature comment out if not activated in preferences
   }
@@ -6248,7 +6482,7 @@ Echo("Roof is experimental - use Dev Snapshot version and activate",color="warni
   
  //bottom
   if(floor&&(h[0]||is_undef(h[0])))Tz((center?-base/2:(h[0]?h[0]:0))+(s[0]<0?-h[0]:0))difference(){
-    scale([1,1,-s[0]])roof(method=opt[0]?"voronoi":"straight",$fn=fn,convexity=convexity)offset(delta=ofs[0]){
+    scale([1,1,-s[0]])roof(method=opt[0]?"voronoi":"straight",$fn=fn,$fs=fs,convexity=convexity)offset(delta=ofs[0]){
     $fn=ifn;
     children(); // experimental feature comment out if not activated in preferences
     }
@@ -7025,20 +7259,24 @@ cylinder ((d1-d2)/2*v,d1=d1,d2=d2,$fn=fn);
 
 
 
-module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn=0,fn2,fs=fs,fa=fa,r2=0,spiel=spiel,center=false,2D=false,end=false,fase=false,fillet,help)
+module Kehle(rad=2.5,dia,r,l=20,angle=360,grad=0,a=90,ax=90,fn=0,fn2,fs=fs,fa=fa,r2=0,spiel,lap=spiel,center=false,2D=false,end=false,fase=false,fillet,help)
 {
   2D=is_parent(needs2D)?true:2D;
     fillet=is_list(fillet)?fillet:[fillet,fillet];
     fase=is_bool(fase)?fase?1:0:fase;
     end=is_bool(end)?end?1:0:end;
     angle=grad?grad:angle;
-    spiel=is_list(spiel)?spiel:[spiel,spiel];
+    spiel=is_undef(spiel)?is_list(lap)?lap
+                                      :[lap,lap]
+                         :is_list(spiel)?spiel
+                                        :[spiel,spiel];
     center=center?true:false;
+    dia=is_undef(r)?dia:2*r;
   $info=false;
     
     if(is_undef(dia)&&l&&!2D&&rad>0){
         difference(){
-            Tz(fase&&$preview?.05:0)linear_extrude(height=l -(fase&&$preview?.1:0),$fn=fn,convexity=5,center=center)
+            Tz(fase&&$preview?.05:0)scale([1,1,sign(l)])linear_extrude(height=abs(l) -(fase&&$preview?.1:0),$fn=fn,convexity=5,center=center)
             {
                 difference()
                 {
@@ -7074,7 +7312,7 @@ module Kehle(rad=2.5,dia,l=20,angle=360,grad=0,a=90,ax=90,fn=0,fn2,fs=fs,fa=fa,r
 // dia   
     if(!is_undef(dia)&&!2D&&rad>0){
       rotate(center?-180-angle/2:0)difference(){
-        rotate(fase&&$preview?.05:0)rotate_extrude(angle=angle-(fase&&$preview?.1:0),$fn=fn?fn:fs2fn(minf=24,r=dia/2,fs=fs,fa=fa),convexity=5,$fs=fs)
+        rotate(fase&&$preview?.05:0)rotate_extrude(angle=angle-(fase&&$preview?.1:0),$fn=fn?fn:dia?fs2fn(minf=24,r=dia/2,fs=fs,fa=fa):0,convexity=5,$fs=fs,$fa=fa)
             difference()
             {
                 T(dia/2)translate([-spiel[0],-spiel[1]])square([sin(-90+ax)*rad+rad+spiel[0],sin(a-90)*rad+rad+spiel[1]]);
@@ -7430,7 +7668,7 @@ Text(text="WWiiABCiiXX",radius=10);
 \param h  text height Z for 2D h=0
 \param cx,cy,cz center  center modes
 \param spacing text spacing
-\param fn text resolution
+\param fn,fs text resolution
 \param radius  polar text arrangement
 \param rot     rotation vector for text
 \param font    text font (name or number) echo(fonts)
@@ -7452,7 +7690,7 @@ Text(text="WWiiABCiiXX",radius=10);
 
 //Text("HTAMpqf",radius=20,rot=0);
 
-module Text(text="»«",size=5,h,cx,cy,cz,center=0,spacing=1,fn=24,radius=0,rot=[0,0,0],font="Bahnschrift:style=bold",style,help,name,textmetrics=true,viewPos=false,trueSize="body")
+module Text(text="»«",size=5,h,cx,cy,cz,center=0,spacing=1,fn,fs=fs,radius=0,rot=[0,0,0],font="Bahnschrift:style=bold",style,help,name,textmetrics=true,viewPos=false,trueSize="body")
 {
 
 text=str(text);
@@ -7509,9 +7747,9 @@ size=trueSizeSW=="body"?size*.72:
   if(!radius){   
     if(h)    
     rotate(rot)translate([0,0,cz?-abs(h)/2:h<0?h:0]) linear_extrude(abs(h),convexity=10){
-    text(str(text),size=size,halign=cx?"center":"left",valign=valign,font=fontstr,spacing=spacing,$fn=fn);
+    text(str(text),size=size,halign=cx?"center":"left",valign=valign,font=fontstr,spacing=spacing,$fn=fn,$fs=fs);
     }
-    else rotate(rot)translate([0,0,cz?-h/2:0])text(text,size=size,halign=cx?"center":"left",valign=valign,spacing=spacing,font=fontstr,$fn=fn); 
+    else rotate(rot)translate([0,0,cz?-h/2:0])text(text,size=size,halign=cx?"center":"left",valign=valign,spacing=spacing,font=fontstr,$fn=fn,$fs=fs); 
   }
   else if (lenT){
    iRadius=radius+(cy?-txtSizeY/2:0);
@@ -7519,9 +7757,9 @@ size=trueSizeSW=="body"?size*.72:
     if(h)    
     translate([0,radius,0])rotate(rot)Tz(cz?-abs(h)/2:h<0?h:0){
     %color("Chartreuse")if(viewPos&&$preview)translate([0,-1])rotate(-30)circle($fn=3);// pos Marker
-    linear_extrude(abs(h),convexity=10)text(text[i],size=size,halign=true?"center":"left",valign=valign,font=fontstr,$fn=fn);
+    linear_extrude(abs(h),convexity=10)text(text[i],size=size,halign=true?"center":"left",valign=valign,font=fontstr,$fn=fn,$fs=fs);
     }
-    else  translate([0,radius,cz?-h/2:0])rotate(rot)text(text[i],size=size,halign=true?"center":"left",valign=valign,font=fontstr,$fn=fn); 
+    else  translate([0,radius,cz?-h/2:0])rotate(rot)text(text[i],size=size,halign=true?"center":"left",valign=valign,font=fontstr,$fn=fn,$fs=fs); 
   }
     
  InfoTxt("Text",["font",font,"style",style,"trueSize",trueSizeSW,"size",str(inputSize," ⇒ ",size)],name);   
@@ -7536,6 +7774,7 @@ size=trueSizeSW=="body"?size*.72:
 "center",center,
 "spacing",spacing,
 "fn",fn,
+"fs",fs,
 "radius",radius, 
 "rot",rot,
 "font",str("\"",font,"\""),
@@ -7819,15 +8058,23 @@ module Laser3D(h=4,layer=10,var=0.002,name,on=-1){
     
 }
 
+/** \name Elllipse
+Ellipse creates an ellipse with optional children
+\param x first semi axis can be [x,x] (absolute values)
+\param y second semi axis can be [y,y]
+\param z optional 
+\param rand thickness for 2D 
+\param fn fs fa fraqment resolution
+*/
 
-
-module Ellipse(x=2,y=2,z=0,rand=1,fn=36,help){
+module Ellipse(x=2,y=2,z=0,rand=1,fn,fs=fs,fa=fa,help){
   
   
   x=is_list(x)?x:[x,x];
   y=is_list(y)?y:[y,y];
   z=is_list(z)?z:[z,z];
   //ToDo z rot;
+  fn=fn?fn:fs2fn(r=max(max(x),max(y),max(z)),fs=fs,fa=fa);
   //function rota(i)=-atan2(sin(i)*y,cos(i)*x)+90;
   function rot(i)=
     let(i=i%360)
@@ -7835,8 +8082,9 @@ module Ellipse(x=2,y=2,z=0,rand=1,fn=36,help){
     
    for (n=[0:fn-1]){
      $idx=n;
-     i=360/fn*n;
-    j=i+360/fn;
+     step=360/fn;
+     i=step*n;
+    j=step*(n+1);
      
      if($children)  Color(1/fn*n)hull(){
            T(sin(i)*(i>=180?x[0]:x[1]),cos(i)*(i>=90&&i<270?y[0]:y[1]),cos(i)*(i>=90&&i<270?z[0]:z[1]))rotate(rot(i))children();   
@@ -7852,7 +8100,7 @@ module Ellipse(x=2,y=2,z=0,rand=1,fn=36,help){
        
    }
   MO(!$children,warn=true);
-  HelpTxt("Ellipse",["x",x,"y",y,"z",z,"rand",rand,"fn",fn],help);
+  HelpTxt("Ellipse",["x",x,"y",y,"z",z,"rand",rand,"fn",fn,"fs",fs,"fa",fa],help);
 }
 
 
@@ -9350,6 +9598,7 @@ Knurl() creates a knurled cylinder or cone
 \param grad  full cylinder = 360
 \param delta move knurl center
 \param alt alternate depth axially if size.z is list
+\param lambda ⇒ size
 \param name
 \param help
 */
@@ -9359,17 +9608,18 @@ Knurl() creates a knurled cylinder or cone
 
 
 
-module Knurl(r=10,h=20,size=[5,5,.7],depth,e,scale=1,scaleZ=1,twist=0,grad=360,delta=[0,0],alt=0,convexity,name,help){
-con=0;
-size=is_num(size)?[size,size,is_undef(depth)?size/2:depth]:
-                  concat(size.xy,is_undef(depth)?[is_undef(size.z)?min(size)/2:size.z]:[depth]);
+module Knurl(r=10,h=20,size=[5,5,.7],depth,e,scale=1,scaleZ=1,twist=0,grad=360,delta=[0,0],alt=0,lambda,convexity,name,help){
+
+sizeI=is_undef(lambda)?size:lambda;
+size=is_num(sizeI)?[sizeI,sizeI,is_undef(depth)?sizeI/2:depth]:
+                  concat(sizeI.xy,is_undef(depth)?[is_undef(sizeI.z)?min(sizeI)/2:sizeI.z]:[depth]);
 
 
 e=is_undef(e)?[
     max(3,round( grad/(asin( (max(0.1,size.x/2))/r  )*2) ) ),
     max(1,round(h/size.y))
   ]:
-             e;
+             is_list(e)?e:[e,e];
              
 delta=is_list(delta[0])?delta:[delta];
 sizeZ=is_list(size.z)?size.z:[size.z];
@@ -9428,8 +9678,8 @@ fTop=[[for(i=[loopX:-1:0])e.y*2*(loopX +1)+i]];
 
 fBody=[for(z=[0:e.y-1],i=[0:loopX])each[
 [(1+i)%(loopX+1), 0+i, (loopX+1)+i]+[1,1,1]*(loopX+1)*2*z,// bottom
-if((i+1)%con)[0+i, (loopX+1)*2+i, (loopX+1)+i]+[1,1,1]*(loopX+1)*2*z,// left
-if(i%con)[(loopX+1)*2+(1+i)%(loopX+1), (1+i)%(loopX+1), (loopX+1)+i]+[1,1,1]*(loopX+1)*2*z,// left
+[0+i, (loopX+1)*2+i, (loopX+1)+i]+[1,1,1]*(loopX+1)*2*z,// left
+[(loopX+1)*2+(1+i)%(loopX+1), (1+i)%(loopX+1), (loopX+1)+i]+[1,1,1]*(loopX+1)*2*z,// right
 [(1+i)%(loopX+1)+(loopX+1)*2, (loopX+1)+i, (loopX+1)*2+i]+[1,1,1]*(loopX+1)*2*z//top
 ]
 ];
@@ -9460,8 +9710,9 @@ KnurlTri() creates a triangle knurled cylinder or cone
 //KnurlTri();
 
 
+
 module KnurlTri(e=[16,9],r=10,h=30,depth=[1,+1],deltaH=[0,0],scale=1,lambda,name,help){
-lambda=is_num(lambda)?[lambda,lambda]:lambda;
+lambda=is_num(lambda)?[lambda,lambda*(sqrt(3)/2)]:lambda;
 e=is_undef(lambda)?is_list(e)?e:[e,round(h/sqrt((sehne(r=r,n=e)*sqrt(3)/2)^2 - (r-Inkreis(e,r))^2  ) )]
                   : [round(360/gradS(s=lambda.x,r=r)),round(h/lambda.y)];
 s=sehne(r=r,n=e[0]);
@@ -9528,6 +9779,60 @@ each facesTri2
 polyhedron(points=points,faces=faces,convexity=15);
 
 }
+/**
+\name FlatKnurl
+\page Objects
+FlatKnurl() creates a knurled surface
+\param s size [x,y,z]
+\param lambda knurl size
+\param base  base
+\param opt  knulr pattern straight or diag and positive or negative single or cross knurl
+\param center center
+\param help help
+
+*/
+
+//FlatKnurl(opt=7,h=2,lambda=4);
+
+module FlatKnurl(size=[20,30,1],h,lambda=2,base=.2,opt=0,center=[+0,0,1],help){
+center=is_bool(center)?center?[1,1,1]:[0,0,1]:center;
+lambda=is_num(lambda)?[lambda,lambda]:lambda;
+s=is_undef(h)?is_list(size)?size:[size,size,lambda/2]:[each size.xy,h];
+res=[round(s.x/lambda.x),round(s.y/lambda.y)]*2;
+
+
+  if(opt==1){ // cross in
+    FlatMesh(s,res=res,base=base,fz=function(x,y) x%2?0:s.z,center=center);
+    FlatMesh(s,res=res,base=base,fz=function(x,y) y%2?0:s.z,center=center);
+  }
+
+  if(opt==0)intersection(){ //cross out
+    FlatMesh(s,res=res,base=base,fz=function(x,y) x%2?s.z:0,center=center);
+    FlatMesh(s,res=res,base=base,fz=function(x,y) y%2?s.z:0,center=center);
+  }
+  if(opt==2){ // straight x
+    FlatMesh(s,res=res,base=base,fz=function(x,y) x%2?s.z:0,center=center);
+  }
+  if(opt==3){ // straight y
+    FlatMesh(s,res=res,base=base,fz=function(x,y) y%2?s.z:0,center=center);
+  }  
+  if(opt==4)intersection(){ // diagonal
+    FlatMesh(s,res=res,base=base,fz=function(x,y) (x+y)%2?s.z:0,faceOpt=0,center=center);
+    FlatMesh(s,res=res,base=base,fz=function(x,y) (x+y)%2?s.z:0,faceOpt=1,center=center);
+  }
+  if(opt==5){ // diagonal out
+    FlatMesh(s,res=res,base=base,fz=function(x,y) (x+y)%2?s.z:0,faceOpt=0,center=center);
+    FlatMesh(s,res=res,base=base,fz=function(x,y) (x+y)%2?s.z:0,faceOpt=1,center=center);
+  }
+  if(opt==6||opt==7)FlatMesh(s,res=res,base=base,fz=function(x,y) (x+y)%2?s.z:0,faceOpt=opt==6?0:1,center=center);
+  
+HelpTxt("FlatKnurl",["size",size,"h",h,"lambda",lambda,"base",base,"opt",opt,"center",center],help);
+}
+
+
+
+
+
 /**
 \name Loch
 \page Objects
@@ -10270,7 +10575,7 @@ T(70)color("blue") FlatMesh(amp=[0,0,0,0,0,0,0,1,0,0],freq=[4],delta=[0,0, 0,0, 
 //*/
 
 
-module FlatMesh(size=[20,30],fz,base=5,res=1,randSize=0,amp=[1],freq=[2],delta=[0],seed=42,center=[0,0,1],fs=1,bricks=false,help){
+module FlatMesh(size=[20,30],fz,base=5,res=1,randSize=0,amp=[1],freq=[2],delta=[0],seed=42,faceOpt,center=[0,0,1],fs=1,bricks=false,help){
 center=v3(center);
 size=is_num(size)?[size,size]:size;
 
@@ -10279,7 +10584,7 @@ f=freq/max(res)*360;
 delta=delta;
 step=[size.x/res.x, size.y/res.y];
 
-HelpTxt("FlatMesh",["size",size,"fz",fz,"base",base,"res",res,"randSize",randSize,"amp",amp,"freq",freq,"delta",delta,"seed",seed,"center",center],help);
+HelpTxt("FlatMesh",["size",size,"fz",fz,"base",base,"res",res,"randSize",randSize,"amp",amp,"freq",freq,"delta",delta,"seed",seed,"faceOpt",faceOpt,"center",center,"fs",fs,"bricks",bricks],help);
 
 //amp=[0.08,.15,.5,.5,.5,.5,.5];//[0,0,0,1,1,0,0];//
 //f=[15,20,10,5,6,2];
@@ -10305,11 +10610,11 @@ fz=is_function(fz)?fz:function(x,y)
   +(amp[6%len(amp)]?sin(norm([x-center.x*res.x/2,y-center.y*res.y/2])*f[6%len(f)]+delta[6%len(delta)]) *amp[6%len(amp)]:0)//radial
   +(amp[7%len(amp)]?sin(atan2(x-center.x*res.x/2,y-center.y*res.y/2)*(freq[7%len(freq)])+delta[7%len(delta)]) *amp[7%len(amp)]*norm([x-center.x*res.x/2,y-center.y*res.y/2])/(max(res)/2):0)//circular
 
-  
-  
   //+rands(-1,1,1,x*y+delta[6])[0]*amp[6]// noise
  ;
-
+ 
+ 
+if(min(size)>0){
 points0=[
 for(y=[0:res.y],x=[0:res.x])[x*step.x,y*step.y,base+fz(x,y)
 // +rand(x,y)
@@ -10330,10 +10635,21 @@ for(i=[ [ 0, 0, 1], [ 1, 0, 1], [ 1, 1, 1], [ 0, 1, 1] ]) [i.x*size.x, i.y*size.
 ];
 
 l0=len(points0);
-faces=[
+faces0=[
+for(y=[0:res.y-1],x=[0:res.x -1])[x+1, x, x+res.x+1, x+res.x+2]+[1,1,1,1]*y*(res.x+1)
+];
+faces0Tri1=[
+for(y=[0:res.y-1],x=[0:res.x -1])[x+1, x, x+res.x+1]+[1,1,1]*y*(res.x+1),
+for(y=[0:res.y-1],x=[0:res.x -1])[x+1, x+res.x+1, x+res.x+2]+[1,1,1]*y*(res.x+1)
+];
+faces0Tri2=[
+for(y=[0:res.y-1],x=[0:res.x -1])[x+1, x, x+res.x+2]+[1,1,1]*y*(res.x+1),
+for(y=[0:res.y-1],x=[0:res.x -1])[x, x+res.x+1, x+res.x+2]+[1,1,1]*y*(res.x+1)
+];
+facesBox=[
 
 //for(i=[0:l0-res.x -3])[i+1,i ,i+res.x +1,i+res.x +2],
-for(y=[0:res.y-1],x=[0:res.x -1])[x+1, x, x+res.x+1, x+res.x+2]+[1,1,1,1]*y*(res.x+1),
+
 [for(i=[0:3])i+l0],// bottom
 [for(i=[0:res.x])i,l0+1,l0], // side y0
 [for(i=[0:res.x])l0-i-1,l0+3,l0+2],// side y
@@ -10341,10 +10657,12 @@ for(y=[0:res.y-1],x=[0:res.x -1])[x+1, x, x+res.x+1, x+res.x+2]+[1,1,1,1]*y*(res
 [for(i=[0:res.y])res.x+i*(res.x +1),l0+2,l0+1],// side x
 ];
 
+//faces=concat(faces0,facesBox);
+faces=concat( (is_undef(faceOpt)?faces0:faceOpt?faces0Tri1:faces0Tri2),facesBox);
 points=concat(points0,pointsBox);
 
 translate([center.x?-size.x/2:0,center.y?-size.y/2:0,center.z?-base:0])polyhedron(points,faces,convexity=5);
-
+}
 }
 
 
@@ -10683,6 +11001,7 @@ Filter() creates a fine mesh to filter (only FDM prints)
 //Filter(rand=0,layer=.15,form=0,dist=.5,nozzle=.2);
 //Filter(size=[10,10],h=1.0,rand=+0,form=1,stack=0,line=.5);
 
+
 module Filter(size=10,dist=.25,h=5,form=1,rand=-.5,rad=1,randH=0,stack=false,layer=layer,line=line,name,help){
 //lines Size
 ls=line;//n(2+min(.85,dist/nozzle),nozzle=nozzle); // gap max .85 nozzle width
@@ -10693,15 +11012,15 @@ size=is_num(size)?[size,size]:size;
 es=dist+ls ;
 
 interlace=[1,-1]*es/4;//[-(dist>nozzle*3?es/4:es/8),(dist>nozzle*3?es/4:es/8)];
-
-
-InfoTxt("Filter",["line",ls,"outside",size+(rand>0?[2,2]*rand:[0,0]),"inside",rand>0?size:size+rand*[2,2]],name);
-HelpTxt("Filter",["size",size,"dist",dist,"h",h,"form",form,"rand",rand,"rad",rad,"randH",randH,"stack",stack,"layer",layer,"line",line,"name",name],help);
-
 level=floor((h-layer*2)/layer/2);
 
+InfoTxt("Filter",["line",ls,"outside",size+(rand>0?[2,2]*rand:[0,0]),"inside",rand>0?size:size+rand*[2,2],"level",level,"filterTop",(rand?layer:0)+level*layer*2],name);
+HelpTxt("Filter",["size",size,"dist",dist,"h",h,"form",form,"rand",rand,"rad",rad,"randH",randH,"stack",stack,"layer",layer,"line",line,"name",name],help);
+
+
+
 if(rand)
-  LinEx(max(h,randH))Rand(rand){
+  LinEx(max(h,randH),$info=false)Rand(rand){
     if(form==0)Quad(size,rad=rad);
     if(form==1)scale(size)circle(d=1);
   }
