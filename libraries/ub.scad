@@ -64,7 +64,8 @@ Changelog (archive at the very bottom)
 210|23 ADD bool UPD Knurl UPD Text ADD FlatKnurl UPD FlatMesh CHG Tesselation UPD Roof
 220|23 UPD distS UPD Kehle ADD Penrose ADD RectTiling CHG Ellipse UPD Filter UPD Caliper
 230|23 CHG Caliper UPD Rohr UPD Bogen UPD QuadAnschluss ADD vMin vMax vAdd UPD Torus
-
+240|23 FIX QuadAnschluss CHG WaveEX UPD Polar CHG Isosphere UPD WKreis 
+250|23 FIX GewindeV4 FIX kreis FIX vollwelle CHG Filter FIX Loch
 */
 
 {//fold // Constants
@@ -155,7 +156,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.230;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.250;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -279,7 +280,7 @@ kreis() generates points on a circle or arc
 \param fs fragment size
 \param fs2 fragment size second arc
 \param fn2 fragments second arc
-\param minF minumum fragments 
+\param minF minimum fragments 
 */
 
 function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0])=kreis(r,rand,grad,grad2,fn,center,sek,r2,rand2,rcenter,rot,t);
@@ -287,9 +288,9 @@ function Kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2
 
 
 
-
 function kreis(r=10,rand=+5,grad=360,grad2,fn=fn,center=true,sek=true,r2=0,rand2,rcenter=0,rot=0,t=[0,0],z,d,endPoint=true,fs=fs,fs2,fn2,minF=1,fa=fa)=
 let (
+minF=bool(minF,bool=false),
 grad2=is_undef(grad2)?grad:grad2,
 r=is_num(d)?rcenter?(d+rand)/2:d/2:
             rcenter?r+rand/2:r,
@@ -312,7 +313,7 @@ endPoint=rand?true:endPoint
 )
 is_num(z)?[
 if(!sek&&!rand&&abs(grad)!=360&&grad)[0+t[0],0+t[1],z], // single points replacement
-if(grad==0&&minF)[sin(rot+(center?-grad/2-90:0))*r  +t[0],
+if(grad==0&&minF)for([0:minF])[sin(rot+(center?-grad/2-90:0))*r  +t[0],
      cos(rot+(center?-grad/2-90:0))*r2 +t[1],
      z],
 if(grad)for(i=[0:endPoint?fn:fn-1])
@@ -332,6 +333,8 @@ if(r&&grad)for(i=[0:endPoint?fn:fn-1])
         let(iw=abs(grad)==360?i%fn:i)
     [sin(rot+(center?-grad/2-90:0)+iw*step)*r+t[0],
     cos(rot+(center?-grad/2-90:0)+iw*step)*r2+t[1]],
+if(grad==0&&minF)for([0:minF])[sin(rot+(center?-grad/2-90:0))*r  +t[0],
+     cos(rot+(center?-grad/2-90:0))*r2 +t[1]],
 if(rand)for(i=[0:endPoint?fn2:fn2-1])
     let(iw=abs(grad2)==360?i%fn2:i)
     [sin(rot+(center?grad2/2-90:grad2)+iw*-step2)*(r-rand)+t[0],
@@ -1936,16 +1939,18 @@ Polar() object  multiply children polar (e=number, x/y=radial distance)
 \param dr    delta rotate objects according to position
 \param mitte add center object
 \param v     rotation axis
+\param es    element distance
 \param name, help  name help
 */
 
 //Polar(5,[3,3],v=[0,1,1])cube();
 
-module Polar(e=3,x=0,y=0,z=0,rot=0,rotE=0,end=360,dr=0,mitte=false,v=[0,0,1],name,n,help=false,r,re){
+module Polar(e=3,x=0,y=0,z=0,rot=0,rotE=0,end=360,dr=0,mitte=false,v=[0,0,1],es,name,n,help=false,r,re){
     
+   e=floor(abs(e));
    y=is_list(x)?is_num(x.y)?x.y+y:y:y;
    z=is_list(x)?is_num(x.z)?x.z+z:z:z;
-   x=is_list(x)?x.x:x;
+   x=is_list(x)?x.x:es?radiusS(s=es,n=e):x;
    rot=is_undef(r)?rot:r; // compability
    rotE=is_undef(re)?rotE:re; // compability
    name=is_undef(n)?is_undef(name)?is_undef($info)?false:
@@ -1975,7 +1980,7 @@ module Polar(e=3,x=0,y=0,z=0,rot=0,rotE=0,end=360,dr=0,mitte=false,v=[0,0,1],nam
      }
 
      
-    HelpTxt("Polar",["e",e,"x",x,"y",y,"z",z,"rot",rot,"rotE",rotE,"end",end,"dr",dr,"mitte",mitte,"v",v,"name",name],help);
+    HelpTxt("Polar",["e",e,"x",x,"y",y,"z",z,"rot",rot,"rotE",rotE,"end",end,"dr",dr,"mitte",mitte,"v",v,"es",es,"name",name],help);
 MO(!$children);
            
      
@@ -5028,9 +5033,14 @@ HelpTxt("CycloidZahnrad",["modul",modul,"z",z," d",d," linear",linear,"center",c
 //    
 //}
 
+/// creates points for vollwelle
+/*
+p=vollwelle(grad2=-100,minF=12);
+polygon(p);
+echo(len(p));
+//*/
 
-
-function vollwelle(r=1,r2,grad=+60,grad2=+0,h=0,l,extrude=+5,center=true,xCenter=1,fn=12,x0=0,mitte=0,tMitte,g2End=[1,1])=
+function vollwelle(r=1,r2,grad=+60,grad2=+0,h=0,l,extrude=+5,center=true,xCenter=1,fn=12,x0=0,mitte=0,tMitte,g2End=[1,1],minF)=
 let(
     fn=is_list(fn)?fn:[fn,fn],
     grad=is_list(grad)?grad:[grad,grad],
@@ -5084,10 +5094,10 @@ let(
 concat(
 
     [[extrude-x2-cos(grad2[1])*r2+g2EndX1,l1]]+[trans]//oben Kreis verl.
-    , kreis(r=r2,rand=0,rot=-90+grad2[1],center=false,grad=-grad[1]-grad2[1],t=[extrude-x2,yOben/2+y2Oben/2+mitte/2]+trans,fn=fn[0])//oben
-    , kreis(r=r,r2=r*sc,rand=0,rot=90-grad[1],grad=grad[1],t=[extrude+x,mitte/2]+trans,fn=fn[1],center=false)//mitte oben
-    , kreis(r=r,r2=r*sc,rand=0,rot=90,grad=grad[0],t=[extrude+x,-mitte/2]+trans,fn=fn[1],center=false)//mitte unten
-    , kreis(r=r2,rand=0,rot=grad[0]-90,center=false,grad=-grad[0]-grad2[0],t=[extrude-x2,-y/2-y2/2-mitte/2]+trans,fn=fn[0])  //unten 
+    , kreis(r=r2,rand=0,rot=-90+grad2[1],center=false,grad=-grad[1]-grad2[1],t=[extrude-x2,yOben/2+y2Oben/2+mitte/2]+trans,fn=fn[0],minF=minF)//oben
+    , kreis(r=r,r2=r*sc,rand=0,rot=90-grad[1],grad=grad[1],t=[extrude+x,mitte/2]+trans,fn=fn[1],center=false,minF=minF)//mitte oben
+    , kreis(r=r,r2=r*sc,rand=0,rot=90,grad=grad[0],t=[extrude+x,-mitte/2]+trans,fn=fn[1],center=false,minF=minF)//mitte unten
+    , kreis(r=r2,rand=0,rot=grad[0]-90,center=false,grad=-grad[0]-grad2[0],t=[extrude-x2,-y/2-y2/2-mitte/2]+trans,fn=fn[0],minF=minF)  //unten 
    
     ,[[extrude-x2-cos(grad2[0])*r2+g2EndX0,-l0]]+[trans]//unten Kreis verl.
     ,[[x0,-l0]]+[trans]//unten
@@ -5439,9 +5449,9 @@ HelpTxt("Cycloid",["modul",modul,"z",z,"fn",fn,"option",option,"l",l,"delta",del
 }
 
 
+/// circle of circles
 
-
-module WKreis(e=12,d1=1,d2,grad=180,r,diff,fn=24,r1,r2,name,help){
+module WKreis(e=12,d1=1,d2,grad=180,r,diff,fn,fs=fs,r1,r2,name,help){
     
     d1=is_undef(r1)?d1:2*r1;
     d2=is_undef(d2)&&is_undef(r2)?d1:is_undef(r2)?d2:2*r2;
@@ -5472,8 +5482,8 @@ module WKreis(e=12,d1=1,d2,grad=180,r,diff,fn=24,r1,r2,name,help){
     
     
     wk=[for(i=[0:e-1])each concat(
-    kreis(r=-d2/2,rot=90-winkel/2+i*winkel*2,rand=0,grad=-grad2,sek=true,t=RotLang(-winkel/2+i*winkel*2,rK2),fn=fn)
-    , kreis(r=d1/2,rot=90+winkel/2+i*winkel*2,rand=0,grad=grad1,sek=true,t=RotLang(winkel/2+i*winkel*2,rK1),fn=fn)
+    kreis(r=-d2/2,rot=90-winkel/2+i*winkel*2,rand=0,grad=-grad2,sek=true,t=RotLang(-winkel/2+i*winkel*2,rK2),fn=fn,fs=fs)
+    , kreis(r=d1/2,rot=90+winkel/2+i*winkel*2,rand=0,grad=grad1,sek=true,t=RotLang(winkel/2+i*winkel*2,rK1),fn=fn,fs=fs)
     )];
 
    rotate(winkel/2-90) polygon(wk,convexity=5);
@@ -5488,6 +5498,7 @@ HelpTxt("Wkreis",[
     "r",r,
     "diff",diff,
     "fn",fn,
+    "fs",fs,
     "r1",r1,
     "r2",r2,
     "name",name],
@@ -6893,6 +6904,14 @@ HelpTxt("PolyH",["points",[[0,0,0],[1,2,3]],"loop",loop,"end",end,"pointEnd",poi
   
 }
 
+/** \page Objects \name Isosphere
+Isoshpere creates an isosphere
+\param r radius
+\param d  diameter (optional)
+\param q  resoluton
+\param help help
+*/
+//Isosphere(10);
 
 module Isosphere(r=1,d,q=70,help){
   r=is_undef(d)?r:d/2;
@@ -6907,7 +6926,8 @@ module Isosphere(r=1,d,q=70,help){
     function generatepoints(n=70)= NX(n,0.1+1.2*n);
     
     a= generatepoints(q);
-    scale(r)hull()polyhedron(a,[[for(i=[0:len(a)-1])i]]);
+    //scale(r)hull()polyhedron(a,[[for(i=[0:len(a)-1])i]]);
+    scale(r)hull()polyhedron(a,[for(i=[0:len(a)-1])[0,1,i]]);
       
 HelpTxt("Isosphere",["r",r,"q",q],help);
 }
@@ -9140,6 +9160,10 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
 }
 
 
+//GewindeV4(cyl=0,konisch=10);
+//GewindeV4(cyl=0,winkel=120);
+
+
 
 module GewindeV4(
 dn=6,// Diameter nominal
@@ -9175,6 +9199,7 @@ g=1,// number thread starts only for  autosizing
 name,
 help
 ){
+  konisch=innen?konisch:-konisch;
   halbWinkel=is_list(winkel)?winkel:[winkel/2,winkel/2];
   Kwinkel=[90-halbWinkel[0],90-halbWinkel[1]];// Komplement winkel
     //winkel=is_list(winkel)?[90-winkel[0],90-winkel[1]]:[90-winkel/2,90-winkel/2];
@@ -9183,7 +9208,10 @@ help
     center=is_num(center)?center:center==true?1:0;
 
 
-    kern=is_undef(kern)?innen?round((dn-p*1.08/gver)*100)/100:round((dn-p*1.225/gver*+1)*100)/100:kern;
+    kern=is_undef(kern)?
+          winkel==60?innen?round((dn-p*1.08/gver)*100)/100:round((dn-p*1.225/gver*+1)*100)/100
+                    :runden(innen?dn-p/1.6/tan(max(halbWinkel)):dn-p/1.42/tan(max(halbWinkel)),2)
+                      :kern;
     dn=is_undef(dn)?innen?round((kern+p*1.08/gver)*100)/100:round((kern+p*1.225/gver)*100)/100:dn;
     fn=is_undef(fn)||fn==0?fs2fn(r=max(kern,dn)/2,fs=fs,minf=36,fa=fa):ceil(fn);
     start=ceil(is_undef(start)?fn/3:fn/360*start);
@@ -9291,13 +9319,13 @@ HelpTxt("Gewinde",
 ],help);
 
 points=[
-    for(i=[0:max(start+1,end+1,5)])vollwelle(fn=fn2,l=gb,h=start?gangH*(0.5+sin(i*step-90)/2):gangH,r=rad1,r2=rad2,tMitte=breite,
+    for(i=[0:max(start +1,end +1,5)])vollwelle(fn=fn2,l=gb,h=start?gangH*(0.5+sin(i*step-90)/2):gangH,r=rad1,r2=rad2,tMitte=breite,
       grad=start?[max(Kwinkel[0]*sin(i*.5*step+0),1),max(Kwinkel[1]*sin(i*.5*step+0),1)]:
                  Kwinkel,
-      grad2=[-konisch,konisch],extrude=d2/2,x0=mantel/2,xCenter=-1)   
+      grad2=[-konisch,konisch],extrude=d2/2,x0=mantel/2,xCenter=-1,minF=fn2)   
     ];
  
-profilnr=start;
+profilnr=max(start,end);
 pointskorr=[for(i=[0:len(points[profilnr])-1])[points[profilnr][i][0],points[profilnr][i][1]*profilkorrekturY]];
 
 detail=fn*grad/360;
@@ -9941,13 +9969,13 @@ Loch() creates the Volume of a slot or elongated hole
 //Loch(rad=4,d=7,h=14,h2=3,deg=-30,2D=0,cuts=0,fs=0.4);
 
 
-
 module Loch(h=5,h2=1,d=3.5,l=0,d2,deg=[45,45],rad,extrude=spiel,center=[1,1,0],fn=0,fs=fs,cuts=0,2D=false,name,help){
 
 
 
 d2=is_num(d2)?[d2,d2]:d2;
 ly=is_list(l)?max(0,l.y):0;
+lx=is_list(l)?max(0,l.x):l?l:0;
 cuts=ly?0:cuts;
 l=max(is_list(l)?l.x:l,0);
 r=max(0,d/2);
@@ -9987,7 +10015,7 @@ r2=[
 ];
 iext=is_list(extrude)?extrude:is_num(extrude)?[extrude,extrude]:extrude?[500,500]:[0,0];
 extrude=[r2[0]>0?iext[0]:0,r2[1]>0?iext[1]:0];
-
+ifn360=fn?fn:fs2fn(fs=fs,r=max(r2[0],r2[1],r) );
 ifn=fn?ceil(fn/2)-1:fs2fn(fs=fs,r=max(r2[0],r2[1],r),grad=ly?90:180)-1;
 
 radFn=[fs2fn(fs=fs,r=irad[0],grad=deg[0]),fs2fn(fs=fs,r=irad[1],grad=deg[1])];
@@ -10014,7 +10042,7 @@ function langL(r=5,l=0,z=undef,fn=ifn,fs=0)=l&&!ly?concat(
   arc(r=r,deg=90,fn=fs?fs2fn(r=r,grad=90):fn,t=[0,0],rot=180,z=z),
   arc(r=r,deg=90,fn=fs?fs2fn(r=r,grad=90):fn,t=[l,0],rot=-90,z=z)
   )
-      :arc(r=r,deg=360-360/(fn*2+1),fn=fn*2+1,z=z);
+      :arc(r=r,deg=360-360/(ifn360),fn=ifn360-1,z=z);
 
 stepRad=[deg[0]/radFn[0],deg[1]/radFn[0]];
  points=concat(
@@ -10065,7 +10093,7 @@ T(center.x?center.x==2?0:
           center.y?-ly/2:d/2,
           center.z?-h/2:0){
           $info=false;
-            PolyH(points=points,loop=ly?4*ifn+4:ifn*2+2,flip=0);
+            PolyH(points=points,loop=ly?4*ifn+4:lx?ifn*2+2:ifn360,flip=0);
             if(cuts&&max(r2)-r>=1&&max(deg)>=5&&h>1)difference(){
             gapH=[deg[0]==0?0:1/sin(deg[0]),deg[1]==0?0:1/sin(deg[1])]*.5;
             cutWidth=0.03;
@@ -10126,9 +10154,29 @@ module Ccube(size=20,c=2,c2,center=true,sphere=false,grad=0,help){
 }
 
 
+/**
+\name WaveEx
+\page Objects
+WaveEx is a wavey extrusion
+\param grad degree 0 straight 360 torus
+\param h height if straight
+\param r ry radius
+\param f fy frequency
+\param a ay amplitude
+\param fv,fvy frequency shift
+\param trx try torus radius
+\param tf tfy torus frequency
+\param tfv,tfvy torus frequency shift 
+\param ta tay torus amplitude
+\param fn fn2  fragments
+\param rot rotation
+\param scale scaley  scale
+\param close  close ends
+\param p pitch
+\param name help name help
+*/
 
-
-module WaveEx(grad=0,h=50,r=5,ry,f=0,fy,a=1,ay,fv=0,fvy,tf=0,trx=20,try,tfy=0,tfv=0,tfvy=0,ta=1,tay,fn=fn,fn2=fn,rot=0,scale=1,scaley,close=true,p=0,name,help){
+module WaveEx(grad=0,h=50,r=5,ry,f=0,fy,a=1,ay,fv=0,fvy,trx=20,try,tf=0,tfy=0,tfv=0,tfvy=0,ta=1,tay,fn=fn,fn2=fn,rot=0,scale=1,scaley,close=true,p=0,name,help){
     ay=is_undef(ay)?a:ay;
     fy=is_undef(fy)?f:fy;
     ry=is_undef(ry)?r:ry;
@@ -10169,7 +10217,7 @@ module WaveEx(grad=0,h=50,r=5,ry,f=0,fy,a=1,ay,fv=0,fvy,tf=0,trx=20,try,tfy=0,tf
    top
    ):faces2,convexity=5); 
   
-  HelpTxt("WaveEx",["grad",grad,"h",h,"r",r,"ry",ry,"f",f,"fy",fy,"a",a,"ay",ay,"fv",fv,"fvy",fvy,"tf",tf,"trx",trx,"try",try,"tfy",tfy,"tfv",tfv,"tfvy",tfvy,"ta",ta,"tay",tay,"fn",fn,"fn2",fn2,",rot",rot,"scale",scale,"scaley",scaley,"close",close,"p",p,"name",name],help);
+  HelpTxt("WaveEx",["grad",grad,"h",h,"r",r,"ry",ry,"f",f,"fy",fy,"a",a,"ay",ay,"fv",fv,"fvy",fvy,"trx",trx,"try",try,"tf",tf,"tfy",tfy,"tfv",tfv,"tfvy",tfvy,"ta",ta,"tay",tay,"fn",fn,"fn2",fn2,",rot",rot,"scale",scale,"scaley",scaley,"close",close,"p",p,"name",name],help);
       
     if(help)echo(str("r=radius, f=frequenz, fv=freqverschiebung, a=amplitude, trx=translatetRadiusX, p=steigung")); 
   
@@ -10437,9 +10485,9 @@ dicke2=is_undef(dicke2)?dicke:dicke2;
 l2=is_undef(l2)?l:l2;
 
 ichamferDeg=is_list(chamferDeg)?[is_list(chamferDeg[0])?chamferDeg[0]
-                                                      :[chamferDeg[0]*[1,1]],
+                                                      :chamferDeg[0]*[1,1],
                                 is_list(chamferDeg[1])?chamferDeg[1]
-                                                      :[chamferDeg[1]*[1,1]]
+                                                      :chamferDeg[1]*[1,1]
                                ]
                               :chamferDeg*[[1,1], [1,1]];
 
@@ -11143,7 +11191,7 @@ size=is_num(size)?[size,size]:size;
 es=dist+ls ;
 
 interlace=[1,-1]*es/4;//[-(dist>nozzle*3?es/4:es/8),(dist>nozzle*3?es/4:es/8)];
-level=floor((h-layer*2)/layer/2);
+level=rand?floor((h-layer*2)/layer/2):floor(h/layer/2);
 
 InfoTxt("Filter",["line",ls,"outside",size+(rand>0?[2,2]*rand:[0,0]),"inside",rand>0?size:size+rand*[2,2],"level",level,"filterTop",(rand?layer:0)+level*layer*2],name);
 HelpTxt("Filter",["size",size,"dist",dist,"h",h,"form",form,"rand",rand,"rad",rad,"randH",randH,"stack",stack,"layer",layer,"line",line,"name",name],help);
