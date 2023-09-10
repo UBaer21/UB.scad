@@ -66,6 +66,8 @@ Changelog (archive at the very bottom)
 230|23 CHG Caliper UPD Rohr UPD Bogen UPD QuadAnschluss ADD vMin vMax vAdd UPD Torus
 240|23 FIX QuadAnschluss CHG WaveEX UPD Polar CHG Isosphere UPD WKreis 
 250|23 FIX GewindeV4 FIX kreis FIX vollwelle CHG Filter FIX Loch
+260|23 FIX Gewinde UPD Pfeil CHG CyclGear ADD Rod UPD Ring UPD Coil UPD SWelle
+270|23 
 */
 
 {//fold // Constants
@@ -156,7 +158,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=23.250;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=23.260;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -3110,6 +3112,35 @@ Pivot(messpunkt=messpunkt,p0=translate,active=[1,1,1,1,norm(translate)]);
   }// end Dimensioning
 
 
+}// end Caliper
+
+/** \page Helper
+ Rod() is a Level staff
+ /brief Rod() is a Level staff
+ /param on  0=off,1= on,2= on in render
+ /param pos positon [x,y,z]
+ /param size length
+ /param s  segment length
+ /param axis [x,y,z] 0=off ,1 on, -1 add negative
+ /param d diameter
+ /param help help
+*/
+
+module Rod(on=1,pos=[0,0,0],size=$vpd,s=1,axis=[1,1,-1],d=1,help){
+$fn=8;
+if($preview&&on||on==2)translate(pos){
+  if(axis.x)rotate([0,90]){Axis();
+  if(axis.x<0)rotate([180])Axis();}
+  if(axis.y)rotate([-90]){Axis();
+  if(axis.y<0)rotate([180])Axis();}
+  if(axis.z)Axis();
+  if(axis.z<01)rotate([180])Axis();
+}
+HelpTxt("Rod",["on",on,"pos",pos,"size",size,"s",s,"axis",axis,"d",d],help);
+col=[[0,0,0],[1,1,1],[0,0.5,1],[1,0.75,0]];
+ module Axis(s=s)for (i=[0:size/s])translate([0,0,s*i])
+  if(i%10)color(col[i%2+(i%10<5?0:2)])cylinder(d1=d,d2=d/1.5,h=s);
+    else color("chartreuse",.25)cylinder(d1=d*4,d2=d,h=s);
 }
 
 
@@ -4808,23 +4839,30 @@ Pfeil() creates an arrow
 \param shift shifting center and end points
 \param grad arrow head angle
 \param d form circular arrow
+\param angle angle of circular arrow (optional)
 \param center centers arrow
 \param name  names arrow
 \param help activate help
 */
 
+//Pfeil(d=20,angle=-70,shift=-1);
 
 
-module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d=0,center=true,name,help){
+module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d=0,angle=0,center=true,name,help){
  shift=is_list(shift)?shift:[shift,-shift];
- l=is_list(l)?l:[l/2,l/2]; 
+ l=is_list(l)?l:[l/2,l/2];
  b=is_list(b)?b:[b,2*(l[1]-(d?0:shift[0]))*tan(grad/2)];
  center=is_bool(center)?center?[1,1]:[0,0]:is_list(center)?center:[center,center];
- d=d?max(abs(d),abs(b[1]))*sign(d):0;
- gradB=d?gradB(b=l[1]+ shift[1],r=d/2)  :0; // länge Pfeilspitze auf Kreis
+ dir=sign(d)*(angle?sign(angle):1);
+ d=d?max(abs(d),abs(b[1])):0;
  
- fnD=max(8,ceil(norm([b[1]/2,l[1]])/$fs)); // fraqments gebogene Spitze
- fnDend=max(10,ceil(abs(l[0])/$fs));
+ lD=[angle?min(abs(d)*PI/360*abs(angle),PI*abs(d)-l[1]-shift[0]-.01 ) :l[0],l[1]];// lenght circular arrow
+ angle=angle?angle:gradB(r=d/2,b=l[0])*dir;
+ 
+ gradB=d?gradB(b=lD[1]+ shift[1],r=d/2)  :0; // länge Pfeilspitze auf Kreis
+ 
+ fnD=max(8,ceil(norm([b[1]/2,lD[1]])/$fs)); // fraqments gebogene Spitze
+ fnDend=max(10,ceil(abs(lD[0])/$fs));
  
  spitze=false; // gebogene Spitze = false
  
@@ -4842,14 +4880,15 @@ module Pfeil(l=[+2,+3.5],b=+2,shift=0,grad=60,d=0,center=true,name,help){
 
   pointsD=[
     [0,d/2-b[0]/2],
-    each kreis(rand=0,grad=gradB(r=d/2+b[0]/2*0,b=-l[0]),d=d+b[0],center=0,fn=fnDend),
-    [sin(-gradB(r=d/2,b=l[0] +shift[0]))*d/2,cos(-gradB(r=d/2,b=l[0] +shift[0]))*d/2],//shift End
-    each kreis(rand=0,grad=-gradB(r=d/2-b[0]/2*0,b=-l[0]),d=d-b[0],center=0,rot=gradB(r=d/2-b[0]/2*0,b=-l[0]),fn=fnDend),
+    each kreis(rand=0,grad=dir*gradB(r=d/2+b[0]/2*0,b=-lD[0]),d=d+b[0],center=0,fn=fnDend),
+    [sin(dir*-gradB(r=d/2,b=lD[0] +shift[0]))*d/2,cos(dir*-gradB(r=d/2,b=lD[0] +shift[0]))*d/2],//shift End
+    
+    each kreis(rand=0,grad=dir*-gradB(r=d/2-b[0]/2*0,b=-lD[0]),d=d-b[0],center=0,rot=dir*gradB(r=d/2-b[0]/2*0,b=-lD[0]),fn=fnDend),
     
     [0,d/2+b[0]/2],
-    for(i=[0:fnD ])   let(deg=i*gradB/fnD - gradB(shift[1],r=d/2),r=d/2 +(b[1]/2/fnD)*(fnD-i))
+    for(i=[0:fnD ])    let(deg= dir * (i*gradB/fnD - gradB(shift[1],r=d/2) ), r=d/2 +(b[1]/2/fnD)*(fnD-i))
       [sin(deg)*r,cos(deg)*r],
-    for(i=[fnD :-1:0])let(deg=i*gradB/fnD - gradB(shift[1],r=d/2),r=d/2 -(b[1]/2/fnD)*(fnD-i))
+    for(i=[fnD :-1:0]) let(deg= dir * (i*gradB/fnD - gradB(shift[1],r=d/2) ), r=d/2 -(b[1]/2/fnD)*(fnD-i))
       [sin(deg)*r,cos(deg)*r],
       
     ];
@@ -4873,6 +4912,7 @@ HelpTxt("Pfeil",[
     "shift",shift,
     "grad",grad,
     "d",d,
+    "angle",angle,
     "center",center,
     "name",name],help);
 }
@@ -5123,7 +5163,8 @@ SWelle() creates 2 attached arcsegments to form a wave
   
 module SWelle(r=2,r2,h=0,deg=90,ext=0,lap=[0,0.25],center=0,fs=fs,name,help){
 
-r2=is_undef(r2)?r:r2;
+r2=is_undef(r2)?is_list(r)?r.y:r:r2;
+r=is_list(r)?r.x:r;
 lap=is_list(lap)?lap:[lap,lap];
 rH=(1-cos(deg))*r2 - cos(deg)*r ;
 ty=max(h-r, rH );
@@ -6996,7 +7037,7 @@ difference(){
 /** \name Ring \page Objects
 Ring() creates a ring
 \param h height 0 for 2D
-\param rand rim thickness
+\param dicke rim thickness
 \param d,r diameter radius
 \param id ir inner diameter/radius
 \param grad  angle
@@ -7011,13 +7052,14 @@ Ring() creates a ring
 //Ring(r=10,ir=5,rcenter=0);
 
 
-module Ring(h=5,rand,d=10,r,id=6,ir,grad=360,rcenter,center=false,fn,fs=fs,name,2D=0,help,cd=1){
+module Ring(h=5,dicke,d=10,r,id=6,ir,grad=360,rcenter,center=false,fn,fs=fs,name,2D=0,help,cd=1,rand){
     
-    id=is_undef(id)?d-rand*2:id;
+    dicke=is_undef(dicke)?rand:dicke;
+    id=is_undef(id)?d-dicke*2:id;
     r=is_undef(r)?d/2:r;
     ir=is_undef(ir)?id/2:ir;
     rcenter=is_undef(rcenter)?!abs(cd):rcenter;
-    rand=is_undef(rand)?rcenter?(r-ir)*2:r-ir:rand*sign(cd==0?1:cd);
+    rand=is_undef(dicke)?rcenter?(r-ir)*2:r-ir:dicke*sign(cd==0?1:cd);
     2D=is_parent(parent= needs2D)?true:2D;
     if(2D||!h)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,fn=fn?fn:undef,fs=fs,rot=0,center=center,name=0,help=0);
         else rotate([h>0?0:180])linear_extrude(abs(h),center=center,convexity=5)Kreis(rand=rand,rcenter=rcenter,r=r,grad=grad,center=center,fn=fn?fn:undef,fs=fs,rot=0,name=0,help=0);
@@ -7026,7 +7068,7 @@ InfoTxt("Ring",[str("Aussen∅= ",rcenter?d+abs(rand):rand>0?d:d-rand*2,"mm — 
  
 HelpTxt("Ring",[
     "h",h,
-    "rand",rand,
+    "dicke",dicke,
     "d",d,
     "r",r,
     "id",id,
@@ -9115,7 +9157,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
   
       else{ info=$info;
         Polar(g,r=innen?g%2?0:180/g:0,name=false){
-        $tab=$tab-1;
+        $tab=is_undef($tab)?0:$tab-1;
         $info=info;
         GewindeV4(p=p,
                 dn=dn,
@@ -9149,7 +9191,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
                 g=g,
                 help=help); 
        }
-               Echo(str("Gewinde preset=",preset," Not found!"),color="red",condition=preset);
+               Echo(str("Gewinde preset=",preset," Not found! \n BSW1 BSW2 \n Flasche Flasche2 M1-M30 "),color="red",condition=preset);
                if($children)difference(){
                   children();
                     if(innen)Tz(center?tz-p/2:tz-0)cylinder(is_undef(h)?grad*p/360+p:h,d=dn+spiel*2,$fn=fn);
@@ -9161,7 +9203,7 @@ other_Gewinde=[//search0, pSteigung,dn,winkel,name
 
 
 //GewindeV4(cyl=0,konisch=10);
-//GewindeV4(cyl=0,winkel=120);
+//Gewinde(cyl=0,winkel=120,g=3);
 
 
 
@@ -9205,12 +9247,13 @@ help
     //winkel=is_list(winkel)?[90-winkel[0],90-winkel[1]]:[90-winkel/2,90-winkel/2];
     
     gver=pow(g,1.5);//autocalc for g
+
     center=is_num(center)?center:center==true?1:0;
 
 
     kern=is_undef(kern)?
           winkel==60?innen?round((dn-p*1.08/gver)*100)/100:round((dn-p*1.225/gver*+1)*100)/100
-                    :runden(innen?dn-p/1.6/tan(max(halbWinkel)):dn-p/1.42/tan(max(halbWinkel)),2)
+                    :runden(innen?dn-p/g/1.6/tan(max(halbWinkel)):dn-p/g/1.42/tan(max(halbWinkel)),2)
                       :kern;
     dn=is_undef(dn)?innen?round((kern+p*1.08/gver)*100)/100:round((kern+p*1.225/gver)*100)/100:dn;
     fn=is_undef(fn)||fn==0?fs2fn(r=max(kern,dn)/2,fs=fs,minf=36,fa=fa):ceil(fn);
@@ -9276,7 +9319,7 @@ str(grad/360," Windungen ("),str(grad,"°)"),
   tangY=[tan(Kwinkel[0]/2)*rad1,tan(Kwinkel[1]/2)*rad1];
 
 
-Echo(str(name," Gewinde Überlappung! breite2",negRed(breite2)),color=breite==0?"warning":"red",condition=0>=breite2);
+Echo(str(name," Gewinde Überlappung! breite2=",negRed(breite2)),color=breite==0?"warning":"red",condition=0>=breite2);
 //Echo(str(name," Gewinde Zero breite2",negRed(breite2)),color="red",condition=0==breite2);
 
 Echo(str(name," Gewinde breite=",breite," is bigger (",(tangY[0]+tangY[1]),
@@ -9419,7 +9462,6 @@ Coil() creates a coil
 //Coil(h=20,scale=.5,center=-1);
 
 
-
 module Coil(
 r=20,
 d=5,
@@ -9449,13 +9491,14 @@ p=is_undef(p)?pitch:p;
 $d=d;
 Echo("Coil using points - od, id, h or d can't compute",color="warning",condition=points&&od||points&&id);
 Echo("Coil intersecting",color="warning",condition=!points&&norm([(r-r2)/grad*360,pitch])<d);
+scale=is_list(scale)?scale:[scale,scale];
 
 ipoints=is_undef(points)?arc(r=d/2,fn=fn2,deg=360,z=0):points;
-grad=is_undef(grad)?(h-d/2-d/2*scale)/p*360
+grad=is_undef(grad)?(h-d/2-d/2*scale.y)/p*360
                    :grad;
 
-pitch=is_undef(h)?p:(h-d/2-d/2*scale)/grad*360;
-h=abs(pitch*grad/360+d/2+d/2*scale);
+pitch=is_undef(h)?p:(h-d/2-d/2*scale.y)/grad*360;
+h=abs(pitch*grad/360+d/2+d/2*scale.y);
 Echo("Coil h < d",color="warning",condition=h<d);
 
 iFN=ceil(fn*abs(grad)/360*max(1,twist/360/3));
@@ -11725,13 +11768,14 @@ HelpTxt("Klammer",[
 
 }
 
+/// cycloid gear
 
-module CyclGear(z=20,modul=2,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(0.8,$info=false),lRandBase,d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=3,fn=24,lap=0,name,help){
+module CyclGear(z=20,modul=2,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=45,light=false,lock=false,center=true,lRand=wall(0.8,$info=false),lRandBase,d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=3,fn=24,lap=0,name,help){
 CyclGetriebe(z=z,modul=modul,w=w,h=h,h2=h2,grad=grad,achse=achse,achsegrad=achsegrad,light=light,lock=lock,center=center,lRand=lRand,lRandBase=lRandBase,d=d,rot=rot,rotZahn=rotZahn,linear=linear,preview=preview,spiel=spiel,f=f,fn=fn,lap=lap,name,help);
 }
 
 
-module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60,light=false,lock=false,center=true,lRand=wall(.5,$info=false),lRandBase,d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=2,fn=24,name,help,lap=0){
+module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=45,light=false,lock=false,center=true,lRand=wall(.5,$info=false),lRandBase,d=0,rot,rotZahn=1,linear=false,preview=true,spiel=0.075,f=2,fn=24,name,help,lap=0){
     //$info=false;
     z=abs(round(z));
     rot=is_undef(rot)?90/z*rotZahn:rot;
@@ -11749,7 +11793,8 @@ module CyclGetriebe(z=20,modul=1.5,w=45,h=4,h2=.5,grad=45,achse=3.5,achsegrad=60
         LinEx(h=h,h2=h2,$d=z/f*modul,mantelwinkel=w,slices=preview?(h-1)*2:2,grad=d>r*2?-grad:grad,lap=lap)
           if($preview&&!preview) Kreis(d=d>r*2?d:$d,rand=d>r*2?d/2-r:r-d/2);
           else CycloidZahn(modul=modul,z=z/f,f=f,d=d,spiel=spiel,fn=fn);
-        if(achse) Tz(-.01)LinEx(h=h+.02,h2=h2,$d=achse,grad=-achsegrad)circle(d=$d,$fs=.25,$fn=0,$fa=2);
+  //center hole
+        if(achse) Tz(-.01)LinEx(h=h+.02,h2=h2,$d=achse,grad=-achsegrad)circle(d=$d,$fs=fs,$fn=0,$fa=2);
         
         if(light) Tz(-0.01)Polar(light)T(light>1?mitteR:0)LinEx(h=h+.02,h2=h2,$r=rand,grad=-60)T(light>1?-mitteR:0)Rund(min(rand/light,rand/2-0.1),fn=fn)Kreis(r=mitteR,rand=rand,
         grad=min(360/light - gradS(s=lRand,r=mitteR+rand/2),320),
