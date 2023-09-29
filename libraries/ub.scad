@@ -2245,8 +2245,11 @@ HexGrid() children(); creates an interlaced grid of children
 \param $d $r $es $idx $idx2 $pos output for children
 */
 
-module HexGrid(e=[11,4],es=5,center=true,name){
+module HexGrid(e=[11,4],es=5,center=true,name,help){
   
+  makeCeil=function(e=e) [for(i=[0:len(e)-1])is_undef(e[i])?0:ceil(e[i])]; 
+  eCeil=makeCeil();
+    
   es=is_list(es)?es:[es*sin(60),es];
   $d=es.y;
   $r=$d/2;
@@ -2260,19 +2263,28 @@ module HexGrid(e=[11,4],es=5,center=true,name){
     :icenter==7?[es.x/(2/3)]
     :[0]);
   
-    Grid(e=e,es=es,center=center,name=name)
+    Grid(e=eCeil,es=es,center=center,name=name, help=help)
       translate([shift.x,
         $idx[0]%2?is_list(es)?es[1]/2:es/2:
                   0
       ]){
     $pos=$pos+[shift.x,$idx[0]%2?is_list(es)?es[1]/2
                                                       :es/2
-                                          :0,0];
-    children();
+                                       :0,0];
+        
+      if(!($idx[0]%2 && $idx[1]>e[1]-1))
+        children();
     }
     MO(!$children);
   
   InfoTxt("HexGrid",["es",es],name);
+       
+  HelpTxt("HexGrid",[
+    "e",e
+    ,"es",es
+    ,"center",center
+    ,"name",name]
+    ,help);
 }
 
 
