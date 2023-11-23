@@ -1,7 +1,8 @@
 // Products
 
 include <ub.scad>; // requires ub.scad https://github.com/UBaer21/UB.scad
-pVersion=23.110;
+pVersion=23.320;
+helpProducts=false;
 
 /*change log
 23|022 UPD HingBox  
@@ -10,9 +11,376 @@ pVersion=23.110;
 23|055 UPD BallSocket
 23|080 ADD Plug UPD WaveWasher
 23|110 ADD MicroSD ADD NEMA
+23|121 ADD BLetter
+23|301 ADD Ballow
+23|320 ADD Chuck ADD product List
 
 
 //*/
+
+
+{ // Products List
+if(help&&!helpProducts)echo("❌••••• Products lib list off — use» helpProducts=true; •••••");
+if(helpProducts||helpsw==8||helpsw==true)echo("
+Bellow();/n
+BLetter();/n
+Chuck();/n
+NEMA();/n
+MicroSD();/n
+Plug();/n
+BallSocket();/n
+WaveWasher();/n
+HingeBox();/n
+
+");
+}
+
+/** \name Bellow
+\brief Bellow() creates a bellow segment
+\param size size 
+\param delta  change (list for fn=4)
+\param flat  height of flat sections
+\param fn shape
+\param deg  for fn!=4
+\param help help
+*/
+
+//
+//Bellow(delta=0,deg=90/6,fn=6);
+//Bellow(delta=[1,-1],flat=[.5,.25],fn=4);
+
+module Bellow(size=[10,10,2.5],delta=2,flat=.25,fn=4,deg=90/6,help){
+
+delta=is_list(delta)?delta:[delta,delta];
+flat=is_list(flat)?flat:[flat,flat];
+fn=ceil(fn/2)*2;
+
+x=size.x/2+delta.x;
+y=size.y/2+delta.y;
+z=size.z;
+
+x2=size.x/2 - delta.x;
+y2=size.y/2 - delta.y;
+
+h1=flat.x;
+h2=size.z-flat.y;
+mod=1;
+deg=min(180/fn, deg);
+
+HelpTxt("Bellow",["size",size,"delta",delta,"flat",flat,"fn",fn,"deg",deg],help);
+
+points=fn==4?[
+[x,y,0],[-x,y,0],[-x,-y,0],[x,-y,0],
+[x,y,h1],[-x,y,h1],[-x,-y,h1],[x,-y,h1],
+[x2,y2,h2],[-x2,y2,h2],[-x2,-y2,h2],[x2,-y2,h2],
+[x2,y2,z],[-x2,y2,z],[-x2,-y2,z],[x2,-y2,z],
+]:
+let(step=360/fn)[
+for(i=[0:fn-1])let(r=x/2,delta=(i%2?-1:1)*deg)[cos(i*step+delta)*r,sin(i*step+delta)*r,0],
+for(i=[0:fn-1])let(r=x/2,delta=(i%2?-1:1)*deg)[cos(i*step+delta)*r,sin(i*step+delta)*r,h1],
+for(i=[0:fn-1])let(r=x2/2,delta=(i%2?1:-1)*deg)[cos(i*step+delta)*r,sin(i*step+delta)*r,h2],
+for(i=[0:fn-1])let(r=x2/2,delta=(i%2?1:-1)*deg)[cos(i*step+delta)*r,sin(i*step+delta)*r,z],
+];
+
+
+faces=[
+[0,1,2,3],//bottom
+[1,0,4,5],vAdd([1,0,4,5],1),vAdd([1,0,4,5],2),[0,3,7,4], //walls
+vAdd([1,0,4,5],4),vAdd([1,0,4,5],5),vAdd([1,0,4,5],6),vAdd([0,3,7,4],4), //walls
+vAdd([1,0,4,5],8),vAdd([1,0,4,5],9),vAdd([1,0,4,5],10),vAdd([0,3,7,4],8), //walls
+[15,14,13,12]//top
+];
+
+if(fn==4)polyhedron(points,faces);
+else PolyH(points,loop=fn,faceOpt=+0,flip=false);
+}
+
+
+
+
+/** \name BLetter
+BLetter() creates fast render braille letter
+\param chr  character
+\param dots dots
+\param boxSize  size
+\param dotSize  dot base size and height
+\param dotDist  dot center distance
+\param dotTopSize  dot top size 
+\param center center xy
+
+*/
+//BLetter("A",center=true);
+//BLetter(dots=[0,1,0, 1,0,1]);
+
+module BLetter(chr="",dots=[1,1,1, 1,1,1],boxSize=[7,10,.5],dotSize=[1.5,1.5,0.6],dotDist=[2.3,2.5],dotTopSize=[1,1]*0.6,center=false,help){
+
+HelpTxt("BLetter",["chr",chr,"dots",dots,"boxSize",boxSize,"dotSize",dotSize,"dotDist",dotDist,"dotTopSize",dotTopSize,"center",center],help);
+
+char=[
+["0",[0,1,0, 1,1,0]],
+["1",[1,0,0, 0,0,0]],
+["2",[1,1,0, 0,0,0]],
+["3",[1,0,0, 1,0,0]],
+["4",[1,0,0, 1,1,0]],
+["5",[1,0,0, 0,1,0]],
+["6",[1,1,0, 1,0,0]],
+["7",[1,1,0, 1,1,0]],
+["8",[1,1,0, 0,1,0]],
+["9",[0,1,0, 1,0,0]],
+
+["A",[1,0,0, 0,0,0]],
+["B",[1,1,0, 0,0,0]],
+["C",[1,0,0, 1,0,0]],
+["D",[1,0,0, 1,1,0]],
+["E",[1,0,0, 0,1,0]],
+["F",[1,1,0, 1,0,0]],
+["G",[1,1,0, 1,1,0]],
+["H",[1,1,0, 0,1,0]],
+["I",[0,1,0, 1,0,0]],
+["J",[0,1,0, 1,1,0]],
+["K",[1,0,1, 0,0,0]],
+["L",[1,1,1, 0,0,0]],
+["M",[1,0,1, 1,0,0]],
+["N",[1,0,1, 1,1,0]],
+["O",[1,0,1, 0,1,0]],
+["P",[1,1,1, 1,0,0]],
+["Q",[1,1,1, 1,1,0]],
+["R",[1,1,1, 0,1,0]],
+["S",[0,1,1, 1,0,0]],
+["T",[0,1,1, 1,1,0]],
+["U",[1,0,1, 0,0,1]],
+["V",[1,1,1, 0,0,1]],
+["W",[0,1,0, 1,1,1]],
+["X",[1,0,1, 1,0,1]],
+["Y",[1,0,1, 1,1,1]],
+["Z",[1,0,1, 0,1,1]],
+["Ä",[0,0,1, 1,1,0]],
+["Ö",[0,1,0, 1,0,1]],
+["Ü",[1,1,0, 0,1,1]],
+["#",[0,0,1, 1,1,1]],
+["_",[0,0,0, 1,1,1]],
+["-",[0,0,1, 0,0,1]],
+[":",[0,1,0, 0,1,0]],
+[".",[0,0,1, 0,0,0]],
+[" ",[0,0,0, 0,0,0]],
+["$",[0,0,0, 1,0,1]],
+["?",[0,1,0, 0,0,1]],
+["!",[0,1,1, 0,1,0]],
+[">",[0,0,0, 1,1,0]],
+["<",[0,0,0, 0,1,1]],
+["&",[1,1,1, 1,0,1]],
+["(",[0,1,1, 0,1,1]],
+[")",[0,1,1, 0,1,1]],
+["'",[0,0,0, 0,0,1]],
+["ñ",[1,1,0, 1,1,1]],//⠻
+
+["%",[1,1,1, 1,1,1]] 
+];
+
+
+
+
+
+
+dots=ord(str(chr))? char[  search(str(chr),char)[0] ] [1]:dots;
+
+
+pBox=[
+[0,0,0],
+[boxSize.x,0,0],
+[boxSize.x,boxSize.y,0],
+[0        ,boxSize.y,0],
+[0,        0,        boxSize.z],
+[boxSize.x,0,        boxSize.z],
+[boxSize.x,boxSize.y,boxSize.z],
+[0        ,boxSize.y,boxSize.z]
+];
+
+
+
+pos=[for(x=[-dotDist.x,dotDist.x]/2,y=[dotDist.y,0, -dotDist.y])
+      [boxSize.x/2+x,boxSize.y/2+y,0]
+    ];
+
+
+pGrid=[for(pos=pos)each[
+[-dotSize.x/2,-dotSize.y/2,boxSize.z]+pos,
+[ dotSize.x/2,-dotSize.y/2,boxSize.z]+pos,
+[ dotSize.x/2, dotSize.y/2,boxSize.z]+pos,
+[-dotSize.x/2, dotSize.y/2,boxSize.z]+pos
+]
+];
+
+//points for dot top octagon
+pDots=assert(is_list(dots),"dots need to be a list")let(rot=180/8*-1)[for(dot=[0:5])
+for(i=[0:7])[cos(i*360/8+rot)*dotTopSize.x/2,sin(i*360/8+rot)*dotTopSize.y/2,boxSize.z+dotSize.z*dots[dot]]+pos[dot]
+];
+
+// 5 faces box (bottom + sides)
+fBox=[
+[0,1,2,3],
+for(i=[0:2])[4,5,1,0]+[i,i,i,i],
+[0,3,7,4]
+];
+
+// fill deactive dots
+fGrid=[for(f=[0:5])if(dots[f]==0)
+[0,3,2,1]+[1,1,1,1]*(8+f*4)
+];
+
+// 8 dot side faces
+fDots=[for(f=[0:5])if(dots[f])each[
+for(i=[+0:3])[32+(6+i*2)%8+f*8, 8+i+f*4          , 32+(5+i*2)%8+f*8           ],
+for(i=[+0:3])[32+(6+i*2)%8+f*8, 32+(7+i*2)%8+f*8 , 8+(1+i)%4+f*4   ,  8+i+f*4 ],
+]
+];
+
+// dot top face octagon
+fDotTop=
+[for(f=[0:5])if(dots[f])
+[for(i=[7:-1:0])i +32+f*8]
+];
+
+// top box faces around dots
+fTop=[
+[5,4,16,17,28,29],//y bottom
+[6,5,29,30,25,26,21,22],//x right
+[7,6,22,23,10,11],//y top
+[4,7,11,8,15,12,19,16],//x left
+
+[8,9,20,21,26,27,14,15],// x line1
+[8,9,20,21,26,27,14,15]+[1,1,1,1,1,1,1,1]*4,// x line2
+
+[9,10,23,20], // y center 1
+[9,10,23,20]+[1,1,1,1]*4, // y center 2
+[9,10,23,20]+[1,1,1,1]*8 // y center 2
+];
+
+points=concat(pBox,pGrid,pDots);
+
+if (center){
+  pointsC=[for(i=points)i-[boxSize.x,boxSize.y,0]/2];
+  polyhedron(pointsC,concat(fBox,fGrid,fTop,fDots,fDotTop),convexity=5);
+  }
+else polyhedron(points,concat(fBox,fGrid,fTop,fDots,fDotTop),convexity=5);
+
+
+
+}
+
+
+/** \name Chuck
+/brief Chuck() to clamp objects
+/param d clamp diameter
+/param gripH grip heigt
+/param p thread pitch
+/param dn thread diameter
+/param gripD grip Diameter
+/param deg thread conical angle
+/param threads number thread starts
+/param inPlace print in place
+/param label engrave d 
+/param pattern knurl  pattern use list for different locknut
+/param opt  0 = chuck 1 = locknut (-1 no preview  locknut)
+*/
+
+//Cut()Chuck();
+
+module Chuck(d=3,gripH=12,p=2,dn,gripD,deg=4,threads=1,inPlace=false,label=false,pattern=1,opt=0,ringH=6,help){
+//clearance Z for inplace version
+pattern=is_list(pattern)?pattern.x:pattern;
+pipZ=inPlace?.5:0;
+
+dn=is_num(dn)?dn:d+4;
+gripD=is_num(gripD)?gripD:dn+4;
+
+chuckH=12;
+
+kern=dn - 0.87;
+//lable height
+lZ=4;
+
+if(inPlace)Tz(gripH){
+ *Roof(1.5-pipZ,[.5,.25])circle(d=dn,$fn=0,$fs=.5);
+ Tz(-pipZ)Polar(8,dn/2+.75)cube([1.25,.25,1],true);
+}
+
+HelpTxt("Chuck",["d",d,"gripH",gripH,"p",p,"dn",dn,"gripD",gripD,"deg",deg,"threads",threads,"inPlace",inPlace,"label",label,"pattern",pattern,"opt",opt,"ringH",ringH],help);
+
+$info=false;
+
+if(opt<1)
+difference(){
+  union(){
+    intersection(){
+      Pille(gripH-pipZ,d=gripD,rad=[2,1],deg=[50,90],center=false);
+      if(pattern)union(){
+        if(pattern==1)KnurlTri(r=gripD/2-.75,lambda=2.75,depth=1.5,h=gripH-pipZ);
+        if(pattern==3)Knurl(r=gripD/2-.75,lambda=2.75,depth=1.5,h=gripH-pipZ);
+        if(pattern==4)Knurl(r=gripD/2+.5,lambda=2.75,depth=-1.5,h=gripH-pipZ);
+        if(pattern==2)linear_extrude(gripH-pipZ,convexity=5)Star(12,r1=gripD/2,r2=gripD/2-.5,grad=5);//gradS(s=.75,r=gripD/2)
+        if(label)Tz(lZ)R(90)linear_extrude(gripD/2+5)Quad(7.5,4.5);// text label
+      }
+    }
+    Pille(gripH-pipZ,d=gripD-1,rad=[2,1],deg=[50,90],center=false);
+    cylinder(gripH +11,d=kern);
+    Tz(gripH-pipZ)Kehle(dia=kern,rad=1.45);
+    Tz(gripH){intersection(){
+      Gewinde(g=threads,dn=dn,konisch = -deg,dicke=3,breite=.35,h=chuckH  + threads - 0.75,p=p,center=0,tz=-0.5,cyl=1,winkel=100);
+      cylinder(chuckH-1.15,d=100,$fs=6);
+      }
+    Kegel(h=chuckH,d=kern-.25,grad=90+deg,rad=[0,1]);
+    }
+  }
+  if(label)Tz(lZ)T(0,-gripD/2+.75)R(90)mirror([0,0,1])Roof(1,.5,deg=60)Text(d,size=5,center=true); // d label
+  if(label)Tz(lZ)T(0,-gripD/2)R(90)mirror([0,0,1])Roof(h=1)offset(1.1)Quad(7.5,4.5);
+  Loch(h=gripH+1.5,h2=[1,0.25],rad=0.5,d=d+spiel*2);
+  Tz(gripH+1.5){
+    Tz(+.19)Kegel(d1=d+spiel*2+.5);
+    //Tz(+1)Linear(2,es=1.75,z=1)rotate(90)rotate_extrude($fn=3)T(umkreis(3,d/2)-0.35)circle(0.85,$fn=3);
+    Tz(+1.25+1.75)Linear(1,es=1.75,z=1)scale([1,1,1.5])Torus(dia=d+spiel*2+1.5,d=3.5);// bend grooves
+    cylinder(100,d=d+spiel*2,$fn=0);
+    Polar(max(3,round(d/3)*2+1),rot=30){
+      //T(25,z=25)cube([50,1.75,50],true);
+      hull(){
+        Tz(chuckH)R(0,90)cylinder(dn/2,d=1.75,$fn=0);
+        R(0,90)cylinder(dn/2,d=pip,$fn=0);
+      }
+      T(dn/2)R(0,deg)rotate(60)cylinder(chuckH,d1=2,d2=5,$fn=3);
+      }
+  }
+}
+else ChuckRing(dn=dn+spiel*2,threads=threads,gripD=gripD,deg=deg,h=ringH,p=p,pattern=pattern);
+if(opt==0 && ($preview&&inPlace==false||inPlace) )color("skyblue",.5)Tz(gripH+p*-0.04+p/3)rotate(360/p*.5)ChuckRing(dn=dn+spiel*2,gripD=gripD,p=p,deg=deg,pattern=pattern);// Ring
+}
+
+// locking Nut 
+
+module ChuckRing(dn=8.5,threads=1,gripD=12,h=6,p=2 ,deg=4,pattern=pattern){
+pattern=is_list(pattern)?pattern.y:pattern;
+intersection(){
+  Gewinde(g=threads,dn=dn,konisch = -deg,dicke=.5,h=h +5,tz=- threads + .5,p=p,breite=0.395,innen=true,center=0,winkel=100,cyl=0);
+  Tz(.5)cylinder(h-.5,d=100,$fn=6);
+  }
+  
+  difference(){
+    union(){
+      intersection(){
+        Pille(h,gripD,rad=1,center=false);
+        if(pattern==1)KnurlTri(r=gripD/2-.5,lambda=2.75,h=h);
+        if(pattern==3)Knurl(r=gripD/2-.5,lambda=2.75,h=h);
+        if(pattern==2)linear_extrude(h,convexity=5)Star(12,r1=gripD/2,r2=gripD/2-.75/2,grad=5);
+      }
+      Pille(h,gripD-.75,rad=.5,center=false);
+    }
+  Tz(-.05)Kegel(dn ,h=h+.1,grad=90+deg);
+  Tz(-.1)Kegel(dn+1);
+ }
+}
+
+
+
+
 
 /** \name NEMA
 NEMA() is a NEMA stepper dummy
