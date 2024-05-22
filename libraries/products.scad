@@ -1,7 +1,7 @@
 // Products
 
 include <ub.scad>; // requires ub.scad https://github.com/UBaer21/UB.scad
-pVersion=23.320;
+pVersion=24.149;
 helpProducts=false;
 
 /*change log
@@ -12,8 +12,9 @@ helpProducts=false;
 23|080 ADD Plug UPD WaveWasher
 23|110 ADD MicroSD ADD NEMA
 23|121 ADD BLetter
-23|301 ADD Ballow
+23|301 ADD Bellow
 23|320 ADD Chuck ADD product List
+24|149 ADD VQRotor
 
 
 //*/
@@ -31,9 +32,54 @@ Plug();/n
 BallSocket();/n
 WaveWasher();/n
 HingeBox();/n
+VQRotor();/n
 
 ");
 }
+
+/** \name VQRotor
+\brief VQRotor() creates a vorterant rotor
+\example VQRotor();
+\param size diameter 
+\param h height
+\param transH transition zone
+\param twist twist of rotor(without transition)
+\param d hole diameter
+\param star true↦star cut hole
+\param fnz fraqments in z
+\param minR minimum edge radius
+\param help help
+*/
+
+//VQRotor();
+
+module VQRotor(size=15,h=50,transH=5,twist=200,d=2.2,star=false,fnz=100,minR=.3,help){
+
+delta=floor(fnz/h*transH);// transition zone
+
+vP=concat(
+[for(z=[0:fnz-delta]) each mPoints(vorterantQ(size=size,r=minR+(size/2/sqrt(2)-minR)*transition(z,delta),z=z*h/fnz,fn2=50),r=z*twist/(fnz-delta*2)) ],
+[for(z=[fnz-delta+1:fnz]) each mPoints(vorterantQ(size=size,r=minR+(size/2/sqrt(2)-minR)*transition(fnz-z,delta),z=z*h/fnz,fn2=50),r=z*twist/(fnz-delta*2)) ]
+);
+
+  difference(){
+    PolyH(vP,loop=50*4,flip=false,name=0);
+    Loch(h,.25,d=d,rad=.5,name=0);
+    if(star)linear_extrude(h*3,convexity=5,center=true)Star(10,r1=d/2-.5,r2=d/2+.5,grad=5);
+  }
+  
+  HelpTxt("VQRotor",["size",size,"h",h,"transH",transH,"twist",twist,"d",d,"star",star,"fnz",fnz,"minR",minR],help);
+}
+
+
+
+
+
+
+
+
+
+
 
 /** \name Bellow
 \brief Bellow() creates a bellow segment
