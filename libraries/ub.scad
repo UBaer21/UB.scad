@@ -72,8 +72,8 @@ Changelog (archive at the very bottom)
 280|23 UPD Torus CHG transition CHG Gardena FIX Rod CHG Gewinde Fix Text FIX WStern UPD HexGrid
 285|23 UPD HexGrid UPD Text Fix kreis UPD Kreis Fix Kegel UPD VorterantQ FIX Vorterantrotor
 290|23 FIX Roof FIX Kegel UPD Balg UPD RotEx UPD Involute UPD Connector UPD Kehle FIX Loch
-305|23 FIX HexGrid UPD Kegel FIX CycloidZahn FIX Roof FIX Kehle CHG Bogen FIX Rohr Add CGear 
-310|23 UPD Caliper Add CZahn UPD Rohr UPD Gewinde ADD vorterantQ() UPD Gewinde 
+305|23 FIX HexGrid UPD Kegel FIX CycloidZahn FIX Roof FIX Kehle CHG Bogen FIX Rohr ADD CGear 
+310|23 UPD Caliper ADD CZahn UPD Rohr UPD Gewinde ADD vorterantQ() UPD Gewinde 
 320|23 UPD Kreis UPD GewindeV4 UPD QuadAnschluss FIX Cycloid FIX Rod
 325|23 UPD Tdrop CHG CGear
 330|23 UPD Cycloid CHG CGear UPD Kegel CHG gradS UPD Loch FIX kreis FIX LinEx UPD Roof
@@ -84,7 +84,9 @@ Changelog (archive at the very bottom)
 100|24 UPD TDrop UPD Gewinde UPD QuadAnschluss UPD Superellipse UPD vollwelle FIX Spirale
 110|24 UPD bend UPD sq UPD Kegel UPD Knurl FIX Quad UPD Text UPD FlatMesh FIX Cring
 131|24 FIX Zylinder CHG Gewinde CHG Row FIX Loch
-140|24
+140|24 FIX Anschluss CHG CGear add deg2 FIX Loch FIX Rohr FIX Quadanschluss UPD CycloidZahn
+150|24 UPD Coil UPD Tesselation
+
 */
 
 {//fold // Constants
@@ -175,7 +177,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=24.131;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=24.150;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -2363,7 +2365,6 @@ color("cyan",.5)Tz(2* (5 * lift-1))HexGrid(7.1,es=5,center=[-3,3])sphere($r);
 }
 //*/
 
-
 module HexGrid(e=[11,4],es=5,center=true,name,help){
   
   es=is_list(es)?es:[es*sin(60),es];
@@ -3568,6 +3569,7 @@ Tesselation creates tilings
 \param ofs position offset
 \param alt alterating rotation angle
 \param fn  fraqment number
+\param center center
 */
 
 //Tesselation(size=20,d=5,pat=1,fn=6,alt=30);
@@ -3601,6 +3603,8 @@ Tesselation(tile=11,pat=2,fn=6,dist=.4,dicke=.7,alt=[60,60]);
 
 //Tesselation(pat=5,tile=0);
 
+//Tesselation(pat=2,center=0);
+
 module Tesselation(size=[40,40],d=5,dist=1,dicke=0,pat=0,tile=1,rot=0,ofs=[0,0],alt=[0,0],fn=6,center=true,name, help,obj){
 
 dist=is_list(dist)?dist:[dist,dist];
@@ -3610,6 +3614,7 @@ size=is_list(size)?size:size*[1,1];
 alt=is_list(alt)?b(alt,false):b(alt,false)*[1,1];
 e=[max(1,size.x/(d.x+dist.x)),max(1,size.y/(d.y+dist.y))];
 tile=$children?100:is_undef(obj)?tile:obj;
+center=is_list(center)?center:[center,center];
 $d=d;
 $r=d/2;
 $info=false;
@@ -3626,7 +3631,7 @@ Tile()children();
 
 if(pat==2)HexGrid(e=[e.x,e.y*sqrt(3)/2]*2,es=[(d.x+dist.x)*sqrt(3)/2,(d.y+dist.y)],center=center)rotate(($idx.y%2?0:alt.y)+($idx.x%2?0:alt.x)+rot)
       if(radius?norm($pos)<=radius-max(d)/2
-      :abs($pos.x)<=(size.x-max(d))/2&&abs($pos.y)<=(size.y-max(d))/2
+      :abs($pos.x)<=((center.x?size.x:size.x*2)-max(d))/2&&abs($pos.y)<=((center.y?size.y:size.y*2)-max(d))/2
       )
       
       Tile(d=fn==6?umkreis(6,d):d)children();
@@ -5322,10 +5327,26 @@ HelpTxt("DPfeil",[
 CycloidZahn(z=2.0,f=2,d=1,linear=true,spiel=0.04);
 //CycloidZahn(z=4.4,f=5,d=10,kreisDivisor=4);
 // */
-//CycloidZahn(modul=4,z=4.4,f=5,d=10,kreisDivisor=5);
+//CycloidZahn(modul=4,z=4.4,f=5,d=10,kreisDivisor=5,scale=2);
+
+/** \page Polygon \name CycloidZahn
+CycloidZahn() creates the polygon for a gear teeth
+\param modul gear modul
+\param z number teeth
+\param d center hole
+\param linear  rack or pinion
+\param center  center at center or pitch circle 
+\param spiel clearance
+\param fn fs  fragments
+\param fnd fragments for center circle
+\param kreisDivisor cutting tooth tip
+\param f divider of teeth intersection ⇒ narrower teeth
+\param scale stretch teeth //experimental
+\param name help name help switch
+*/
 
 
-module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,fnd,fs=0.075,kreisDivisor=3.50,f=2,name,help){
+module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,fnd,fs=0.075,kreisDivisor=3.50,f=2,scale=1,name,help){
   //if(is_undef(UB)) echo(str("<H1><font color=red> include ub.scad> "));
       
   z1=z%1?floor(z)+0.4999999:z;
@@ -5342,7 +5363,7 @@ module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,
   //tra=modul*PI/4;  // for linear
   tra=modul/2*PI - modul/2*PI/f;  // for linear
   
-    kreis=umkreis(z*f,z*modul/2+modul/kreisDivisor+(d>r*2?spiel:-spiel));
+    kreis=umkreis(z*f,z*modul/2+(modul/kreisDivisor)+(d>r*2?spiel:-spiel)+modul/5*(scale-1));
     $info=false;
 
 //current
@@ -5351,8 +5372,8 @@ module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,
    intersection(){
     Polar(z*f,rot=d<r*2?0:180/z/f)//rot=z%1?45/z:90/z)
      intersection (){
-       rotate(-rot/2-spielwinkel)    Cycloid(modul=modul,z=z,d=d<r*2?d-1:d+1,fn=fn,fnd=fnd,option=2);
-       rotate(rot/2+spielwinkel) Cycloid(modul=modul,z=z,d=d<r*2?d-1:d+1,fn=fn,fnd=fnd,option=2);
+       rotate(-rot/2-spielwinkel)  translate([r,0])scale([scale,1])translate([-r,0])Cycloid(modul=modul,z=z,d=d<r*2?d-1:d+1,fn=fn,fnd=fnd,option=2);
+       rotate(rot/2+spielwinkel) translate([r,0])scale([scale,1])translate([-r,0])Cycloid(modul=modul,z=z,d=d<r*2?d-1:d+1,fn=fn,fnd=fnd,option=2);
        }
     if(d)Kreis(d=d,rand=d<r*2?-r*2:0,fn=fnd); // achsloch
     if(d<r*2)rotate(180/(z*f))  circle(r=kreis,$fn=z*f); // cut teeth
@@ -5394,7 +5415,7 @@ module CycloidZahn(modul=1,z=10,d=0,linear=false,center=false,spiel=+0.05,fn=fn,
   }
   
 InfoTxt("CycloidZahn",concat(["Zähne",z*f],linear?["Länge",l]:["Wälzkreis r",r],[" spiel",spiel]),name);  
-HelpTxt("CycloidZahnrad",["modul",modul,"z",z," d",d," linear",linear,"center",center,"spiel",spiel,"fn",fn,"fnd",fnd,"fs",fs,"kreisDivisor",kreisDivisor,"f",f,"name",name],help);
+HelpTxt("CycloidZahnrad",["modul",modul,"z",z," d",d," linear",linear,"center",center,"spiel",spiel,"fn",fn,"fnd",fnd,"fs",fs,"kreisDivisor",kreisDivisor,"f",f,"scale",scale,"name",name],help);
 }
 
 /// cycloid Zahn
@@ -7581,7 +7602,13 @@ Bogen() creates a bended pipe or children
 
 module Rohr(grad=90,rad=5,d=8,l,l1=10,l2=12,fn=0,fn2=0,fs=fs,dicke=+1,rand,name,center=true,messpunkt=messpunkt,lap=minVal,id,spiel,help)
 {
-dicke=is_num(id)?(d-id)/2:is_num(rand)?rand:dicke;
+//Echo(str("Rohr parameter mismatch d:",d,"-id:",id,"-dicke:",dicke),color="redring",condition=is_num(d)&&is_num(id)&&is_num(dicke)&&d-id-dicke*2);
+
+Echo("Rohr id given - dicke calculated!",color="info",condition=is_num(id)&&$info);
+
+//calD=is_num(id)&&is_num(dicke)? id+dicke*2 :assert(d)d;
+dicke=assert(d)is_num(id)?(d-id)/2:is_num(rand)?rand:dicke;
+
 lap=is_num(spiel)?-spiel:lap;
 
     Bogen(grad=grad,rad=rad,l=l,l1=l1,l2=l2,fn=fn,name=name,help=0,center=center,messpunkt=messpunkt,lap=lap,fs=fs){
@@ -7590,7 +7617,7 @@ lap=is_num(spiel)?-spiel:lap;
     }
     
     HelpTxt(titel="Rohr",string=["grad",grad,"rad",rad,"d",d,"l",l,"l1",l1,"l2",l2,"fn",fn,"fn2",fn2,"fs",fs,"dicke",dicke,"name",name,"center",center,"messpunkt",messpunkt,"lap",lap,"id",id],help=help);
-    InfoTxt(name="Rohr",string=concat(dicke>0?["ID",d-dicke*2]:["OD",d-dicke*2],["d",d]),info=name);
+    InfoTxt(name="Rohr",string=concat(dicke>0?["ID",d-dicke*2]:["OD",d-dicke*2],["d",d],["dicke",dicke]),info=name);
 
 }
 
@@ -9974,13 +10001,14 @@ Coil() creates a coil
 \param fn fs fs fraqment number size angle
 \param fn2 fragmentsize for d (if undef then fs fa is used)
 \param center centers coil
+\param rot rotate profile
 \param open  creates end surfaces
 \param convexity convexity of polyhedron
 \param name name
 \param help help
 */
 
-//Coil(h=20,scale=.5,center=-1);
+//Coil(h=20,scale=.5,center=-1,fn2=4,rot=45);
 
 
 module Coil(
@@ -9998,6 +10026,7 @@ twist=0,
 scale=1,
 fn,fn2,fs=fs,fa,
 center=true,
+rot=0,
 open=true,//open Path
 convexity=15,
 name,
@@ -10014,7 +10043,7 @@ Echo("Coil using points - od, id, h or d can't compute",color="warning",conditio
 Echo("Coil intersecting",color="warning",condition=!points&&norm([(r-r2)/grad*360,pitch])<d);
 scale=is_list(scale)?scale:[scale,scale];
 
-ipoints=is_undef(points)?arc(r=d/2,fn=fn2,deg=360,z=0):points;
+ipoints=is_undef(points)?arc(r=d/2,fn=fn2-1,deg=360-360/fn2,z=0,rot=rot):points;
 grad=is_undef(grad)?(h-d/2-d/2*scale.y)/p*360
                    :grad;
 
@@ -10039,7 +10068,7 @@ translate([0,0,center?b(center,false)<0?-h/2+d/2
         loop=len(ipoints),name=false,convexity=convexity);
       
 InfoTxt("Coil",concat(["length",pathLength(path),"heigth(h)",h,"grad",grad,"turns",grad/360],pitch?["pitch",pitch]:[],r==r2?[]:["endRadius r2",r2] ),name);
-HelpTxt("Coil",["r",r,"d",d,"r2",r2,"od",od,"id",id,"grad",grad,"pitch",is_undef(p)?pitch:p,"h",h,"points","kreis(d=d)","twist",twist,"scale",scale,"fn",fn,"fn2",fn2,"fs",fs,"fa",fa,"center",center,"open",open,"convexity",convexity],help);
+HelpTxt("Coil",["r",r,"d",d,"r2",r2,"od",od,"id",id,"grad",grad,"pitch",is_undef(p)?pitch:p,"h",h,"points","kreis(d=d)","twist",twist,"scale",scale,"fn",fn,"fn2",fn2,"fs",fs,"fa",fa,"center",center,"rot",rot,"open",open,"convexity",convexity],help);
 }
 
 
@@ -10559,6 +10588,7 @@ color("blue")T(4.173,3)Kegel(d=2,d2=15,grad=65);
 //*/
 
 
+
 module Loch(h=5,h2=1,d=3.5,l=0,d2,deg=[45,45],rad,extrude=spiel,center=[1,1,0],fn=0,fs=fs,fa=fa,cuts=0,2D=false,name,help){
 
 
@@ -10577,7 +10607,7 @@ deg=[is_undef(d2[0])?conDeg[0]: d[0]<d2[0]?abs(conDeg[0]):-abs(conDeg[0]),
      is_undef(d2[1])?conDeg[1]: d[1]<d2[1]?abs(conDeg[1]):-abs(conDeg[1]) 
      ];
 
-h2=[
+h2=assert(rad?vSum(ih2)<h:vSum(ih2) <= h ,"Loch h2 too big for h")[
 is_undef(d2[0])?max(deg[0]<0?min(ih2[0],r[0]/tan(-deg[0])):ih2[0],0):abs((d2[0]-d[0])/2/tan(deg[0])),
 is_undef(d2[1])?max(deg[1]<0?min(ih2[1],r[1]/tan(-deg[1])):ih2[1],0):abs((d2[1]-d[1])/2/tan(deg[1]))];
 
@@ -11092,10 +11122,9 @@ QuadAnschluss() creates a transision between two rounded rectangles (wall)
 //Cut()QuadAnschluss(5,8,25,20,h=20,dicke=4,dicke2=1.5,chamferDeg=[[25,70],[45,40]],chamfer=.5);
 
 
-
 module QuadAnschluss(rad=5,rad2,size=[0,0],size2=[0,0],h=10,l=1,l2,dicke=0,dicke2,t=[0,0],chamfer=0,chamferDeg=45,fn,fs=fs,r,r2,name,help){
 
-r=is_undef(r)? is_list(rad)?rad:is_undef(rad)?min(size)/2*[1,1,1,1]:rad*[1,1,1,1]:is_list(r)?r:r*[1,1,1,1];
+r=assert(!is_undef(size))is_undef(r)? is_list(rad)?rad:is_undef(rad)?min(size)/2*[1,1,1,1]:rad*[1,1,1,1]:is_list(r)?r:r*[1,1,1,1];
 r2=is_undef(r2)? is_list(rad2)?rad2
                               :is_undef(rad2)?size==size2?r
                                                          :min(size2)/2*[1,1,1,1]
@@ -11215,6 +11244,7 @@ Anschluss() creates a transision between diameter or thickness
 //Anschluss(wand=1);
 
 
+
 module Anschluss(h=10,d1=10,d2=15,rad=5,rad2,grad=30,r1,r2,center=true,fn=0,fs=fs,fa=fa,fn2=0,grad2=0,x0=0,wand,2D=false,name,help,old=false,dicke,hRef=0){
      
     wand=is_undef(dicke)?wand:dicke; 
@@ -11223,7 +11253,7 @@ module Anschluss(h=10,d1=10,d2=15,rad=5,rad2,grad=30,r1,r2,center=true,fn=0,fs=f
     rad=is_list(rad)?rad[0]:rad;
     r1=is_undef(r1)?d1/2:r1;
     r2=is_undef(r2)?d2/2:r2;
-    l1=is_list(h)?h[0]:h/2;
+    l1=assert(h,"h can't be undef")is_list(h)?h[0]:h/2;
     l2=is_list(h)?h[1]:h/2;
     grad2=is_list(grad2)?grad2:[grad2,grad2];
     2D=is_parent(needs2D)?true:2D;
@@ -12366,6 +12396,7 @@ HelpTxt("Klammer",[
 \param f fraction from gear
 \param r optional r for twist angle calculation
 \param chamfer chamfer height
+\param deg2 bevel gear angle // experimental
 \param spiel clearance
 \param lap overlap
 \param fn fs fraqments
@@ -12373,10 +12404,11 @@ HelpTxt("Klammer",[
 */
 
 //CGear(d=3,deg=-45,h=3);
+//CGear(d=3,deg=-45,h=[3,3],deg2=40);
 
 
 
-module CGear(z=20,h=5,modul=3,deg=45,d=0,f=3,r,chamfer=.25,spiel=0.05,lap=.001,fn=$preview?6:36,fnd,fs=0.075,help){
+module CGear(z=20,h=5,modul=3,deg=45,d=0,f=3,r,chamfer=.25,deg2=90,spiel=0.05,lap=.001,base=1,fn=$preview?6:36,fnd,fs=0.075,help){
 
 iH=is_list(h)?h:[h/8*3,h/4,h/8*3];
 opt=len(iH); // 1 helical 2 fishbone 3 fishbone with center
@@ -12384,23 +12416,46 @@ iZ=z/f;
 r=is_num(r)?r:iZ*modul/2;
 $r=r;
 chamfer=is_list(chamfer)?chamfer:[chamfer,chamfer];
+Echo("d unavailable for deg2!= 90",color="warning",condition=deg2!=90&&d);
+id=deg2==90?d:0;
 
+//bottom
+iScale0=scaleGrad(r=r,grad=deg2,h=iH[0]-(opt==1?vSum(chamfer):chamfer[0]));
+//center
+iScale1=opt==3?scaleGrad(r=r*iScale0,grad=deg2,h=iH[1]-(opt==2?chamfer[1]:0)):1;
+//top
+iScale2=opt==3?scaleGrad(r=r*iScale0*iScale1,grad=deg2,h=iH[2]-chamfer[1])
+:opt==2?scaleGrad(r=r*iScale0,grad=deg2,h=iH[1]-chamfer[1]):1;
+
+iScale=[iScale0,iScale1,iScale2];
+
+baseScale=scaleGrad(r=r,grad=deg2,h=base);
+stretch=deg2==90?1:1+1/tan(deg2);
+//echo(iScale);
 function twist(h)=gradB(r=r,b=tan(deg)*h);
 
-
-rotate(twist(iH[0]-chamfer[0]*(opt==1?2:1)) / (opt==1?2:1) )Roof(iH[0],[1,opt==1?1:0]*chamfer[0],twist=twist(iH[0]-chamfer[0]*(opt==1?2:1)),name=0)
+//bottom
+rotate(twist(iH[0]-chamfer[0]*(opt==1?2:1)) / (opt==1?2:1) )Roof(iH[0],[1,opt==1?1:0]*chamfer[0],twist=twist(iH[0]-chamfer[0]*(opt==1?2:1)),scale=iScale[0],name=0)
   if($children)children();
-  else CycloidZahn(z=iZ,f=f,modul=modul,d=d,spiel=spiel,fn=fn,fnd=fnd,fs=fs,help=0,name=0);
+  else CycloidZahn(z=iZ,f=f,modul=modul,d=id,spiel=spiel,fn=fn,fnd=fnd,fs=fs,help=0,name=0,scale=stretch);
+//center
+if(opt==3)Tz(iH[0]-lap)linear_extrude(iH[1]+lap*2,convexity=10,scale=iScale[1])scale(iScale[0])
+  if($children)children();
+  else CycloidZahn(z=iZ,f=f,modul=modul,d=id,spiel=spiel,fn=fn,fnd=fnd,fs=fs,help=0,name=0,scale=stretch);
+ //top 
+if(opt>1)Tz(vSum(iH,end=len(iH)-2))Roof(iH[len(iH)-1],[0,1]*chamfer[1],twist=-twist(iH[len(iH)-1]-chamfer[1]),scale=iScale[2],name=0)scale(iScale[1]*iScale[0])
+  if($children)children();
+  else CycloidZahn(z=iZ,f=f,modul=modul,d=id,spiel=spiel,fn=fn,fnd=fnd,fs=fs,help=0,name=0,scale=stretch);
   
-if(opt==3)Tz(iH[0]-lap)linear_extrude(iH[1]+lap*2,convexity=10)
-  if($children)children();
-  else CycloidZahn(z=iZ,f=f,modul=modul,d=d,spiel=spiel,fn=fn,fnd=fnd,fs=fs,help=0,name=0);
-  
-if(opt>1)Tz(vSum(iH,end=len(iH)-2))Roof(iH[len(iH)-1],[0,1]*chamfer[1],twist=-twist(iH[len(iH)-1]-chamfer[1]),name=0)
-  if($children)children();
-  else CycloidZahn(z=iZ,f=f,modul=modul,d=d,spiel=spiel,fn=fn,fnd=fnd,fs=fs,help=0,name=0);
+if(deg!=90&&base)intersection(){
+  rotate(twist(base)+twist(iH[0]-chamfer[0]*(opt==1?2:1)) / (opt==1?2:1) )
+  Tz(-base)Roof(base+chamfer[0],[1,0]*chamfer[0],twist=twist(base),scale=baseScale,name=0)
+    if($children)scale(baseScale)children();
+    else scale(1/baseScale)CycloidZahn(z=iZ,f=f,modul=modul,d=id,spiel=spiel,fn=fn,fnd=fnd,fs=fs,help=0,name=0,scale=stretch);
+  Tz(-base)Kegel(h=base+chamfer[0],grad=-45,r1=(r-modul/5)/baseScale,name=0); 
+ }
 
-HelpTxt("CGear",["z",z,"h",h,"modul",modul,"deg",deg,"d",d,"f",f,"chamfer",chamfer,"spiel",spiel,"lap",lap,"fn",fn,"fnd",fnd,"fs",fs],help);
+HelpTxt("CGear",["z",z,"h",h,"modul",modul,"deg",deg,"d",id,"f",f,"chamfer",chamfer,"spiel",spiel,"lap",lap,"fn",fn,"fnd",fnd,"fs",fs],help);
 }
 
 
