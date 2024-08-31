@@ -1,7 +1,7 @@
 // Products
 
 include <ub.scad>; // requires ub.scad https://github.com/UBaer21/UB.scad
-pVersion=24.149;
+pVersion=24.250;
 helpProducts=false;
 
 /*change log
@@ -15,7 +15,9 @@ helpProducts=false;
 23|301 ADD Bellow
 23|320 ADD Chuck ADD product List
 24|149 ADD VQRotor
-
+24|150 UPD VQRotor
+24|225 UPD HingeBox
+24|250 UPD BLetter UPD HingeBox
 
 //*/
 
@@ -48,27 +50,36 @@ VQRotor();/n
 \param star true↦star cut hole
 \param fnz fraqments in z
 \param minR minimum edge radius
-\param help help
+\param transR transition radius (optional)
+\param name,help name, help switch
 */
 
-//VQRotor();
+//VQRotor(star=true,d=2);
+//VQRotor(transH=[20,5],transR=[2,5]);
 
-module VQRotor(size=15,h=50,transH=5,twist=200,d=2.2,star=false,fnz=100,minR=.3,help){
+module VQRotor(size=15,h=50,transH=5,twist=200,d=2.2,star=false,fnz,minR=.3,transR,name,help){
 
-delta=floor(fnz/h*transH);// transition zone
+transH=is_num(transH)?transH*[1,1]:transH;
+transR=vMin(is_undef(transR)?[size/2/sqrt(2),size/2/sqrt(2)]:is_num(transR)?[1,1]*transR:transR, size/2/sqrt(2));
+
+
+fnz=is_undef(fnz)?ceil(h/fs):fnz;
+delta=[floor(fnz/h*transH[0]),floor(fnz/h*transH[1])];// transition zone
+star=star?is_num(star)?star:floor(d*PI):0;
 
 vP=concat(
-[for(z=[0:fnz-delta]) each mPoints(vorterantQ(size=size,r=minR+(size/2/sqrt(2)-minR)*transition(z,delta),z=z*h/fnz,fn2=50),r=z*twist/(fnz-delta*2)) ],
-[for(z=[fnz-delta+1:fnz]) each mPoints(vorterantQ(size=size,r=minR+(size/2/sqrt(2)-minR)*transition(fnz-z,delta),z=z*h/fnz,fn2=50),r=z*twist/(fnz-delta*2)) ]
+[for(z=[0:fnz-delta[0]]) each mPoints(vorterantQ(size=size,r=minR+(transR[0]-minR)*transition(z,delta[0]),z=z*h/fnz,fn2=50),r=z*twist/(fnz-vSum(delta))) ],
+[for(z=[fnz-delta[0]+1:fnz]) each mPoints(vorterantQ(size=size,r=minR+(transR[1]-minR)*transition(fnz-z,delta[1]),z=z*h/fnz,fn2=50),r=z*twist/(fnz-vSum(delta))) ]
 );
 
   difference(){
     PolyH(vP,loop=50*4,flip=false,name=0);
-    Loch(h,.25,d=d,rad=.5,name=0);
-    if(star)linear_extrude(h*3,convexity=5,center=true)Star(10,r1=d/2-.5,r2=d/2+.5,grad=5);
+    if(d)Loch(h,.25,d=d,rad=.5,name=0);
+    if(star)linear_extrude(h*3,convexity=5,center=true)Star(star,r1=d/2-.5,r2=d/2+.5,grad=90/star,grad2=45/star);
   }
   
   HelpTxt("VQRotor",["size",size,"h",h,"transH",transH,"twist",twist,"d",d,"star",star,"fnz",fnz,"minR",minR],help);
+  InfoTxt("VQRotor",concat(["diameter",size+(2-sqrt(8))*minR],star?["star",star]:[],["transH",delta*h/fnz]),name);
 }
 
 
@@ -157,12 +168,13 @@ BLetter() creates fast render braille letter
 */
 //BLetter("A",center=true);
 //BLetter(dots=[0,1,0, 1,0,1]);
+//BLetter("ei");//(Vollschrift)
+module BLetter(chr="",dots=[1,1,1, 1,1,1],boxSize=[7,10,.5],dotSize=[1.5,1.5,0.6],dotDist=[2.3,2.5],dotTopSize=[1,1]*0.6,language="de",center=false,help){
 
-module BLetter(chr="",dots=[1,1,1, 1,1,1],boxSize=[7,10,.5],dotSize=[1.5,1.5,0.6],dotDist=[2.3,2.5],dotTopSize=[1,1]*0.6,center=false,help){
+HelpTxt("BLetter",["chr",chr,"dots",dots,"boxSize",boxSize,"dotSize",dotSize,"dotDist",dotDist,"dotTopSize",dotTopSize,"language",language,"center",center],help);
 
-HelpTxt("BLetter",["chr",chr,"dots",dots,"boxSize",boxSize,"dotSize",dotSize,"dotDist",dotDist,"dotTopSize",dotTopSize,"center",center],help);
 
-char=[
+charDE=[
 ["0",[0,1,0, 1,1,0]],
 ["1",[1,0,0, 0,0,0]],
 ["2",[1,1,0, 0,0,0]],
@@ -218,17 +230,107 @@ char=[
 ["(",[0,1,1, 0,1,1]],
 [")",[0,1,1, 0,1,1]],
 ["'",[0,0,0, 0,0,1]],
-["ñ",[1,1,0, 1,1,1]],//⠻
+["ñ",[1,1,0, 1,1,1]],//⠻["1",[1,0,0, 0,0,0]],
 
-["%",[1,1,1, 1,1,1]] 
+["ẞ",[0,1,1, 1,0,1]],
+["ß",[0,1,1, 1,0,1]],
+
+["st",[0,1,1, 1,1,1]], 
+["au",[1,0,0, 0,0,1]], 
+["eu",[1,1,0, 0,0,1]], 
+["ei",[1,0,0, 1,0,1]], 
+["äu",[0,0,1, 1,0,0]], 
+["ie",[0,0,1, 1,0,1]], 
+["ch",[1,0,0, 1,1,1]], 
+["sch",[1,0,0, 0,1,1]], 
+
+["%",[1,1,1, 1,1,1]],
+[" ",[0,0,0, 0,0,0]]
+];
+
+charEN=[
+["0",[0,1,0, 1,1,0]],
+["1",[1,0,0, 0,0,0]],
+["2",[1,1,0, 0,0,0]],
+["3",[1,0,0, 1,0,0]],
+["4",[1,0,0, 1,1,0]],
+["5",[1,0,0, 0,1,0]],
+["6",[1,1,0, 1,0,0]],
+["7",[1,1,0, 1,1,0]],
+["8",[1,1,0, 0,1,0]],
+["9",[0,1,0, 1,0,0]],
+
+["A",[1,0,0, 0,0,0]],
+["B",[1,1,0, 0,0,0]],
+["C",[1,0,0, 1,0,0]],
+["D",[1,0,0, 1,1,0]],
+["E",[1,0,0, 0,1,0]],
+["F",[1,1,0, 1,0,0]],
+["G",[1,1,0, 1,1,0]],
+["H",[1,1,0, 0,1,0]],
+["I",[0,1,0, 1,0,0]],
+["J",[0,1,0, 1,1,0]],
+["K",[1,0,1, 0,0,0]],
+["L",[1,1,1, 0,0,0]],
+["M",[1,0,1, 1,0,0]],
+["N",[1,0,1, 1,1,0]],
+["O",[1,0,1, 0,1,0]],
+["P",[1,1,1, 1,0,0]],
+["Q",[1,1,1, 1,1,0]],
+["R",[1,1,1, 0,1,0]],
+["S",[0,1,1, 1,0,0]],
+["T",[0,1,1, 1,1,0]],
+["U",[1,0,1, 0,0,1]],
+["V",[1,1,1, 0,0,1]],
+["W",[0,1,0, 1,1,1]],
+["X",[1,0,1, 1,0,1]],
+["Y",[1,0,1, 1,1,1]],
+["Z",[1,0,1, 0,1,1]],
+
+["and",[1,1,1, 1,0,1]],
+["&",[1,1,1, 1,0,1]],
+["for",[1,1,1, 1,1,1]],
+["of",[1,1,1, 0,1,1]],
+["the",[0,1,1, 1,0,1]],
+["with",[0,1,1, 1,1,1]],
+
+["ch",[1,0,0, 0,0,1]],
+["gh",[1,1,0, 0,0,1]],
+["sh",[1,0,0, 1,0,1]],
+["th",[1,0,0, 1,1,1]],
+["wh",[1,0,0, 0,1,1]],
+["ed",[1,1,0, 1,0,1]],
+["er",[1,1,0, 1,1,1]],
+["ou",[1,1,0, 0,1,1]],
+["ow",[0,1,0, 1,0,1]],
+["w",[0,1,0, 1,1,1]], // W
+
+[",",[0,1,0, 0,0,0]],
+[";",[0,1,1, 0,0,0]],
+[":",[0,1,0, 0,1,0]],
+//[".",[0,1,0, 0,1,1]],
+["en",[0,1,0, 0,0,1]],
+["!",[0,1,1, 0,1,0]],
+["(",[0,1,1, 0,1,1]],
+[")",[0,1,1, 0,1,1]],
+["?",[0,1,1, 0,0,1]],
+["in",[0,0,1, 0,1,0]],
+//["\"",[0,0,1, 0,1,1]] // "
+[".",[0,0,0, 1,0,1]],
+["'",[0,0,1, 0,0,0]],
+
+["/",[0,0,1, 1,0,0]],
+["\\",[1,1,0, 0,1,1]], // " \" "
+[" ",[0,0,0, 0,0,0]]
 ];
 
 
 
+char=language=="de"?charDE:charEN;
 
+if(help)echo(chr=chr,charPos=search([str(chr)],char),data=char[ search([str(chr)],char)[0] ],language=language);
 
-
-dots=ord(str(chr))? char[  search(str(chr),char)[0] ] [1]:dots;
+dots=ord(str(chr))? char[  search([str(chr)],char)[0] ] [1]:dots;
 
 
 pBox=[
@@ -723,116 +825,223 @@ HingeBox() creates 2 box halfs with hinges
 \param ir1 inner corner radius (optional)
 \param r2 edge radius (optional)
 \param ir2 inner edge radius (optional)
-\param opt  select lower or upper half, 0 for both
+\param opt  select lower (with lip) or upper half, 0 for both if pip=0
 \param opener grips to open  -1,0,1 
+\param bottom bottom thickness (optional else wand)
+\param patternH pattern height
+\param patternD pattern distance
+\param patternCut width of the cut
+\param latchH latch nib height
+\param latchPos latch Z pos
+\param clip clip hinge num=clip interlock else .15
+\param spiel clearance
 \param help help
 */
 
-//HingeBox();
+//HingeBox(patternH=5,patternD=8,pattern=5,patternCut=0.5);
+//HingeBox(patternH=5,patternD=10,pattern=3);
+//Cut(rot=180)HingeBox(opener=0, size=[1,1,1]*25);
+//HingeBox(opener=0, size=[1,1,0.3]*25);
 
-module HingeBox(size=[1,1,.5]*25,wand=.8,hinges,lip=true,pip=pip,pattern=[0,0],lid,r1,ir1,r2,ir2,opt=0,opener=false,bottom,name,help){
+/*
+Cut(){
+  HingeBox(clip=true,opt=1,pip=0);
+  HingeBox(clip=true,opt=2,pip=0);
+}//*/
+
+//Cut()HingeBox(size=[20,20,25],lid=10,lip=5,pip=0.0,hinges=0,part=1,divider=[1,1],opener=true);
+
+module HingeBox(size=[1,1,.5]*25,wand,hinges,hingePin,lip=true,pip=pip,pattern=[0,0],lid,r1,ir1,r2,ir2,part=0,opener=false,bottom,patternH=.25,patternD=4,patternCut=.5,latchH=.65,latchPos=2,clip,spiel=spiel,divider,dividerWand,grip=[1,1,1],name,help,opt){
+
+part=opt?opt:part; // part 0 pip both - part 1 base part 2 lid
+wand=is_undef(wand)?line(2):wand;
+grip=is_list(grip)?grip:[grip,grip,grip];// front lower upper side
+size=is_list(size)?size:size*[1,1,1];
+
+divider=is_num(divider)?[0,divider]:is_list(divider)?divider:0;
+dividerWand=is_num(dividerWand)?dividerWand:max(line(1),wand*.65);
 
 r1=r1?r1:min(size.xy/4); // corner radius
 r2=r2?r2:1.5; // edge radius
 ir1=max(.5,r1-wand,is_undef(ir1)?r1-wand:ir1); // inner corner radius
 ir2=max(.5,r2-wand,is_undef(ir2)?r2-wand:ir2); // inner edge radius
 
-hinges=hinges?hinges:max(1,round((size.y-r1*2)/((2.75+pip)*2)));
+hinges=is_num(hinges)?hinges:max(1,round((size.y-r1*2)/((2.75+max(spiel,pip))*2)));
 
-hingeD=5;
-hingePin=hingeD/2;
-hingePos=[hingeD/2+(pip?pip+.2:spiel),0,size.z/2];
-if(!pip)echo(hinge_Hole=hingePin);
+hingePin=is_undef(hingePin)?clip?2:2.5:hingePin;
+hingeD=max(5,hingePin+wand*2+spiel*2);
+
+minSZ=hingeD+1; // minimum height
+
+sizeLid=lid?lid:size.z/2;
+
+
+hingePos=[hingeD/2+(pip?pip+spiel:spiel),0,size.z-sizeLid];
+
+if(!pip&&!clip)echo(hinge_Hole=hingePin+spiel*2);
 seg=hinges*2+1 ;
-segL=(size.y-r1*2)/seg-pip;
-sizeZ2=lid?lid:size.z/2;
-bottom=is_undef(bottom)?wand:bottom;
-latchL=min(size.y-(wand+ir1)*2,20);
-lippe=[wand/2,is_num(lip)?lip:1.5]; // thickness, height
+segL=(size.y-r1*2)/seg-max(spiel,pip);
 
-HelpTxt("HingeBox",["size",size,"wand",wand,"hinges",hinges,"lip",lip,"pip",pip,"pattern",pattern,"lid",lid,"r1",r1,"ir1",ir1,"r2",r2,"ir2",ir2,"opt",opt,"opener",opener,"bottom",bottom,"name",name],help);
-InfoTxt("HingeBox",["InsideSize",[each(size.xy-[2,2]*wand),size.z/2+sizeZ2-bottom*2],"HingePos [x,z]",hingePos ],name);
+bottom=is_undef(bottom)?wand*[1,1]:is_list(bottom)?bottom:bottom*[1,1];
+
+latchL=(size.y-(wand+ir1)*2)/1.5;
+latchR=[1,1]*.5;// latch radius
+//latchH=.75; // latch height / depth
+//latchPos=2;// z pos latch from rim
+
+lippe=[is_list(lip)?lip[0]:max(line(1),wand*.65),
+          min(size.z-sizeLid-bottom[1]-r2-spiel,is_num(lip)?lip:is_list(lip)?lip[1]:lip?1.5:0)]; // thickness, height
+
+pattern=is_list(pattern)?pattern:[pattern,pattern];
+patternH=is_list(patternH)?patternH:[patternH,patternH];// depth
+patternD=is_list(patternD)?patternD:[patternD,patternD];
+patternCut=is_list(patternCut)?patternCut:[patternCut,patternCut];
+clipD=is_num(clip)?hingePin+max(pip,spiel)*2+clip*2:hingePin+max(pip,spiel)*2+.3;
+
+clipLap=(clipD-hingePin)/2-max(pip,spiel);
+
+HelpTxt("HingeBox",["size",size,"wand",wand,"hinges",hinges,"hingePin",hingePin,"lip",lip,"pip",pip,"pattern",pattern,"lid",lid,"r1",r1,"ir1",ir1,"r2",r2,"ir2",ir2,"part",part,"opener",opener,"bottom",bottom,"patternH",patternH,"patternD",patternD,"latchH",latchH,"latchPos",latchPos,"clip",clip,"spiel",spiel,"divider",divider,"dividerWand",dividerWand,"name",name],help);
+
+InfoTxt("HingeBox",["InsideSize",[each(size.xy-[2,2]*(lip?wand+spiel+lippe[0]:wand)),size.z-vSum(bottom)],"HingePos [x,z]",hingePos,"HingePin",hingePin,each clip?["clip overlap",clipLap]:[] ],name);
+
 union(){
 $info=false;
-Tz(!pip&&opt==2?-size.z/2+sizeZ2:0){
+Tz(!pip&&part==2?-(size.z-sizeLid*2):0){
 
-if(pip||opt==1)T(hingePos.x)BoxH(opt=1,pattern=pattern[0]);
-if(pip||opt==2)Tz(size.z/2-sizeZ2)mirror([1,0])T(hingePos.x)BoxH([each size.xy,sizeZ2*2],opt=2,pattern=pattern[1]);
+if(pip||part<=1)color(!pip&&part==0?"red":"lightsteelblue")T(hingePos.x)BoxH(size=[each size.xy,size.z-sizeLid],part=1,pattern=pattern[0],patternH=patternH[0],patternD=patternD[0],pCut=patternCut[0],bottom=bottom[0],grip=[grip[0]]);
+//lid
+if(pip||part==2)Tz(size.z-sizeLid*2)mirror([1,0])T(hingePos.x)BoxH([each size.xy,sizeLid],part=2,pattern=pattern[1],patternH=patternH[1],patternD=patternD[1],pCut=patternCut[1],bottom=bottom[1],grip=[grip[1],grip[2]]);
 
 // Hinge
-T(y=-size.y/2+pip/2+r1)Linear(seg,y=1,es=segL+pip)if(pip||(opt==1?!($idx%2):opt==2?$idx%2:false)){
+if(hinges)T(y=-size.y/2+max(spiel,pip)/2+r1)Linear(seg,y=1,es=segL+max(spiel,pip))if(pip||(part<=1?!($idx%2):part==2?$idx%2:false)){
 
     difference(){
       hull(){
         Tz(hingePos.z)R(-90)
           Pille(segL,d=hingeD,rad=.25,center=false);
-        mirror([$idx%2?1:0,0,0])T(hingePos.x,z=($idx%2?r2+size.z/2-sizeZ2:r2))cube([.1,segL,($idx%2?sizeZ2:size.z/2)-r2-.5]);
+        if(part!=2&&size.z-sizeLid>=minSZ||part==2&&sizeLid>=minSZ)mirror([$idx%2?1:0,0,0])T(hingePos.x,z=($idx%2?r2+size.z-sizeLid*2:r2))cube([.1,segL,($idx%2?sizeLid:size.z-sizeLid)-r2-.5]);
+        else {
+         cx=hingeD/2+hingePos.x+wand+ tan(-50)*(part==2?sizeLid:hingePos.z);
+         mirror([$idx%2?1:0,0,0])T(hingePos.x+r2-.01-cx,z=($idx%2?0+size.z-sizeLid:0))LinEx(($idx%2?sizeLid:size.z-sizeLid)-r2-1)Quad([cx,segL],center=false);
+
+        }
+        
       }
-      if(pip&&$idx%2)Tz(hingePos.z)R(-90)Loch(segL,min(segL/3,hingePin/2.5),d=hingePin,rad=hingePin/4,cuts=0);
-       else if(!pip) Tz(hingePos.z)R(90)linear_extrude(size.y*2,center=true,convexity=5)Tdrop(d=hingePin);
+      
+      if(!part&&size.z-sizeLid<minSZ||part==2&&sizeLid<minSZ)mirror([$idx%2?1:0,0,0])T(hingePos.x+size.x/2,-(-size.y/2+max(spiel,pip)/2+r1)-$idx*(segL+max(spiel,pip)),z=bottom[$idx%2])Prisma(size-[1,1,0]*wand*2,r=ir1,rad=ir2,deg=[90,0]);
+      
+      if(pip&&$idx%2&&!clip)Tz(hingePos.z)R(-90)Loch(segL,min(segL/3,hingePin/2.5),d=hingePin,rad=hingePin/4,cuts=0);
+      else if(!pip&&!clip) Tz(hingePos.z)R(90)linear_extrude(size.y*2,center=true,convexity=5)Tdrop(d=hingePin+spiel*2);
+       
+//clip void
+     else if(clip&&$idx%2)T(0,segL/2)Tz(hingePos.z)R(-90)MKlon(tz=-(segL)/2)Kegel(d1=clipD,d2=hingePin,rad=[-.5,.5] + max(spiel,pip)/[2,2],lap=[0.25,0]);
+       
    }
 }
 
 }
 
 // hingePin
-if(pip)Linear(e=max(1,hinges),y=1,es=(segL+pip)*2,center=true)Tz(hingePos.z)R(-90)Loch(segL+pip*2,h2=min((segL+pip*2)/3,(hingePin)/2.5),d=hingePin-pip*2,rad=(hingePin-pip*2)/4,cuts=0,center=true);
+if(pip&&!clip)Linear(e=max(1,hinges),y=1,es=(segL+pip)*2,center=true)Tz(hingePos.z)R(-90)Loch(segL+pip*2,h2=min((segL+pip*2)/3,(hingePin)/2.5),d=hingePin-pip*2,rad=(hingePin-pip*2)/4,cuts=0,center=true);
+// clip Pin
+if(clip&&part!=2)Linear(e=max(1,hinges),y=1,es=(segL+max(pip,spiel))*2,center=true)Tz(hingePos.z)R(-90)
+  MKlon(tz=-(segL+max(pip,spiel)*2)/2)Kegel(d1=clipD,d2=hingePin,rad=[-.5,.5]- max(spiel,pip)/[2,2],lap=[0.25,0]);
+  //Loch(segL+pip*2,h2=min((segL+pip*2)/3,(hingePin)/2.5),d=hingePin-pip*2,rad=(hingePin-pip*2)/4,cuts=0,center=true);
 
 }
-  module BoxH(size=size,wand=wand,bottom=bottom,opt=0,latchPos=1.5,latchL=latchL,pattern=2,opener=opener,lippe=lippe){
-  
+  module BoxH(size=size,wand=wand,bottom=1,part=0,latchPos=latchPos,latchL=latchL,pattern=2,opener=opener,lippe=lippe,patternH=.25,patternD=5,pCut=wand,latchR=latchR,latchH=latchH,divider=divider,grip=[1,1],r1=r1,r2=r2){
   $info=false;
-  //echo(size,opt);
+  //echo(size,part);
     T(size.x/2)difference(){
       union(){
-        Prisma(vMult(size,[1,1,.5]),r=r1,rad=r2,deg=[50,0]);
+        Prisma(size+[0,0,lippe.y],r=r1,rad=r2,deg=[50,0]);
+// groove compensation
+        if(part==2&&wand<latchH+line(2))T(size.x/2)Tz(size.z-latchPos)R(90)LinEx(latchL-2,end=true,center=true)Vollwelle(latchR[0]+wand/2 -(latchR[1]<wand/2+.2?.2:0),max(0.2,latchR[1]-wand/2),h=latchH,xCenter=-1,extrude=0,x0=-.1);
+    
         if (opener){
       gY=size.y/2-r1;
-      T(size.x/2-.5)mirror([0,opener==2||opener==-1?opt==1?0:1:opt==1?1:0,0])hull(){
-        T(y=spiel,z=size.z/2)mirror([0,0,1])Prisma(4,gY,1,r=1,center=[0,0,0]);
-        T(y=spiel,z=max(r2,size.z/2-4))cube([.1,max(gY-4,.5),.1]);
+      T(size.x/2-.5)mirror([0,opener==2||opener==-1?part==1?0:1:part==1?1:0,0])hull(){
+        T(y=spiel,z=size.z)mirror([0,0,1])Prisma(4,gY,1,r=1,center=[0,0,0]);
+        T(y=spiel,z=max(r2,size.z-4))cube([.1,max(gY-4,.5),.1]);
         }
       }
       }
-      Tz(bottom)Prisma(size-[1,1,0]*wand*2,r=ir1,rad=ir2,deg=[90,0]);
+//cut top
+      Tz(size.z)linear_extrude(lippe.y+1,convexity=5)Rand(-wand-spiel-lippe.x/2-.1)Quad(size.xy+[.2,.2],rad=r1+.1);
+//divider
+      difference(){
+        Tz(bottom)Prisma(size-[1,1,0]*wand*2+[0,0,lippe.y+1],r=ir1,rad=ir2,deg=[90,0]);
+        
+        if(max(divider))
+          Tz(bottom)Roof(size.z-bottom-spiel+
+              (part==1?(divider[1]?lippe.y:lippe.y)
+                      :-max(lippe.y,divider[1]?latchPos+vSum(latchR)+latchH/tan(60)+.1:0)-.1),[ir2,wand/5],deg=[-45,45])Rund(0,1){
+            Rand(20)Quad(size.xy-[1,1]*wand*2+[1,1]*0.001,rad=ir1);
+            Linear(divider.x,es=(size.x-wand*2)/(divider.x+1),x=1,center=true)square([dividerWand,size.y*2],true);
+            Linear(divider.y,es=(size.y-wand*2)/(divider.y+1),y=1,center=true)square([size.x*2,dividerWand],true);
+          }
+      }  
+
 //Pattern
-     if(pattern)intersection(){
-      if(pattern==1)HexGrid(e=[floor(size.x/4/sin(60))-1,ceil(size.y/4)+1],es=4)cylinder(.5,d=3,$fn=6,center=true);
-      if(pattern==2)rotate(90)HexGrid(e=[floor(size.y/3/sin(60))-1,ceil(size.x/3.0)+1],es=3)Polar(3,rot=30)T(1.5/2-.1)cube([1.5,.5,.5],center=true);
-      linear_extrude(100,center=true,convexity=5)Quad(size.xy-(r2+wand)*[2,2],rad=max(ir1-r2,0));
+     if(pattern)Roof(2*patternH,[0,wand/3],center=true)Rund(pCut/2.05,wand/2.5)intersection(){
+      if(pattern==1)HexGrid(e=[floor(size.x/patternD/sin(60))-1,ceil(size.y/patternD)+1],es=patternD)circle(d=umkreis(6,$d-wand),$fn=6);
+      
+      if(pattern>=2)rotate(90)HexGrid(e=[floor(size.y/3/sin(60))-1,ceil(size.x/3.0)+1],es=patternD)let(l=$es.y-wand-pCut/2*sqrt((tan(30)^2+1))){
+      
+     if(pattern>1&&pattern<=5)Polar(3,l/2-0.01,rot=30)square([l,pCut],center=true);
+      if(pattern==3)Polar(6,$es.x/1.5,rot=0,rotE=180)Rund(wand/2.1,0)circle(d=umkreis(6,$r*2)-umkreis(3,pCut+wand*2),$fn=3);
+      if(pattern==4)Polar(6,$es.x/2,rot=0,rotE=180)circle(l/6,$fn=3);
+      if(pattern==5)Polar(6,$es.x/2,rot=0,rotE=+0)T(0,1)square([pCut,l/2.5],true);
+      if(pattern==6)Polar(6,$es.y/2.75,rot=0,rotE=180)circle(l/4.5,$fn=3);
+      }
+      Quad(size.xy-(r2+wand)*[2,2],rad=max(ir1-r2,0));
       }
 // Latch groove
-      if(opt==2){
-        Tz(size.z/2-latchPos)R(90)LinEx(latchL-3,end=true,center=true)Vollwelle(.5,xCenter=-1,extrude=size.x/2-wand);
-        T(size.x/2-wand -0.01,z=size.z/2+.01)R(-90)Kehle(l=latchL-2,center=true,end=2,rad=wand-n(1),fn2=4);
+      if(part==2){
+       T(size.x/2-wand,z=size.z-latchPos)R(90)LinEx(latchL-3,end=true,center=true)Vollwelle(latchR,h=latchH,xCenter=-1,extrude=0,x0=-.1);
+       hull(){
+         T(size.x/2-wand-wand/2-latchH/2,z=size.z-latchPos)cube([wand+latchH,latchL,vSum(latchR)*2+1.5],true);
+         T(size.x/2-wand,z=size.z)T(-(wand+latchH+1)/2)cube([wand+latchH+1,latchL,.1],true);
+       }
+        T(size.x/2-wand -0.01,z=size.z+.01)R(-90)Kehle(l=latchL-2,center=true,end=2,rad=wand-n(1),fn2=4);
       }
     }
     
-// Grip
 
-    if(opt==2&&wand<1)T(size.x)Tz(size.z/2-latchPos)R(90)LinEx(latchL-2,end=true,center=true)Vollwelle(.5+wand,max(0.2,.5-wand),xCenter=-1,extrude=0,x0=-.1);// groove compensation
-    if(!opener){
-      if(size.z/2-r2<=8){if(opt==1)T(size.x)Tz(max(size.z/5,r2+1.0))R(90)LinEx(size.y-r1*2-2,end=true,center=true)Vollwelle(.5,xCenter=-1,extrude=0,x0=-.1);
+
+    
+// Grip    
+    if(!opener&&grip[0]){
+      if(size.z-r2-latchPos<=8){
+        if(part==1||(part==2&&size.z-latchPos-r2>3))T(size.x)Tz(max(r2+1.0,part==2?size.z-latchPos-3:size.z/3))R(90)LinEx(size.y-r1*2-2,end=true,center=true)Vollwelle(.5,xCenter=-1,extrude=0,x0=-.1);
       }
-       else Tz(r2/2){
-        if(opt==1)T(size.x)Tz(size.z/4)R(90)LinEx(size.y-r1*2 -7,end=true,center=true)Vollwelle(.5,xCenter=-1,extrude=0,x0=-.1);
-          T(size.x)Tz(size.z/4)R(90)LinEx(size.y-r1*2-7.01,end=true,center=true)T(0,-3)Vollwelle(.5,xCenter=-1,extrude=0,x0=-.1);
-          T(size.x)Tz(size.z/4+3)R(90)LinEx(size.y-r1*2-7,end=false,center=true)Vollwelle(.5,xCenter=-1,extrude=0,x0=-.1);
-        }
+      else Tz(size.z -3-latchPos+(r2/2-latchPos +1)*0){
+        if(part==1)T(size.x)R(90)LinEx(size.y-r1*2 -7,end=true,center=true)Vollwelle(.5,xCenter=-1,extrude=0,x0=-.1);
+        
+          T(size.x)R(90)LinEx(size.y-r1*2-7.01,end=true,center=true)T(0,-3)Vollwelle(.5,xCenter=-1,extrude=0,x0=-.1);
+          T(size.x,z=+3)R(90)LinEx(size.y-r1*2-7,end=false,center=true)Vollwelle(.5,xCenter=-1,extrude=0,x0=-.1);
+      }
     }
+ //sideGrip
+    if(part==2&&grip[1])T(size.x-r1-1,0,size.z-latchPos)MKlon(ty=size.y/2){
+      if(size.z-latchPos-r2>=6.5)T(-3,0,-2.5)R(90)RotEx()T(3)rotate(-90)Vollwelle(.5,xCenter=-1,extrude=0,x0=-.1);
+      else R(-90,0,90)LinEx(5,end=true)Vollwelle(.5,xCenter=-1,extrude=0,x0=-.1);
+      }
+    
   //latch
-    if(opt==1){
+    if(part==1){
       intersection(){
-        T(size.x-wand + (lip?-spiel-.001:0.01))Tz(size.z/2+latchPos-.15)R(90)LinEx(latchL-3,end=true,center=true)Vollwelle(.5-spiel,.5+spiel,xCenter=-1,extrude=0,x0=-wand+.1,l=20);
-        T(size.x-wand-spiel)R(0,-90)linear_extrude(max(2,lippe[0]*2),center=true)Quad(size.z/2+2.25,latchL-.5,center=[0,1],rad=1);
-        T(size.x-wand,z=size.z -1.99)R(90)cylinder(size.y,d=size.z,$fn=4,center=true);
+        T(size.x-wand + (lip?-spiel-.001:0.01))Tz(size.z+latchPos-.15)R(90)LinEx(latchL-3,end=true,center=true)Vollwelle(latchR[0]-spiel,latchR[1]+spiel,h=latchH,xCenter=-1,extrude=0,x0=-wand +0.01,l=20);
+        T(size.x-wand-spiel+latchH)R(0,-90)linear_extrude(wand+latchH,center=0)Quad(size.z+.75+latchPos,latchL-.5,center=[0,1],rad=1);
+        T(size.x-wand,z=size.z/2+size.z -1.99)R(90)cylinder(size.y,d=size.z,$fn=4,center=true);
       }
     }
     
    // lip
    
-    if (lip&&opt==1)T(size.x/2,z=size.z/2-0.1){
-      Tz(-.1)linear_extrude(lippe[1]+.1,convexity=5) Rand(-lippe[0])Quad(size.xy-(wand+spiel)*[2,2],r=max(0,ir1-spiel));
+    if (lip&&part==1)T(size.x/2,z=size.z-0.1){
+      Tz(-.1)linear_extrude(lippe[1]+.1,convexity=5) 
+        Rand(-lippe[0])Quad(size.xy-(wand+spiel)*[2,2],r=max(0,ir1-spiel));
       Tz(-2)difference(){
         linear_extrude(2,convexity=5)difference(){
         //Rand(-lippe[0]-wand-spiel+.1)
@@ -844,5 +1053,4 @@ if(pip)Linear(e=max(1,hinges),y=1,es=(segL+pip)*2,center=true)Tz(hingePos.z)R(-9
       }
   }
 
-
-}
+}// end HingeBox
