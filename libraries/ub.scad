@@ -95,6 +95,8 @@ Changelog (archive at the very bottom)
 220|24 UPD version() assert FIX Kegel UPD Bayonet UPD inkreis() UPD umkreis() UPD HexGrid
 230|24 UPD Vollwelle UPD Rundrum UPD kathete UPD QuadAnschluss FIX Filter
 240|24 UPD kreis UPD polyRund ADD Select CHG Bayonet
+250|24 UPD Quad UPD Polar UPD Bayonet
+260|24
 */
 
 {//fold // Constants
@@ -185,7 +187,7 @@ helpMColor="";//"#5500aa";
 
 /*[Constant]*/
 /*[Hidden]*/
-Version=24.240;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
+Version=24.250;//                <<< ---   VERSION  VERSION VERSION ••••••••••••••••
 useVersion=undef;
 UB=true;
 PHI=1.6180339887498948;/// golden ratio 1.618033988;
@@ -2097,6 +2099,7 @@ Polar() object  multiply children polar (e=number, x/y=radial distance)
 */
 
 //Polar(5,[3,3],v=[0,1,1])cube();
+//Polar(3,10)square([$r*2,.1],true);
 
 module Polar(e=3,x=0,y=0,z=0,rot=0,rotE=0,end=360,dr=0,mitte=false,v=[0,0,1],es,name,n,help=false,r,re){
     
@@ -2111,7 +2114,8 @@ module Polar(e=3,x=0,y=0,z=0,rot=0,rotE=0,end=360,dr=0,mitte=false,v=[0,0,1],es,
                                    name:
                     n;
   
-   radius=Hypotenuse(x,y);
+   radius=norm([x,y,z]);
+   $r=radius;
    end=end==0?360:end;
    winkel=abs(end)==360?360/e:end/max(1,e-1);
    
@@ -6140,11 +6144,12 @@ module Superellipse(n=4,r=10,n2,r2,n3,n31,n32,r3,r1,fn=fn,fnz,name,help){
 
 //Quad(50,20,rad=10,center=[0,1]);
 
-
 module Quad(x=20,y,r,r1,r2,r3,r4,grad=90,grad2=90,fn,center=true,messpunkt=false,basisX=0,trueX=false,centerX,tangent=true,rad,fs=fs,name,help){
     assert(grad!=0&&grad2!=0);
     basisX=is_bool(basisX)?basisX?1:0:is_undef(centerX)?basisX:is_bool(centerX)?centerX?1:0:centerX;
     
+    grad2=is_list(grad)?assert(is_num(grad[1]))grad[1]:assert(is_num(grad2))grad2;
+    grad=is_list(grad)?assert(is_num(grad[0]))grad[0]:assert(is_num(grad))grad;
     r=is_undef(rad)?r:rad;
     
     
@@ -11927,31 +11932,40 @@ Bayonet() creates a bayonett mount in out
 */
 
 /*
-Bayonet(part=0,invert=0);
-Bayonet(part=1,invert=0);
+Bayonet(part=0,invert=1,pos=+0);
+Bayonet(part=1,invert=1,pos=+0);
 //*/
 
-module Bayonet(d=20,l=8,h=15,lock=-0.5,e=3,nibH=1,nibR=[.5,.35],nibMitte=.25,spiel=spiel,lap=.25,invert=0,part=0,fs=fs,name,help){
+
+module Bayonet(d=20,l=8,h=15,lock=-0.5,e=3,nibH=1,nibR=[.5,.35],nibMitte=.25,spiel=spiel,lap=.25,invert=0,part=0,fs=fs,pos=0,name,help){
+pos=bool(pos,false);
 lock2=.2; // radial lock
 lock=is_list(lock)?lock:[lock,lock2];
 spielR=spiel; // radius change to add clearance for outer ring
 
 l=is_list(l)?l:l*[0.7,.3];
 fn=ceil(vSum(l)/fs);
-
-step=assert(is_num(d),"Bayonet d not a number!")l*gradB(b=1,r=d/2+(invert?0:spielR))/fn;
+r=d/2+(invert?0:spielR);
+step=assert(is_num(d),"Bayonet d not a number!")l*gradB(b=1,r=r)/fn;
 ifn=[floor(fn/2),ceil(fn/2)];
 // for flat on round error
 adj=-d/2+distS(s=vSum(nibR)*2,r=d/2);
 endPosZ=-spiel;//lock pos lower 0
 
 deg=[atan2(-lock[0],l[0]),atan2(lock[0],l[1])]*(invert?-1:1);// profile angle
+lockWinkel=-vSum(vMult(ifn,step));
+eINPUT=e;
+
+e=min(e,floor(360/(-lockWinkel+ gradB(b=nibMitte+ vSum(nibR) + nibH*tan(60)*2, r=r)/2) ) );
+
+InfoTxt("Bayonet",["elements",e,"lockWinkel",lockWinkel],name);
+Echo(str(name," Bayonet e= ",eINPUT," to high - limited to ",e),color="warning",condition=eINPUT>e);
 
 //nib
-  if(part==0)color("gold")Polar(e,d/2+(invert?spielR+adj*0: adj),name=false)rotate([0,invert?-90:90])rotate_extrude()SWelle(nibR,h=nibH,deg=60,lap=[0,lap],ext=nibMitte/2);
+  if(part==0)color("gold")Polar(e,d/2+(invert?spielR+adj*0: adj),rot=pos?lockWinkel*sign(pos):0,name=false)rotate([0,invert?-90:90])rotate_extrude()SWelle(nibR,h=nibH,deg=60,lap=[0,lap],ext=nibMitte/2);
 //groove
   if(part==1)color("steelblue"){
-    Polar(e,name=false){
+    Polar(e,rot=pos?-lockWinkel*sign(pos):0,name=false){
       rotate([0,0,invert?180:0]){
         rotate([90,0])PolyH(points,loop=len(profilP()),flip=invert?false:true);
         translate([invert?-adj:adj,0,l[0]?0:lock[0]])linear_extrude(h,convexity=5)polygon(profilP(z=undef));
@@ -11959,7 +11973,7 @@ deg=[atan2(-lock[0],l[0]),atan2(lock[0],l[1])]*(invert?-1:1);// profile angle
       
       translate([(invert?d/2:d/2+spielR)+adj,0,l[0]?0:lock[0]])rotate([0,90,invert?180:0])rotate_extrude()SWelle(nibR+[spiel,-spiel],h=nibH,deg=60,ext=nibMitte/2);
 //LockPos
-      rotate([0,0,-vSum(vMult(ifn,step))])translate([(invert?d/2:d/2+spielR+adj),0,endPosZ])rotate([0,90,invert?180:0])rotate_extrude()SWelle(nibR+[spiel,-spiel]*.5,h=nibH-spiel/2,deg=60,ext=nibMitte/2);
+      rotate([0,0,lockWinkel])translate([(invert?d/2:d/2+spielR+adj),0,endPosZ])rotate([0,90,invert?180:0])rotate_extrude()SWelle(nibR+[spiel,-spiel]*.5,h=nibH-spiel/2,deg=60,ext=nibMitte/2);
       
     }
   }
@@ -11972,7 +11986,7 @@ for(rot=[0:ifn[1]])each mPoints(profilP(h=nibH-(1-transition(rot,ifn[1]))*lock[1
  ];
 
 
-HelpTxt("Bayonett",["d",d,"l",l,"h",h,"lock",lock,"e",e,"nibH",nibH,"nibR",nibR,"spiel",spiel,"lap",lap,"invert",invert,"part",part,"fs",fs,"name",name],help);
+HelpTxt("Bayonett",["d",d,"l",l,"h",h,"lock",lock,"e",e,"nibH",nibH,"nibR",nibR,"spiel",spiel,"lap",lap,"invert",invert,"part",part,"fs",fs,"pos",pos,"name",name],help);
 
 }
 
