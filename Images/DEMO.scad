@@ -1,12 +1,12 @@
 
  //THIS IS WIP !!
-//min. version of openSCAD is 21.12
+//min. version of openSCAD is 24
 
 
 include<ub.scad> 
 /*[Hidden]*/
-designVersion=1.3;
-useVersion=22.101;//⇒ v.gd/ubaer
+designVersion=1.5;
+useVersion=24.270;//⇒ v.gd/ubaer
 assert(Version>=useVersion,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 nozzle=.2;
 bed=false;
@@ -29,8 +29,9 @@ $textPos=[-2,-3];
 objPos=[12];
 color2=0;
 
-T($textPos+[0,-6])Tz(-.1)Text(h=0,text=show,size=3,cy=-1);
-T($textPos+[0,-8.5])Tz(-.1)Text(h=0,text=str(Version," ",version()),size=0.6,cy=-1);
+T($textPos+[0,-6])Tz(-.1)Text(h=0,text=show,size=5,cy=1,textmetrics=false);
+
+T($textPos+[0,-8.5])Tz(-.1)Text(h=0,text=str(Version," ",version()),size=1.2,cy=1,textmetrics=false);
 
 module P(){
 Pfeil(l=5,b=[1,2.5],shift=-0.5,center=[1,1],name=false);    
@@ -53,8 +54,8 @@ if(show=="helper")//•••••••••• Helper:   ••••••�
         
         
     union(){ // 3 axis Projection
-        3Projection(1,cut=false)difference(){
-        Tz(2)Prisma(2,3,4,x2=1.5,y2=2,x2d=.25,y2d=.5,c1=0,s=0,center=false);
+        3Projection(1,cut=false){
+        Tz(2)Prisma(2,3,4,x2=1.5,y2=2,x2d=.25,y2d=.5,r=0,rad=0,center=false);
         } 
         Txt("3Projection()");
     }
@@ -111,7 +112,7 @@ if(show=="helper")//•••••••••• Helper:   ••••••�
         Txt("Caliper(l=8)"); 
     }
     union(){// Calliper measures
-        T(objPos/2)Caliper(s=4,l=5,end=0,translate=[0,+3],messpunkt=false);
+        T(objPos/2)Caliper(s=3,l=5,end=+3,translate=[0,+3],messpunkt=false);
         Txt("Caliper(l=5,end=0)"); 
     }
 
@@ -131,6 +132,14 @@ if(show=="helper")//•••••••••• Helper:   ••••••�
         //T(objPos/2)hull()polyhedron(points,[[0,1,2,3]]);
         Txt("Points(points)"); 
     }
+    
+    union(){// Polygon degree
+      points=[[0,0],[10,0],[10,10],[5,5],[0,10]]*.5;
+        T(objPos/2)T(-2.5)PolyDeg(points,help=1,txt=+0.5);
+        
+        Txt("PolyDeg(points)"); 
+    }
+    
   }
 
 
@@ -144,9 +153,9 @@ if(show=="modifier")//•••••••••• Modifier:   •••••
     square([2,2]);T(objPos/2)P();
     T(objPos){
       Cross();
-      M(skewyx=1)Color(color2) square([2,2]);
+      M(skewYX=1)Color(color2) square([2,2]);
     }
-      Txt("M(skewyx=1)");     
+      Txt("M(skewYX=1)");     
   }
 
   union(){//R rotates
@@ -159,6 +168,7 @@ if(show=="modifier")//•••••••••• Modifier:   •••••
       }
       Txt("R(z=-45)");    
   }
+  
   union(){//T moves
     Cross();
     square(2);T(objPos/2)P();
@@ -227,7 +237,9 @@ if(show=="modifier")//•••••••••• Modifier:   •••••
 
 
   union(){// Halb cut half away
-      Cross()circle(2);T(objPos/2)P();T(objPos)Cross()Color(color2)Halb(x=true,2D=true)circle(2);
+      Cross()circle(2);
+      T(objPos/2)P();
+      T(objPos)Cross()Color(color2)Halb(x=1,2D=true)circle(2);
       Txt("Halb(x=true)"); 
   }
 
@@ -246,7 +258,7 @@ if(show=="modifier")//•••••••••• Modifier:   •••••
 
 
 if(show=="polygons")union()//•••••••••• Polygons:   ••••••••••
-  T(5,7)Anordnen(es=[36,24],option=3,e=8,c=undef,loop=false,center=false,name="Polygons"){
+  T(5,7)Anordnen(es=[36,24],option=3,e=9,c=undef,loop=false,center=false,name="Polygons"){
   $textPos=[-7,-8.5];
     $textSize=2;
     $crossLine=0.2;
@@ -468,7 +480,12 @@ if(show=="polygons")union()//•••••••••• Polygons:   ••�
         Txt("Riemen");
       }
       
+      union(){ // Arc
+        Arc(r=10,r2=5,deg=120);
+        Txt("Arc"); 
+      }      
       
+     
       
 
     /* 
