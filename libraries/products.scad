@@ -1,7 +1,7 @@
 // Products
 
 include <ub.scad>; // requires ub.scad https://github.com/UBaer21/UB.scad
-pVersion=24.250;
+pVersion=24.270;
 helpProducts=false;
 
 /*change log
@@ -18,6 +18,8 @@ helpProducts=false;
 24|150 UPD VQRotor
 24|225 UPD HingeBox
 24|250 UPD BLetter UPD HingeBox
+24|260 ADD Axial Bearing
+24|270 ADD HirthJoint
 
 //*/
 
@@ -35,9 +37,156 @@ BallSocket();/n
 WaveWasher();/n
 HingeBox();/n
 VQRotor();/n
+AxialBearing();/n
+HirthJoint();/n
 
 ");
 }
+/** \name HirthJoint
+\brief HirthJoint() creates a Hirth joint
+\example HirthJoint(z=10,d=20);
+\param z teeth
+\param d outer diameter
+\prama deg teeth angle ↦ calculate h
+\param h optional teeth height
+\param s teeth top width
+\param base bottom height
+\param spiel tollerance
+\param chamfer bottom chamfer
+\param opt option for sinus form
+
+*/
+
+module HirthJoint(z=10,d=20,deg=60,h,s=1.5,base=5,spiel=-spiel,chamfer=.5,opt=0,centerH=0,help){
+  e=z;
+  deltaDeg=deg==90?[90/z+gradS(r=d/2,s=abs(spiel)/2),90/z-gradS(r=d/2,s=abs(spiel)/2)]
+                  :[gradS(r=d/2,s=s/2+spiel/2*tan(90-deg)),gradS(r=d/2,s=s/2-spiel/2*tan(90-deg))];
+  h=h?assert(is_num(h))h:deg<90?(d*PI/(e*2)-s)*tan(deg):is_undef(h)?PI*d/e/2:h;
+  base=max(h/2+chamfer,base);
+  shift=180/e;
+  h0=h/2;
+  h1=h/2;
+  delta=deltaDeg[1]*1*0; // sawtooth
+  fn=fs2fn(r=h/2,fs=fs)*e;
+
+HelpTxt("HirthJoint",["z",z,"d",d,"deg",deg,"h",h,"s",s,"base",base,"spiel",spiel,"chamfer",chamfer,"opt",opt,"centerH",centerH],help);
+  
+  p=
+  opt?
+    [
+    each kreis(d=d-.5,rand=0,fn=fn,endPoint=false,z=-base,rot=0),
+    each kreis(d=d,rand=0,fn=fn,endPoint=false,z=-base+.25,rot=0),
+    for(i=[fn +0:-1:0])each[
+    [cos(360/fn*i)*d/2,sin(360/fn*i)*d/2,min(h/2-abs(spiel),sin(i/fn*360*e-shift*e/2)*h/2)+h1-h0],
+    ],
+    [0,0,centerH] 
+  ]:
+  [
+    each kreis(d=d-chamfer*2,rand=0,fn=e*4, endPoint=false,z=-base,rot=shift*.75),
+    if(chamfer)each kreis(d=d,rand=0,fn=e*4, endPoint=false,z=-base+chamfer,rot=.75*shift+delta),
+    for(i=[e -1:-1:0])each[
+     [cos(shift+360/(e)*i+deltaDeg[1]+delta)*d/2,sin(shift+360/(e)*i+deltaDeg[1]+delta)*d/2,+h1],
+     [cos(shift+360/(e)*i-deltaDeg[1]+delta)*d/2,sin(shift+360/(e)*i-deltaDeg[1]+delta)*d/2,+h1],
+     [cos(360/(e)*i+deltaDeg[0])*d/2,sin(360/(e)*i+deltaDeg[0])*d/2,-h0],
+     [cos(360/(e)*i-deltaDeg[0])*d/2,sin(360/(e)*i-deltaDeg[0])*d/2,-h0]
+    ],
+    [0,0,centerH] 
+  ];
+
+  PolyH(p,loop=opt?fn:e*4,pointEnd=2,convexity=z);
+}
+
+
+/** \name AxialBearing
+\brief AxialBearing() creates an axial bearing
+\example AxialBaring(part=1);
+\param id inner diameter
+\param dd outer diameter
+\param ball ball diameter
+\param r optional ball running radius
+\param h height
+\param part part selection 1:outer 2 inner 3 balls 4 ball cage
+\param dicke wall thickness
+\param numBalls optional number of bearing balls
+\param h2  extra height for cutting children parts
+\param clip overlap for snap fit
+\param cage cage thickness
+\param chamfer chamfer
+*/
+/*
+Cut(){
+AxialBearing(part=0);
+AxialBearing(part=3);
+Tz(7)R(180)AxialBearing(part=2);
+}//*/
+
+
+module AxialBearing(id=10,od=25,ball,r,h=7,part=0,dicke=1.2,numBalls,h2=[0,0],clip=.3,cage=true
+,chamfer=.5,help){
+
+$info=false;
+bR=r?r:id/4+od/4;
+ball=min((od-id)/2-dicke*2,is_num(ball)?ball:h-dicke*2);
+//clip=.3;// overlap to snap fit balls
+ring=cage?is_num(cage)?cage:dicke:0; // cage thickness
+h2=is_list(h2)?h2:[h2,h2];
+
+n=numBalls?numBalls:floor(360/gradS(r=bR,s=ball+spiel));
+// groove center 
+r2=[bR+ball/2-clip-spiel/2-(ring?(ring+spiel)/2:0),
+    bR-ball/2+clip+spiel/2+(ring?(ring+spiel)/2:0)];
+    
+HelpTxt("AxialBearing",["id",id,"od",od,"ball",ball,"r",r,"h",h,"part",part,"dicke","numBalls",numBalls,"h2",h2,"clip",clip,"cage",cage,"chamfer",chamfer],help);
+
+if(part==3)echo(numberBall=n,ballDiameter=ball);
+
+//Balls
+if(part==3)Polar(n,bR)T($preview?[0,0,h/2]:[$idx%2?2:.5,0,ball/2])sphere(d=ball);
+
+//Cage
+if(part==4&&cage) difference(){
+  Anschluss(rad=[2,2+ring],h=h,grad=40,dicke=ring,r1=r2[1]+ring/2,r2=r2[0]+ring/2,center=0);
+  Tz(h/2)Polar(n,bR)sphere(d=ball+spiel*2);
+}
+
+
+if(part<3)Tz($preview?0:h2[0])
+  difference(){
+    union(){
+    if(part==1||part==0)Tz(-h2[0])union(){
+      LinEx(h+vSum(h2),chamfer,$d=od,grad=45)circle($r);
+      children();
+      }
+    if(part==2||part==0)Tz(-h2[0])LinEx(h+vSum(h2),0,$d=bR*2+ball-spiel*2-clip*2-(ring?ring*2+spiel*2:0),grad=45)circle($r);
+    }
+    Tz(-h2[0])Loch(h=h+vSum(h2),h2=[chamfer,chamfer],d=id,rad=.5);
+    Tz(h/2)Torus(trx=bR,d=ball,fn=0);
+    union(){ 
+      if(part==1)Tz(h+h2[1])Torus(trx=r2[0],d=chamfer+spiel+(ring?ring+spiel:0),fn2=4,fn=0);
+      if(part==1)Tz(-h2[0])Torus(trx=r2[1],d=chamfer+spiel+(ring?ring+spiel:0),fn2=4,fn=0);
+      if(part==2)Tz(h+h2[1])Torus(trx=r2[1],d=chamfer+spiel+(ring?ring+spiel:0),fn2=4,fn=0);
+      if(part==2)Tz(-h2[0])Torus(trx=r2[0],d=chamfer+spiel+(ring?ring+spiel:0),fn2=4,fn=0);
+    }
+    if(part==1){
+      Tz(h/2)cylinder(h+h2[1],d=bR*2+ball-clip*2);
+      Tz(h/2-ball/2+clip)cylinder(h+h2[1],r=bR);
+      cylinder(h+vSum(h2)*2,d=bR*2-ball+clip*2+spiel*2+(ring?ring*2+spiel*2:0),center=true);
+    }
+    if(part==2){
+      Tz(h/2)Ring(h=h+h2[1],ir=bR-ball/2+clip,r=od);
+      Tz(h/2-ball/2+clip)Ring(h=h+h2[1],ir=bR,r=od);
+    }
+
+  }
+}
+
+
+
+
+
+
+
+
 
 /** \name VQRotor
 \brief VQRotor() creates a vorterant rotor
@@ -849,7 +998,7 @@ Cut(){
   HingeBox(clip=true,opt=2,pip=0);
 }//*/
 
-//Cut()HingeBox(size=[20,20,25],lid=10,lip=5,pip=0.0,hinges=0,part=1,divider=[1,1],opener=true);
+//Cut()HingeBox(size=[20,20,25],lid=10,lip=2,pip=0.0,hinges=0,part=2,divider=[1,1],opener=true);
 
 module HingeBox(size=[1,1,.5]*25,wand,hinges,hingePin,lip=true,pip=pip,pattern=[0,0],lid,r1,ir1,r2,ir2,part=0,opener=false,bottom,patternH=.25,patternD=4,patternCut=.5,latchH=.65,latchPos=2,clip,spiel=spiel,divider,dividerWand,grip=[1,1,1],name,help,opt){
 
@@ -900,7 +1049,7 @@ clipD=is_num(clip)?hingePin+max(pip,spiel)*2+clip*2:hingePin+max(pip,spiel)*2+.3
 
 clipLap=(clipD-hingePin)/2-max(pip,spiel);
 
-HelpTxt("HingeBox",["size",size,"wand",wand,"hinges",hinges,"hingePin",hingePin,"lip",lip,"pip",pip,"pattern",pattern,"lid",lid,"r1",r1,"ir1",ir1,"r2",r2,"ir2",ir2,"part",part,"opener",opener,"bottom",bottom,"patternH",patternH,"patternD",patternD,"latchH",latchH,"latchPos",latchPos,"clip",clip,"spiel",spiel,"divider",divider,"dividerWand",dividerWand,"name",name],help);
+HelpTxt("HingeBox",["size",size,"wand",wand,"hinges",hinges,"hingePin",hingePin,"lip",lip,"pip",pip,"pattern",pattern,"lid",lid,"r1",r1,"ir1",ir1,"r2",r2,"ir2",ir2,"part",part,"opener",opener,"bottom",bottom,"patternH",patternH,"patternD",patternD,"patternCut",patternCut,"latchH",latchH,"latchPos",latchPos,"clip",clip,"spiel",spiel,"divider",divider,"dividerWand",dividerWand,"name",name],help);
 
 InfoTxt("HingeBox",["InsideSize",[each(size.xy-[2,2]*(lip?wand+spiel+lippe[0]:wand)),size.z-vSum(bottom)],"HingePos [x,z]",hingePos,"HingePin",hingePin,each clip?["clip overlap",clipLap]:[] ],name);
 
@@ -975,7 +1124,7 @@ if(clip&&part!=2)Linear(e=max(1,hinges),y=1,es=(segL+max(pip,spiel))*2,center=tr
         if(max(divider))
           Tz(bottom)Roof(size.z-bottom-spiel+
               (part==1?(divider[1]?lippe.y:lippe.y)
-                      :-max(lippe.y,divider[1]?latchPos+vSum(latchR)+latchH/tan(60)+.1:0)-.1),[ir2,wand/5],deg=[-45,45])Rund(0,1){
+                      :-max(lippe.y,divider[1]?(latchPos+vSum(latchR)+latchH/tan(60)+.1)*0:0)-.1),[ir2,wand/5],deg=[-45,45])Rund(0,1){
             Rand(20)Quad(size.xy-[1,1]*wand*2+[1,1]*0.001,rad=ir1);
             Linear(divider.x,es=(size.x-wand*2)/(divider.x+1),x=1,center=true)square([dividerWand,size.y*2],true);
             Linear(divider.y,es=(size.y-wand*2)/(divider.y+1),y=1,center=true)square([size.x*2,dividerWand],true);
