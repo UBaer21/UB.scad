@@ -5,8 +5,8 @@
 
 include<ub.scad> 
 /*[Hidden]*/
-designVersion=1.5;
-useVersion=24.270;//⇒ v.gd/ubaer
+designVersion=2;
+useVersion=25.100;//⇒ v.gd/ubaer
 assert(Version>=useVersion,str("lib version ",Version," detected, install ",useVersion," ub.scad library‼ ⇒http://v.gd/ubaer"));
 nozzle=.2;
 bed=false;
@@ -54,7 +54,7 @@ if(show=="helper")//•••••••••• Helper:   ••••••�
         
         
     union(){ // 3 axis Projection
-        3Projection(1,cut=false){
+        ThreeProjection(1,cut=false){
         Tz(2)Prisma(2,3,4,x2=1.5,y2=2,x2d=.25,y2d=.5,r=0,rad=0,center=false);
         } 
         Txt("3Projection()");
@@ -122,7 +122,7 @@ if(show=="helper")//•••••••••• Helper:   ••••••�
     }
 
     union(){// Line line between P0 P1
-        T(objPos/2)Line([-7,-1,0],p1=[2,4,0],2D=true);
+        T(objPos/2)Line([-7,-1,0],p1=[2,4,0],use2D=true);
         Txt("Line(p0,p1)"); 
     }
 
@@ -239,7 +239,7 @@ if(show=="modifier")//•••••••••• Modifier:   •••••
   union(){// Halb cut half away
       Cross()circle(2);
       T(objPos/2)P();
-      T(objPos)Cross()Color(color2)Halb(x=1,2D=true)circle(2);
+      T(objPos)Cross()Color(color2)Halb(x=1,use2D=true)circle(2);
       Txt("Halb(x=true)"); 
   }
 
@@ -406,20 +406,20 @@ if(show=="polygons")union()//•••••••••• Polygons:   ••�
       }    
          union(){// Kehle
           T(0,0){Cross();
-          Kehle(rad=10,2D=true);}
+          Kehle(rad=10,use2D=true);}
           Txt("Kehle");
       } 
           union(){// Strebe
           T(0,0){Cross();
-          Strebe(h=10,d=3,rad=1,2D=true);}
+          Strebe(h=10,d=3,rad=1,use2D=true);}
           Txt("Strebe");
       }  
       
       union(){// SBoW
           T(0,0){Cross();
           SBogen(extrude=2,dist=2,r1=3,l1=5);
-          T(5)SBogen(extrude=0,2D=0.8,dist=2,r1=3,l1=5);  
-          T(11)SBogen(grad=170,extrude=-2.2,2D=0.6,dist=3.3,r1=0.6,r2=1,l1=5);    
+          T(5)SBogen(extrude=0,use2D=0.8,dist=2,r1=3,l1=5);  
+          T(11)SBogen(grad=170,extrude=-2.2,use2D=0.6,dist=3.3,r1=0.6,r2=1,l1=5);    
             }
           Txt("SBogen");
       }        
@@ -439,7 +439,7 @@ if(show=="polygons")union()//•••••••••• Polygons:   ••�
         Txt("Spirale"); 
       }   
        union(){ // Arc
-        Bogen(2D=true,messpunkt=5);
+        Bogen(use2D=true,messpunkt=5);
         Txt("Bogen"); 
       } 
       
@@ -544,7 +544,7 @@ if(show=="generator")//•••••••••• Generator:   ••••�
         }
     T(4){
       Cross();
-      Bogen(l1=3,l2=1,messpunkt=5,grad=-61,center=+0,2D=true,d=2);
+      Bogen(l1=3,l2=1,messpunkt=5,grad=-61,center=+0,use2D=true,d=2);
       }
     }
     Txt("Bogen()"); 
@@ -594,7 +594,7 @@ if(show=="generator")//•••••••••• Generator:   ••••�
   union(){ // S-Bow
     T(objPos){
       T(-3)SBogen(l1=4,r1=4,r2=1.5,dist=3,messpunkt=5)circle(1);
-      T(2)SBogen(l1=4,r1=4,r2=1.5,dist=3,messpunkt=5,2D=1.5);
+      T(2)SBogen(l1=4,r1=4,r2=1.5,dist=3,messpunkt=5,use2D=1.5);
       T(6)SBogen(l1=4,r1=4,r2=1.5,dist=3,messpunkt=5,extrude=4);
     }
     

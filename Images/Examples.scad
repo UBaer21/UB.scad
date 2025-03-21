@@ -1,5 +1,5 @@
 use<ub.scad>
-//useVersion=21.360; // openSCAD version >= 21.12
+//useVersion=25.100; // openSCAD version >= 2025
 
 $fn=72;
 
@@ -21,7 +21,7 @@ Anordnen(es=50,option=2,cl=0.85,c=0.1){
 
 
 module Wall(){
-  SBogen(l1=25,r1=25,r2=5)SBogen(l1=30,l2=15,center=false,2D=2.5);
+  SBogen(l1=25,r1=25,r2=5)SBogen(l1=30,l2=15,center=false,use2D=2.5);
 }
 
 module Auger(h=75){
@@ -101,10 +101,10 @@ module Knob()T(-10)rotate(-150)R(0)Halb(1,y=1)union(){
 module Hourglas(grad=115,h=15)
 union(){
   MKlon(mz=1){
-    Kegel(d1=0,h=h,grad=grad,name="Cone");
+    Kegel(d1=0,h=h,grad=grad,name="Cone",fn=$fn);
     r=tan(grad -90)*(h);// Cone d2 at h
     Tz(h)Kontaktwinkel(baseD=r*2,winkel=180-grad,center=0,centerBase=+1)sphere($r);
   }
-  RotEx(cut=true)VarioFill(grad=[-(180-grad),grad]);
+  RotEx(cut=true,fn=$fn,$fs=.01)VarioFill(grad=[-(180-grad),grad]);
 }  
 
